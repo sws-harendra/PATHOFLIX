@@ -15,12 +15,14 @@ class PosEditManager extends Component
 
     // Selections
     public $patientSearch = '', $selectedPatient = null, $patientProfileData = null;
+    public $patient_title = 'Mr.', $patient_name = '', $patient_age = '', $patient_age_unit = 'Years', $patient_phone = '', $patient_email = '', $patient_gender = 'Male', $patient_address = '';
     public $doctorSearch = '', $selectedDoctor = null, $doctorProfileData = null;
     public $agentSearch = '', $selectedAgent = null, $agentProfileData = null;
+    public $bill_no = '', $barcode_no = '';
 
     // Logistics
     public $collection_center_id, $branch_id, $collection_type = 'Center';
-    public $expected_report_date, $expected_report_time;
+    public $expected_report_at, $sample_received_at;
 
     // Cart & Pricing
     public $testSearch = '';
@@ -60,8 +62,6 @@ class PosEditManager extends Component
     public $modalError = '';
     public $membership_fee = 0;
 
-    // Logistics EXTRA
-    public $sample_received_at;
 
     // Cart expansion
     public $expandedCartItems = [];
@@ -83,28 +83,16 @@ class PosEditManager extends Component
         if ($patient) {
             $this->selectedPatient = $patient->toArray();
             $this->patientProfileData = $patient->patientProfile ? $patient->patientProfile->toArray() : null;
-        }
-
-        // Check active membership
-        // First strictly check if THIS invoice itself applied a membership
-        if ($invoice->membership_id) {
-            $membership = Membership::find($invoice->membership_id);
-            if ($membership) {
-                $this->active_membership = $membership->toArray();
-                $this->selectedMembershipId = $membership->id;
-            }
-        } elseif ($patient) {
-            // Otherwise check if patient has a pre-existing active membership
-            $record = PatientMembership::where('patient_id', $patient->id)
-                ->where('is_active', true)
-                ->where('valid_until', '>=', now())
-                ->latest()->first();
-            if ($record) {
-                $membership = Membership::find($record->membership_id);
-                // For pre-existing memberships, it must be fully paid
-                if ($membership && $record->amount_paid >= $membership->price) {
-                    $this->active_membership = $membership->toArray();
-                }
+            
+            $this->patient_name = $patient->name;
+            $this->patient_phone = $patient->phone;
+            $this->patient_email = $patient->email;
+            
+            if ($patient->patientProfile) {
+                $this->patient_age = $patient->patientProfile->age;
+                $this->patient_age_unit = $patient->patientProfile->age_type ?? 'Years';
+                $this->patient_gender = $patient->patientProfile->gender;
+                $this->patient_address = $patient->patientProfile->address;
             }
         }
 
@@ -126,13 +114,35 @@ class PosEditManager extends Component
             }
         }
 
+        // Check active membership
+        if ($invoice->membership_id) {
+            $membership = Membership::find($invoice->membership_id);
+            if ($membership) {
+                $this->active_membership = $membership->toArray();
+                $this->selectedMembershipId = $membership->id;
+            }
+        } elseif ($patient) {
+            $record = PatientMembership::where('patient_id', $patient->id)
+                ->where('is_active', true)
+                ->where('valid_until', '>=', now())
+                ->latest()->first();
+            if ($record) {
+                $membership = Membership::find($record->membership_id);
+                if ($membership && $record->amount_paid >= $membership->price) {
+                    $this->active_membership = $membership->toArray();
+                }
+            }
+        }
+
         // Logistics
         $this->collection_center_id = $invoice->collection_center_id;
         $this->branch_id = $invoice->branch_id;
         $this->collection_type = $invoice->collection_type;
         $this->sample_received_at = $this->invoice->sample_received_at ? $this->invoice->sample_received_at->format('Y-m-d\TH:i') : null;
-        $this->expected_report_date = $this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d') : date('Y-m-d');
-        $this->expected_report_time = $this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('H:i') : date('H:i', strtotime('+24 hours'));
+        $this->expected_report_at = $this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d\TH:i') : date('Y-m-d\TH:i', strtotime('+24 hours'));
+        
+        $this->bill_no = $invoice->invoice_number;
+        $this->barcode_no = $invoice->barcode;
 
         $this->membership_fee = 0; // Initialize
 
@@ -237,11 +247,38 @@ class PosEditManager extends Component
         $this->activeSearchField = 'test';
     }
 
+    public function updatedSelectedMembershipId($value)
+    {
+        if ($value) {
+            $membership = Membership::find($value);
+            if ($membership) {
+                $this->active_membership = $membership->toArray();
+                $this->membership_fee = $membership->price; // Add fee
+            }
+        } else {
+            $this->active_membership = null;
+            $this->membership_fee = 0;
+        }
+        $this->calculateTotals();
+    }
+
     public function selectPatient($userId)
     {
         $user = User::with(['patientProfile'])->find($userId);
         $this->selectedPatient = $user->toArray();
         $this->patientProfileData = $user->patientProfile ? $user->patientProfile->toArray() : null;
+        
+        $this->patient_name = $user->name;
+        $this->patient_phone = $user->phone;
+        $this->patient_email = $user->email;
+        
+        if ($user->patientProfile) {
+            $this->patient_age = $user->patientProfile->age;
+            $this->patient_age_unit = $user->patientProfile->age_type ?? 'Years';
+            $this->patient_gender = $user->patientProfile->gender;
+            $this->patient_address = $user->patientProfile->address;
+        }
+
         $this->patientSearch = '';
         $this->activeSearchField = null;
 
@@ -496,6 +533,7 @@ class PosEditManager extends Component
         $remaining = max(0, $this->net_payable - $currentCollected);
 
         $this->payments[] = ['id' => null, 'mode_id' => '', 'amount' => $remaining > 0 ? $remaining : 0, 'transaction_id' => ''];
+        $this->calculateTotals();
     }
     public function removePaymentRow($index)
     {
@@ -740,9 +778,7 @@ class PosEditManager extends Component
                 'sample_received_at' => $this->sample_received_at,
                 'referred_by_doctor_id' => $doctorId,
                 'referred_by_agent_id' => $agentId,
-                'expected_report_time' => $this->expected_report_date && $this->expected_report_time
-                    ? $this->expected_report_date . ' ' . $this->expected_report_time
-                    : null,
+                'expected_report_time' => $this->expected_report_at,
                 'subtotal' => $this->subtotal,
                 'membership_discount_amount' => $this->membership_discount_amt,
                 'voucher_id' => $this->applied_voucher->id ?? null,
@@ -760,6 +796,7 @@ class PosEditManager extends Component
 
             // Replace invoice items
             InvoiceItem::where('invoice_id', $invoice->id)->delete();
+
             foreach ($this->cart as $item) {
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
@@ -788,8 +825,8 @@ class PosEditManager extends Component
                 }
             }
 
-            // Handle Membership purchase if applicable
-            if ($this->membership_fee > 0 && $this->active_membership) {
+            // Handle Membership purchase if applicable (Only if not already purchased in this invoice)
+            if ($this->membership_fee > 0 && $this->active_membership && !$invoice->patient_membership_id) {
                 $newMembership = PatientMembership::create([
                     'company_id' => $companyId,
                     'patient_id' => $this->selectedPatient['id'],
@@ -802,8 +839,10 @@ class PosEditManager extends Component
                 
                 // Also update the invoice to link to this new membership
                 $invoice->update(['patient_membership_id' => $newMembership->id]);
-                
-                // And insert as line item
+            }
+
+            // Re-add membership line item if fee > 0 (since we deleted all items above)
+            if ($this->membership_fee > 0 && $this->active_membership) {
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'lab_test_id' => null,
@@ -858,7 +897,7 @@ class PosEditManager extends Component
     public function render()
     {
         $companyId = auth()->user()->company_id;
-        $activeBranchId = session('active_branch_id', 'all');
+        $activeBranchId = \App\Models\Configuration::getFor('active_branch_id', 'all');
         $restrictAccess = \App\Models\Configuration::getFor('restrict_branch_access', '1') === '1';
         $roles = auth()->user()->roles->pluck('name')->toArray();
         $isGlobalAdmin = auth()->user()->hasAnyRole(['lab_admin', 'super_admin']) || 
@@ -868,64 +907,84 @@ class PosEditManager extends Component
             ? ($activeBranchId === 'all' ? null : $activeBranchId) 
             : auth()->user()->branch_id;
 
-        $sharePatients = \App\Models\Configuration::getFor('branch_share_patients', '1') === '1';
-        $shareDoctors = \App\Models\Configuration::getFor('branch_share_doctors', '1') === '1';
-        $shareAgents = \App\Models\Configuration::getFor('branch_share_agents', '1') === '1';
-        
-        $patients = $doctors = $agents = $tests = [];
+        // Fetch configs
+        $sharePatients = Configuration::getFor('branch_share_patients', '1') === '1';
+        $shareDoctors = Configuration::getFor('branch_share_doctors', '1') === '1';
+        $shareAgents = Configuration::getFor('branch_share_agents', '1') === '1';
+        $shareTests = Configuration::getFor('branch_share_tests', '1') === '1';
 
-        // Patient suggestions
+        // Only query the search that is currently active
+        $patients = [];
         if ($this->activeSearchField === 'patient') {
             $s = $this->patientSearch;
-            $query = clone \App\Models\User::whereHas('patientProfile', fn($q) => $q->where('company_id', $companyId))
+            $query = User::whereHas('patientProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$sharePatients, fn($q) => $q->where('branch_id', $myBranchId));
-            if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
-            }
+                $query->where(fn($q) => $q->where('phone', 'ilike', "%{$s}%")->orWhere('name', 'ilike', "%{$s}%"));
             $patients = $query->with('patientProfile')->orderBy('id', 'desc')->take(15)->get();
         }
 
-        // Doctor suggestions
+        $doctors = [];
         if ($this->activeSearchField === 'doctor') {
             $s = $this->doctorSearch;
-            $query = clone \App\Models\User::whereHas('doctorProfile', fn($q) => $q->where('company_id', $companyId))
+            $query = User::whereHas('doctorProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$shareDoctors, fn($q) => $q->where('branch_id', $myBranchId));
             if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
+                $query->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('phone', 'ilike', "%{$s}%"));
             }
             $doctors = $query->with('doctorProfile')->orderBy('id', 'desc')->take(15)->get();
         }
 
-        // Agent suggestions
+        $agents = [];
         if ($this->activeSearchField === 'agent') {
             $s = $this->agentSearch;
-            $query = clone \App\Models\User::whereHas('agentProfile', fn($q) => $q->where('company_id', $companyId))
+            $query = User::whereHas('agentProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$shareAgents, fn($q) => $q->where('branch_id', $myBranchId));
             if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
+                $query->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('phone', 'ilike', "%{$s}%"));
             }
             $agents = $query->with('agentProfile')->orderBy('id', 'desc')->take(15)->get();
         }
 
-        // Test suggestions
-        if ($this->activeSearchField === 'test') {
+        // ── Tests Retrieval ──
+        $tQuery = LabTest::where('company_id', $companyId)->where('is_active', true);
+        if ($this->activeSearchField === 'test' && !empty($this->testSearch)) {
             $s = $this->testSearch;
-            $query = LabTest::where('company_id', $companyId)->where('is_active', true);
-            if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('test_code', 'like', "%{$s}%"));
-            }
-            $tests = $query->orderBy('id', 'desc')->take(15)->get();
+            $tQuery->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
         }
+        $tests = $tQuery->orderBy('id', 'desc')->take(20)->get();
+
+        // Reactive Dropdowns (Cached with precise keys)
+        $paymentModes = \Illuminate\Support\Facades\Cache::remember("payment_modes_{$companyId}", 3600, function() use ($companyId) {
+            return PaymentMode::where('company_id', $companyId)->where('is_active', true)->get();
+        });
+
+        $memberships = \Illuminate\Support\Facades\Cache::remember("memberships_{$companyId}", 3600, function() use ($companyId) {
+            return Membership::where('company_id', $companyId)->where('is_active', true)->get();
+        });
+
+        $centers = \Illuminate\Support\Facades\Cache::remember("centers_{$companyId}_{$this->branch_id}", 3600, function() use ($companyId, $isGlobalAdmin, $restrictAccess, $myBranchId) {
+            $query = CollectionCenter::where('company_id', $companyId)->where('is_active', true);
+            if (!$isGlobalAdmin && $restrictAccess && $myBranchId) {
+                $query->where('branch_id', $myBranchId);
+            } elseif ($this->branch_id) {
+                $query->where('branch_id', $this->branch_id);
+            }
+            return $query->get();
+        });
+
+        $branches = \Illuminate\Support\Facades\Cache::remember("branches_{$companyId}", 3600, function() use ($companyId) {
+            return Branch::where('company_id', $companyId)->where('is_active', true)->get();
+        });
 
         return view('livewire.lab.pos-edit-manager', [
+            'patients' => $patients,
             'doctors' => $doctors,
             'agents' => $agents,
             'tests' => $tests,
-            'patients' => $patients,
-            'paymentModes' => $this->paymentModesList,
-            'centers' => $this->cachedCenters,
-            'branches' => $this->cachedBranches,
-            'memberships' => $this->cachedMemberships
+            'paymentModes' => $paymentModes,
+            'centers' => $centers,
+            'branches' => $branches,
+            'memberships' => $memberships,
         ])->layout('layouts.app', ['title' => 'Edit Invoice #' . ($this->invoice->invoice_number ?? '')]);
     }
 }

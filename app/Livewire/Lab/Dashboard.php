@@ -111,6 +111,17 @@ class Dashboard extends Component
                     ->where('collection_type', 'Home Collection')
                     ->whereBetween('invoice_date', [$start, $end])
                     ->count(),
+                'total_tests_period' => Invoice::where('company_id', $companyId)
+                    ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                    ->where('status', '!=', 'Cancelled')
+                    ->whereBetween('invoice_date', [$start, $end])
+                    ->count(),
+                'period_patients' => Invoice::where('company_id', $companyId)
+                    ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                    ->where('status', '!=', 'Cancelled')
+                    ->whereBetween('invoice_date', [$start, $end])
+                    ->distinct('patient_id')
+                    ->count('patient_id'),
             ];
 
             // 3. Financial Totals
