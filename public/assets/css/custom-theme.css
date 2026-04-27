@@ -2,7 +2,8 @@
 /* GLOBAL TABLE OVERHAUL: High Visibility Patho-Theme           */
 /* ============================================================ */
 .table:not(.table-sm) thead th {
-    background-color: #0d6efd !important; /* High-Contrast Blue */
+    background-color: #0d6efd !important;
+    /* High-Contrast Blue */
     color: #ffffff !important;
     padding: 22px 15px !important;
     font-size: 18px !important;
@@ -16,7 +17,8 @@
 .table:not(.table-sm) tbody td {
     padding: 20px 15px !important;
     border: 1px solid #dee2e6 !important;
-    font-size: 20px !important; /* EXTRA LARGE FOR VISIBILITY */
+    font-size: 20px !important;
+    /* EXTRA LARGE FOR VISIBILITY */
     font-weight: 700 !important;
     vertical-align: middle;
     color: #0f172a !important;
@@ -35,11 +37,30 @@ html.app-skin-dark .table:not(.table-sm) thead th {
 }
 
 /* Sub-text and utility classes within tables - scaled up */
-.fs-table-main { font-size: 20px !important; font-weight: 700 !important; }
-.fs-table-sub { font-size: 16px !important; font-weight: 600 !important; }
-.table .badge { font-size: 14px !important; padding: 8px 12px !important; font-weight: 800 !important; }
-.table .text-muted { color: #64748b !important; font-size: 15px !important; }
-html.app-skin-dark .table .text-muted { color: #94a3b8 !important; }
+.fs-table-main {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+}
+
+.fs-table-sub {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.table .badge {
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+    font-weight: 800 !important;
+}
+
+.table .text-muted {
+    color: #64748b !important;
+    font-size: 15px !important;
+}
+
+html.app-skin-dark .table .text-muted {
+    color: #94a3b8 !important;
+}
 
 /* ============================================================ */
 
@@ -57,16 +78,31 @@ html {
     font-size: calc(11px * (var(--ui-font-scale, 100) / 100)) !important;
 }
 
-.fs-12 { font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important; }
-.fs-13 { font-size: calc(13px * (var(--ui-font-scale, 100) / 100)) !important; }
-.fs-14 { font-size: calc(14px * (var(--ui-font-scale, 100) / 100)) !important; }
-.fs-15 { font-size: calc(15px * (var(--ui-font-scale, 100) / 100)) !important; }
-.fs-18 { font-size: calc(18px * (var(--ui-font-scale, 100) / 100)) !important; }
+.fs-12 {
+    font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important;
+}
+
+.fs-13 {
+    font-size: calc(13px * (var(--ui-font-scale, 100) / 100)) !important;
+}
+
+.fs-14 {
+    font-size: calc(14px * (var(--ui-font-scale, 100) / 100)) !important;
+}
+
+.fs-15 {
+    font-size: calc(15px * (var(--ui-font-scale, 100) / 100)) !important;
+}
+
+.fs-18 {
+    font-size: calc(18px * (var(--ui-font-scale, 100) / 100)) !important;
+}
 
 /* Premium UI Elements */
 .hover-lift {
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
+
 .hover-lift:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
@@ -81,10 +117,11 @@ html {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
 }
+
 .custom-range-white::-webkit-slider-thumb {
     background: #ffffff;
     border: 2px solid #0d6efd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .alert-soft-info {
@@ -93,13 +130,16 @@ html {
     border: 1px solid rgba(13, 202, 240, 0.1);
 }
 
-.ls-1 { letter-spacing: 1px; }
+.ls-1 {
+    letter-spacing: 1px;
+}
 
 .btn-white {
     background-color: #ffffff;
     border-color: #ffffff;
     color: #0d6efd;
 }
+
 .btn-white:hover {
     background-color: #f8fafc;
     color: #0a58ca;
@@ -108,7 +148,8 @@ html {
 .transition-all {
     transition: all 0.3s ease;
 }
-    font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important;
+
+font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important;
 }
 
 .fs-13 {
@@ -423,7 +464,7 @@ html.app-skin-dark .text-dark {
 
 .nxl-navigation .nxl-navbar .nxl-item.active>.nxl-link {
     background: rgba(var(--bs-primary-rgb), 0.08) !important;
-    border-right: 3px solid var(--bs-primary) !important;
+    /* border-right: 3px solid var(--bs-primary) !important; */
     position: relative;
     color: var(--bs-primary) !important;
     font-weight: 600 !important;
@@ -661,7 +702,8 @@ html.app-skin-dark .text-dark {
     padding: 15px 25px !important;
     font-weight: 700 !important;
     font-size: 1.1rem !important;
-    border-radius: 0 !important; /* Flat top for the main container header */
+    border-radius: 0 !important;
+    /* Flat top for the main container header */
     margin-bottom: 0 !important;
 }
 
@@ -682,7 +724,7 @@ html.app-skin-dark .text-dark {
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.2s ease;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .settings-input-group:focus-within {

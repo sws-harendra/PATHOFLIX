@@ -96,98 +96,106 @@
         }
 
         /* Ranking styles */
+        /* Ranking styles */
+        /* Legacy Style Cards */
         .rank-card {
             background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             height: 100%;
+            border: 1px solid #dee2e6;
+            overflow: hidden;
         }
-        .rank-header {
+        .rank-header-legacy {
+            background: #007bff;
+            color: white;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+        }
+        .rank-header-legacy.bg-green { background: #28a745; }
+        .rank-header-legacy.bg-red { background: #dc3545; }
+        
+        .rank-title-legacy { font-weight: 600; font-size: 14px; margin: 0; }
+        .rank-controls { display: flex; gap: 10px; font-size: 14px; }
+        
+        .card-filter-area {
+            padding: 10px 15px;
             border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
         }
-        .rank-title { font-weight: 700; color: #333; margin: 0; }
-        .rank-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid #f8f8f8;
-        }
-        .rank-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
+        .card-date-input {
+            width: 100%;
+            border: 1px solid #dee2e6;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 3px;
         }
 
-        /* Preset Buttons */
-        .btn-preset {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            color: #495057;
-            font-weight: 600;
-            transition: all 0.2s;
+        .chart-container-donut {
+            position: relative;
+            height: 140px;
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
-        .btn-preset:hover, .btn-preset.active {
-            background: #343a40;
+
+        .legend-list-legacy {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .legend-item-legacy {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+        }
+        .legend-square {
+            width: 30px;
+            height: 10px;
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+
+        /* Status Bars */
+        .status-bar {
+            border-radius: 4px;
+            padding: 10px 15px;
             color: white;
-            border-color: #343a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+        }
+        .status-content {
+            background: white;
+            padding: 15px;
+            text-align: center;
+            color: #dc3545;
+            font-size: 13px;
+            border: 1px solid #dee2e6;
+            border-top: none;
         }
 
         /* Dark Mode Overrides */
-        html.app-skin-dark .filter-bar, 
-        html.app-skin-dark .chart-box, 
-        html.app-skin-dark .rank-card {
+        html.app-skin-dark .rank-card,
+        html.app-skin-dark .status-content {
             background-color: #1a1a2e !important;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-color: #2a2a40;
         }
-        html.app-skin-dark .filter-bar input,
-        html.app-skin-dark .filter-bar .btn-filter,
-        html.app-skin-dark .btn-preset {
-            background-color: #2a2a40 !important;
-            color: #e2e8f0 !important;
-            border-color: #3a3a55 !important;
-        }
-        html.app-skin-dark .btn-preset:hover, html.app-skin-dark .btn-preset.active {
-            background-color: #4361ee !important;
-            border-color: #4361ee !important;
-            color: white !important;
-        }
-        html.app-skin-dark .rank-title {
-            color: #e2e8f0 !important;
-        }
-        html.app-skin-dark .rank-item {
-            border-bottom-color: #2a2a40;
-        }
-        html.app-skin-dark .rank-item .fw-bold.small {
-            color: #cbd5e1;
-        }
-        html.app-skin-dark .chart-box {
-            color: #e2e8f0;
-        }
-        html.app-skin-dark .breadcrumb-item a {
-            color: #94a3b8;
-        }
-        html.app-skin-dark .text-muted {
+        html.app-skin-dark .legend-item-legacy {
             color: #94a3b8 !important;
         }
-        html.app-skin-dark .btn-light {
+        html.app-skin-dark .card-filter-area {
+            border-bottom-color: #2a2a40;
+        }
+        html.app-skin-dark .card-date-input {
             background-color: #2a2a40;
             border-color: #3a3a55;
             color: #e2e8f0;
-        }
-        html.app-skin-dark .btn-light:hover {
-            background-color: #3a3a55;
         }
     </style>
 
@@ -331,61 +339,130 @@
             </div>
         </div>
 
-        {{-- Bottom Rankings (Restyled) --}}
-        <div class="row g-4">
-            <div class="col-lg-4">
+        {{-- Legacy Style Rankings --}}
+        <div class="row g-3 mb-4">
+            <div class="col-lg-3">
                 <div class="rank-card">
-                    <div class="rank-header">
-                        <h5 class="rank-title">Top Packages</h5>
-                        <a href="{{ route('lab.packages') }}" class="btn btn-sm btn-light">View</a>
+                    <div class="rank-header-legacy">
+                        <span class="rank-title-legacy">Best income packages</span>
+                        <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
                     </div>
-                    @foreach($topPackages as $pkg)
-                        <div class="rank-item">
-                            <div class="rank-icon bg-soft-primary text-primary"><i class="feather-package"></i></div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold small">{{ $pkg->test_name }}</div>
-                                <div class="text-muted" style="font-size: 11px;">{{ $pkg->total_sold }} Sales</div>
+                    <div class="card-filter-area">
+                        <input type="text" class="card-date-input" value="{{ $fromDate }} - {{ $toDate }}" readonly>
+                    </div>
+                    <div class="legend-list-legacy">
+                        @php $colors = ['#00cfd5', '#ff6b6b', '#7e67f8', '#2ecc71', '#f39c12']; @endphp
+                        @foreach($topPackages->take(5) as $index => $pkg)
+                            <div class="legend-item-legacy">
+                                <div class="legend-square" style="background: {{ $colors[$index % 5] }}"></div>
+                                <span class="text-uppercase">{{ $pkg->test_name }}</span>
                             </div>
-                            <div class="fw-bold">₹{{ number_format($pkg->total_income, 0) }}</div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
+                    <div class="chart-container-donut" wire:ignore>
+                        <canvas id="pkgDonutChart"></canvas>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            
+            <div class="col-lg-3">
                 <div class="rank-card">
-                    <div class="rank-header">
-                        <h5 class="rank-title">Top Doctors</h5>
-                        <a href="{{ route('lab.doctors') }}" class="btn btn-sm btn-light">View</a>
+                    <div class="rank-header-legacy">
+                        <span class="rank-title-legacy">Best income tests</span>
+                        <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
                     </div>
-                    @foreach($topDoctors as $doc)
-                        <div class="rank-item">
-                            <div class="rank-icon bg-soft-success text-success"><i class="feather-user-plus"></i></div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold small">{{ $doc->doctor->name ?? 'Doctor' }}</div>
-                                <div class="text-muted" style="font-size: 11px;">Performance</div>
+                    <div class="card-filter-area">
+                        <input type="text" class="card-date-input" value="{{ $fromDate }} - {{ $toDate }}" readonly>
+                    </div>
+                    <div class="legend-list-legacy">
+                        @php $colors = ['#00cfd5', '#ff6b6b', '#7e67f8', '#2ecc71', '#f39c12']; @endphp
+                        @foreach($topPackages->take(5) as $index => $pkg)
+                            <div class="legend-item-legacy">
+                                <div class="legend-square" style="background: {{ $colors[$index % 5] }}"></div>
+                                <span class="text-uppercase">{{ $pkg->test_name }}</span>
                             </div>
-                            <div class="fw-bold">₹{{ number_format($doc->total_income, 0) }}</div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
+                    <div class="chart-container-donut" wire:ignore>
+                        <canvas id="docDonutChart"></canvas>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+
+            <div class="col-lg-3">
                 <div class="rank-card">
-                    <div class="rank-header">
-                        <h5 class="rank-title">Best Centers</h5>
-                        <a href="{{ route('lab.collection.centers') }}" class="btn btn-sm btn-light">View</a>
+                    <div class="rank-header-legacy">
+                        <span class="rank-title-legacy">Top Collection Center</span>
+                        <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
                     </div>
-                    @foreach($topCCs as $cc)
-                        <div class="rank-item">
-                            <div class="rank-icon bg-soft-info text-info"><i class="feather-map-pin"></i></div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold small">{{ $cc->collectionCenter->name ?? 'In-House' }}</div>
-                                <div class="text-muted" style="font-size: 11px;">{{ $cc->total_bills }} Bills</div>
+                    <div class="card-filter-area">
+                        <input type="text" class="card-date-input" value="{{ $fromDate }} - {{ $toDate }}" readonly>
+                    </div>
+                    <div class="legend-list-legacy">
+                        @php $colors = ['#00cfd5', '#ff6b6b', '#7e67f8', '#2ecc71', '#f39c12']; @endphp
+                        @foreach($topCCs->take(5) as $index => $cc)
+                            <div class="legend-item-legacy">
+                                <div class="legend-square" style="background: {{ $colors[$index % 5] }}"></div>
+                                <span class="text-uppercase">{{ $cc->collectionCenter->name ?? 'In-House' }}</span>
                             </div>
-                            <div class="fw-bold">₹{{ number_format($cc->total_income, 0) }}</div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
+                    <div class="chart-container-donut" wire:ignore>
+                        <canvas id="ccDonutChart"></canvas>
+                    </div>
                 </div>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="rank-card">
+                    <div class="rank-header-legacy">
+                        <span class="rank-title-legacy">Top Refered Docter</span>
+                        <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
+                    </div>
+                    <div class="card-filter-area">
+                        <input type="text" class="card-date-input" value="{{ $fromDate }} - {{ $toDate }}" readonly>
+                    </div>
+                    <div class="legend-list-legacy">
+                        @php $colors = ['#00cfd5', '#ff6b6b', '#7e67f8', '#2ecc71', '#f39c12']; @endphp
+                        @foreach($topDoctors->take(5) as $index => $doc)
+                            <div class="legend-item-legacy">
+                                <div class="legend-square" style="background: {{ $colors[$index % 5] }}"></div>
+                                <span class="text-uppercase">{{ $doc->doctor->name ?? 'Doctor' }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="chart-container-donut" wire:ignore>
+                        <canvas id="extraDonutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Row 4: Status Bars --}}
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="status-bar bg-green">
+                    <span><i class="feather-wifi me-2"></i> Online admins ( 0 )</span>
+                    <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
+                </div>
+                <div class="status-content">No users online</div>
+            </div>
+            <div class="col-md-6">
+                <div class="status-bar bg-green">
+                    <span>Online patients ( 0 )</span>
+                    <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
+                </div>
+                <div class="status-content">No patients online</div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="status-bar bg-red">
+                    <span><i class="feather-bell me-2"></i> Today scheduled home visits ( 0 )</span>
+                    <div class="rank-controls"><i class="feather-minus"></i> <i class="feather-x"></i></div>
+                </div>
+                <div class="status-content">No home visits scheduled</div>
             </div>
         </div>
     </div>
@@ -416,16 +493,19 @@
                         {
                             label: 'Income',
                             data: @json($revenueValues),
-                            borderColor: '#17a2b8',
-                            backgroundColor: isDark ? 'rgba(23, 162, 184, 0.1)' : 'rgba(23, 162, 184, 0.05)',
+                            borderColor: '#3b82f6',
+                            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)',
                             fill: true,
                             tension: 0.4,
-                            borderWidth: 3
+                            borderWidth: 3,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 6
                         },
                         {
                             label: 'Due',
                             data: [{{ implode(',', array_map(fn() => rand(1000, 5000), $chartLabels)) }}],
-                            borderColor: '#dc3545',
+                            borderColor: '#ef4444',
                             backgroundColor: 'transparent',
                             fill: false,
                             tension: 0.4,
@@ -440,25 +520,101 @@
                     plugins: { 
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: isDark ? '#1a1a2e' : '#fff',
-                            titleColor: isDark ? '#fff' : '#333',
-                            bodyColor: isDark ? '#e2e8f0' : '#666',
-                            borderColor: isDark ? '#3a3a55' : '#e0e0e0',
-                            borderWidth: 1
+                            backgroundColor: isDark ? '#1e293b' : '#fff',
+                            titleColor: isDark ? '#fff' : '#1e293b',
+                            bodyColor: isDark ? '#94a3b8' : '#475569',
+                            borderColor: isDark ? '#334155' : '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false
                         }
                     },
                     scales: {
                         y: { 
                             beginAtZero: true, 
-                            grid: { color: gridColor },
-                            ticks: { color: textColor }
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { color: textColor, padding: 10 }
                         },
                         x: { 
                             grid: { display: false },
-                            ticks: { color: textColor }
+                            ticks: { color: textColor, padding: 10 }
                         }
                     }
                 }
+            });
+
+            // Initialize Donut Charts
+            const donutOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1e293b' : '#fff',
+                        bodyColor: isDark ? '#f8fafc' : '#1e293b',
+                        padding: 12,
+                        displayColors: true
+                    }
+                }
+            };
+
+            const donutColors = ['#00cfd5', '#ff6b6b', '#7e67f8', '#2ecc71', '#f39c12'];
+
+            // Best income packages
+            new Chart(document.getElementById('pkgDonutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json($topPackages->take(5)->pluck('test_name')),
+                    datasets: [{
+                        data: @json($topPackages->take(5)->pluck('total_income')),
+                        backgroundColor: donutColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: donutOptions
+            });
+
+            // Best income tests
+            new Chart(document.getElementById('docDonutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json($topPackages->take(5)->pluck('test_name')),
+                    datasets: [{
+                        data: @json($topPackages->take(5)->pluck('total_income')),
+                        backgroundColor: donutColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: donutOptions
+            });
+
+            // Top Collection Center
+            new Chart(document.getElementById('ccDonutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json($topCCs->take(5)->map(fn($c) => $c->collectionCenter->name ?? 'In-House')),
+                    datasets: [{
+                        data: @json($topCCs->take(5)->pluck('total_income')),
+                        backgroundColor: donutColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: donutOptions
+            });
+
+            // Top Refered Docter
+            new Chart(document.getElementById('extraDonutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json($topDoctors->take(5)->map(fn($d) => $d->doctor->name ?? 'Doctor')),
+                    datasets: [{
+                        data: @json($topDoctors->take(5)->pluck('total_income')),
+                        backgroundColor: donutColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: donutOptions
             });
         }
 

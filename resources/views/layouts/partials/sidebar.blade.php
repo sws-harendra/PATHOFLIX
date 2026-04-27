@@ -627,14 +627,13 @@
     </div>
     <style>
         /* Sidebar Premium Background & Color */
-        .nxl-navigation {
-            background: #0f172a !important; /* solid deep dark for stability */
-            border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+        .nxl-navigation, 
+        .nxl-navigation .navbar-wrapper,
+        .nxl-navigation .nxl-navbar {
+            background: #0f172a !important; 
+            border: none !important; 
+            border-right: none !important;
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .nxl-navigation .navbar-wrapper {
-            background: transparent !important;
         }
 
         /* Logo Area */
@@ -675,12 +674,12 @@
             transform: translateX(3px);
         }
 
-        /* Active State: Premium Blue Glow */
+        /* Active State: Simple Highlight */
         .nxl-navigation .nxl-navbar .nxl-item.active {
-            background: rgba(59, 130, 246, 0.15) !important;
+            background: rgba(59, 130, 246, 0.1) !important;
             border-radius: 8px;
             margin: 2px 10px !important;
-            border-left: 3px solid #3b82f6 !important;
+            border: none !important; /* REMOVED BORDERS */
         }
 
         .nxl-navigation .nxl-navbar .nxl-item.active > .nxl-link {
@@ -715,13 +714,26 @@
             padding: 15px 20px 5px 20px !important; /* REDUCED SPACING */
         }
 
-        /* Remove the weird green line and any other indicators from theme */
+        /* Target all potential locations of the green line and borders */
+        .nxl-navigation .nxl-item,
+        .nxl-navigation .nxl-item *,
+        .nxl-navigation .nxl-item *::after,
+        .nxl-navigation .nxl-item *::before {
+            border-right: none !important;
+            border-left: none !important;
+            border-right-width: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* Ensure active line is dead */
         .nxl-navigation .nxl-navbar .nxl-item.active::after,
         .nxl-navigation .nxl-navbar .nxl-item.active::before,
-        .nxl-navigation .nxl-navbar .nxl-item::after,
-        .nxl-navigation .nxl-navbar .nxl-item::before {
-            display: none !important;
+        .nxl-navigation .nxl-navbar .nxl-item > .nxl-link::after {
             content: none !important;
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
     </style>
 </nav>
