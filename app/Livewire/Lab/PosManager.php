@@ -14,14 +14,16 @@ class PosManager extends Component
     // 1. SELECTIONS & SEARCH
     // ==========================================
     public $patientSearch = '', $selectedPatient = [], $patientProfileData = null;
+    public $patient_title = 'Mr.', $patient_name = '', $patient_age = '', $patient_age_unit = 'Years', $patient_phone = '', $patient_email = '', $patient_gender = 'Male', $patient_address = '';
     public $doctorSearch = '', $selectedDoctor = [], $doctorProfileData = null;
     public $agentSearch = '', $selectedAgent = [], $agentProfileData = null;
+    public $bill_no = '', $barcode_no = '';
 
     // ==========================================
     // 2. LOGISTICS
     // ==========================================
     public $collection_center_id, $branch_id, $collection_type = 'Center';
-    public $expected_report_date, $expected_report_time;
+    public $expected_report_at, $sample_received_at;
 
     // ==========================================
     // 3. CART & PRICING
@@ -71,9 +73,8 @@ class PosManager extends Component
     public $modalError = '';
 
     // ==========================================
-    // 6. LOGISTICS EXTRA
+    // 7. CART EXPAND
     // ==========================================
-    public $sample_received_at;
 
     // ==========================================
     // 7. CART EXPAND
@@ -109,12 +110,19 @@ class PosManager extends Component
             $this->collection_center_id = $user->collection_center_id ?? (CollectionCenter::where('company_id', $companyId)->first()->id ?? null);
         }
 
-        $this->expected_report_date = date('Y-m-d');
-        $this->expected_report_time = date('H:i', strtotime('+24 hours'));
+        $this->expected_report_at = now()->addHours(24)->format('Y-m-d\TH:i');
         $this->sample_received_at = now()->format('Y-m-d\TH:i');
-        $this->expected_report_date = date('Y-m-d');
-        $this->expected_report_time = date('H:i', strtotime('+24 hours'));
-        $this->sample_received_at = now()->format('Y-m-d\TH:i');
+
+        // Initial Barcode Preview (approximate)
+        $nextId = (Invoice::where('company_id', $companyId)->count() + 1);
+        $bcPrefix = Configuration::getFor('barcode_prefix', 'LAB');
+        $bcDateFormat = Configuration::getFor('barcode_date_format', 'ymd');
+        $bcCounterDigits = (int) Configuration::getFor('barcode_counter_digits', 6);
+        $bcDateMap = ['ym' => date('ym'), 'ymd' => date('ymd'), 'Ymd' => date('Ymd'), 'Y' => date('Y'), 'none' => ''];
+        $bcDatePart = $bcDateMap[$bcDateFormat] ?? date('ymd');
+        $this->barcode_no = $bcPrefix . $bcDatePart . str_pad($nextId, $bcCounterDigits, '0', STR_PAD_LEFT);
+        $this->bill_no = 'AUTO-GEN';
+
         $this->addPaymentRow();
     }
 
@@ -170,6 +178,17 @@ class PosManager extends Component
             $this->patient_membership_id = null;
         }
 
+        // Fill Form Fields
+        $this->patient_name = $user->name;
+        $this->patient_phone = $user->phone;
+        $this->patient_email = $user->email;
+        if ($user->patientProfile) {
+            $this->patient_age = $user->patientProfile->age;
+            $this->patient_age_unit = $user->patientProfile->age_type ?: 'Years';
+            $this->patient_gender = $user->patientProfile->gender ?: 'Male';
+            $this->patient_address = $user->patientProfile->address;
+        }
+
         $this->membership_fee = 0;
         $this->purchasedMembershipRecordId = null;
         $this->calculateTotals();
@@ -197,6 +216,11 @@ class PosManager extends Component
     {
         $this->selectedPatient = null;
         $this->patientProfileData = null;
+        $this->patient_name = '';
+        $this->patient_phone = '';
+        $this->patient_email = '';
+        $this->patient_age = '';
+        $this->patient_address = '';
         $this->active_membership = null;
         $this->membership_fee = 0;
         $this->purchasedMembershipRecordId = null;
@@ -219,7 +243,16 @@ class PosManager extends Component
     public function addTestToCart($testId)
     {
         $test = LabTest::findOrFail($testId);
-        if (!collect($this->cart)->contains('id', $test->id)) {
+        $cartCollection = collect($this->cart);
+        
+        if ($cartCollection->contains('id', $test->id)) {
+            // Remove if already present (Toggle off)
+            $index = $cartCollection->search(fn($item) => $item['id'] == $test->id);
+            if ($index !== false) {
+                $this->removeFromCart($index);
+            }
+        } else {
+            // Add if not present (Toggle on)
             $cartItem = [
                 'id' => $test->id,
                 'name' => $test->name,
@@ -246,9 +279,9 @@ class PosManager extends Component
 
             $this->cart[] = array_merge($cartItem, ['price' => $cartItem['mrp']]);
             $this->calculateTotals();
-            $this->testSearch = '';
-            $this->activeSearchField = null;
         }
+        $this->testSearch = '';
+        $this->activeSearchField = null;
     }
 
     public function removeFromCart($index)
@@ -425,6 +458,21 @@ class PosManager extends Component
         $this->calculateTotals();
     }
 
+    public function updatedSelectedMembershipId($value)
+    {
+        if ($value) {
+            $membership = Membership::find($value);
+            if ($membership) {
+                $this->active_membership = $membership->toArray();
+                $this->membership_fee = $membership->price; // Add the fee to total
+            }
+        } else {
+            $this->active_membership = null;
+            $this->membership_fee = 0;
+        }
+        $this->calculateTotals();
+    }
+
     public function calculateTotals()
     {
         // 1. Recalculate Subtotal from MRP
@@ -492,6 +540,7 @@ class PosManager extends Component
         $remaining = max(0, $this->net_payable - $currentCollected);
         
         $this->payments[] = ['mode_id' => '', 'amount' => $remaining > 0 ? $remaining : 0, 'transaction_id' => ''];
+        $this->calculateTotals();
     }
     public function removePaymentRow($index)
     {
@@ -845,9 +894,7 @@ class PosManager extends Component
                 'barcode' => $barcode,
                 'invoice_date' => now(),
                 'sample_received_at' => $this->sample_received_at, 
-                'expected_report_time' => $this->expected_report_date && $this->expected_report_time
-                    ? $this->expected_report_date . ' ' . $this->expected_report_time
-                    : null,
+                'expected_report_time' => $this->expected_report_at,
                 'subtotal' => $this->subtotal,
                 'membership_discount_amount' => $this->membership_discount_amt,
                 'voucher_id' => $this->applied_voucher->id ?? null,
@@ -884,7 +931,7 @@ class PosManager extends Component
                     'test_name' => $item['name'],
                     'is_package' => $item['is_package'],
                     'mrp' => $item['mrp'],
-                    'price' => $item['mrp'],
+                    'price' => $item['price'],
                     'b2b_price' => data_get($testPrices->get($item['id']), 'b2b_price', 0),
                 ]);
             }
@@ -1010,22 +1057,13 @@ class PosManager extends Component
             $agents = $query->with('agentProfile')->orderBy('id', 'desc')->take(15)->get();
         }
 
-        $tests = [];
-        if ($this->activeSearchField === 'test') {
+        // ── Tests Retrieval ──
+        $tQuery = LabTest::where('company_id', $companyId)->where('is_active', true);
+        if ($this->activeSearchField === 'test' && !empty($this->testSearch)) {
             $s = $this->testSearch;
-            // Lab Tests do not have branch_id on them natively. They are global.
-            // If they shouldn't share lab tests, we might need a mapping table. 
-            // For now, if shareTests is false, branches might not be able to search tests at all. But usually tests are company wide.
-            // Wait, LabTest table doesn't have branch_id. It's only company_id. 
-            // So if sharing is off, they only get an empty list unless we added it?
-            // Since we don't have branch_id on tests, we won't strictly enforce test siloing at db level for now, 
-            // or we just show them anyway if there's no way to create branch tests.
-            $query = LabTest::where('company_id', $companyId)->where('is_active', true);
-            if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
-            }
-            $tests = $query->orderBy('id', 'desc')->take(15)->get();
+            $tQuery->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
         }
+        $tests = $tQuery->orderBy('id', 'desc')->take(20)->get();
 
         // Reactive Dropdowns (Cached with precise keys)
         $paymentModes = \Illuminate\Support\Facades\Cache::remember("payment_modes_{$companyId}", 3600, function() use ($companyId) {
