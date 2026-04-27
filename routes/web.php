@@ -58,7 +58,7 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
         'first_name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
     ]);
-    
+
     \App\Models\Enquiry::create([
         'name' => trim($request->input('first_name') . ' ' . $request->input('last_name')),
         'email' => $request->input('email'),
@@ -67,7 +67,7 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
         'status' => 'new',
         'enquiry_type' => 'website',
     ]);
-    
+
     return redirect('/')->with('success', 'Thank you! We will get back to you shortly.');
 })->name('contact.submit');
 
@@ -94,11 +94,10 @@ Route::get('/v/{hash}', [\App\Http\Controllers\PublicReportController::class, 'd
 Route::get('/bill/{hash}', [\App\Http\Controllers\InvoicePdfController::class, 'streamPublic'])->name('public.bill.download');
 
 
-Route::middleware(['guest'])->group(function () {
-    Route::get('/login', Login::class)->name('login');
-
-// Route::get('/register-lab', RegisterCompany::class)->name('register.lab');
-});
+// Auth Routes (Guest access is handled inside components to prevent role conflicts)
+Route::get('/login', Login::class)->name('login');
+Route::get('/forgot-password', \App\Livewire\Auth\ForgotPassword::class)->name('password.request');
+Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)->name('password.reset');
 
 
 // ==========================================
@@ -122,12 +121,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/departments', \App\Livewire\Admin\DepartmentManager::class)->name('departments');
         Route::get('/plans', PlanManager::class)->name('plans');
         Route::get('/labs', \App\Livewire\Admin\LabManager::class)->name('labs');
+        Route::get('/sales-agents', \App\Livewire\Admin\SalesAgentManager::class)->name('sales-agents');
 
         // CMS Management
         Route::get('/site-settings', \App\Livewire\Admin\SiteSettingsManager::class)->name('site-settings');
         Route::get('/landing-content', \App\Livewire\Admin\LandingContentManager::class)->name('landing-content');
         Route::get('/enquiries', \App\Livewire\Admin\EnquiryManager::class)->name('enquiries');
         Route::get('/audit-logs', \App\Livewire\Admin\AuditLogManager::class)->name('audit-logs');
+        Route::get('/system-logs', \App\Livewire\Admin\LogViewer::class)->name('system-logs');
+        Route::get('/maintenance', \App\Livewire\Admin\MaintenanceManager::class)->name('maintenance');
+        if (config('features.support_tickets', true)) {
+            Route::get('/support', \App\Livewire\Admin\SupportManager::class)->name('support');
+        }
     });
 
 
@@ -230,6 +235,11 @@ Route::middleware(['auth'])->group(function () {
                 Route::get('/purchase', \App\Livewire\Lab\Inventory\PurchaseManager::class)->name('purchase');
                 Route::get('/issuance', \App\Livewire\Lab\Inventory\IssuanceManager::class)->name('issuance');
             });
+
+            // Support Tickets
+            if (config('features.support_tickets', true)) {
+                Route::get('/support', \App\Livewire\Lab\SupportManager::class)->name('support');
+            }
         });
 
     // ----------------------------------------------------
@@ -244,15 +254,20 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/patients', \App\Livewire\Partner\PartnerPatientManager::class)->name('patients');
             Route::get('/settlements', \App\Livewire\Partner\PartnerSettlementManager::class)->name('settlements');
             Route::get('/invoices', \App\Livewire\Partner\PartnerInvoiceManager::class)->name('invoices');
-            Route::get('/referrers/doctors', \App\Livewire\Lab\DoctorManager::class)->name('doctors');
-            Route::get('/referrers/agents', \App\Livewire\Lab\AgentManager::class)->name('agents');
+            Route::get('/referrers/doctors', DoctorManager::class)->name('doctors');
+            Route::get('/referrers/agents', AgentManager::class)->name('agents');
             Route::get('/reports/print/{id}/{template?}', [\App\Http\Controllers\ReportPdfController::class, 'download'])->name('reports.print');
+            
+            // Support Tickets
+            if (config('features.support_tickets', true)) {
+                Route::get('/support', \App\Livewire\Partner\SupportManager::class)->name('support');
+            }
         });
 
 
 
 });
- 
+
 // Global dashboard alias for tests/middleware
 Route::get('/dashboard', function () {
     return redirect()->route('lab.dashboard');
@@ -271,10 +286,10 @@ Route::prefix('portal')->name('portal.')->group(function () {
         Route::get('/reports', \App\Livewire\Patient\PatientReports::class)->name('reports');
         Route::get('/membership', \App\Livewire\Patient\PatientMembership::class)->name('membership');
         Route::get('/profile', \App\Livewire\Patient\PatientProfile::class)->name('profile');
-        
+
         // Dedicated Patient Report Download
         Route::get('/report/{id}/print', [\App\Http\Controllers\ReportPdfController::class, 'download'])->name('report.download');
-        
+
         // Dedicated Patient Invoice Download
         Route::get('/invoice/{id}/print', [\App\Http\Controllers\InvoicePdfController::class, 'download'])->name('invoice.download');
     });

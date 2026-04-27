@@ -1,15 +1,48 @@
 <nav class="nxl-navigation">
     <div class="navbar-wrapper">
         <div class="m-header">
-            <a href="{{ url('/') }}" wire:navigate class="b-brand">
+            @php
+                $dashboardRoute = route('lab.dashboard'); // Default
+                if (auth()->user()->hasRole('super_admin')) {
+                    $dashboardRoute = route('admin.dashboard');
+                } elseif (auth()->user()->patientProfile) {
+                    $dashboardRoute = route('portal.dashboard');
+                } elseif (auth()->user()->hasAnyRole(['doctor', 'agent', 'collection_center'])) {
+                    $dashboardRoute = route('partner.dashboard');
+                }
+            @endphp
+            <a href="{{ $dashboardRoute }}" wire:navigate class="b-brand">
                 @php
                     $logoPath = null;
-                    if (auth()->user()->company && auth()->user()->company->logo) {
-                        $logoPath = asset('storage/' . auth()->user()->company->logo);
-                    } else {
+                    $faviconPath = null;
+
+                    // 1. Check for Lab-specific branding
+                    if (auth()->user()->company) {
+                        if (auth()->user()->company->logo) {
+                            $logoPath = secure_storage_url(auth()->user()->company->logo);
+                        }
+                        
+                        $labFavicon = \App\Models\Configuration::getFor('lab_favicon');
+                        if ($labFavicon) {
+                            $faviconPath = secure_storage_url($labFavicon);
+                        }
+                    }
+
+                    // 2. Fallback to Site-wide branding (Superadmin)
+                    if (!$logoPath) {
                         $siteLogo = \App\Models\SiteSetting::get('site_logo');
                         if ($siteLogo) {
-                            $logoPath = asset('storage/' . $siteLogo);
+                            $logoPath = secure_storage_url($siteLogo);
+                        }
+                    }
+
+                    if (!$faviconPath) {
+                        $siteFavicon = \App\Models\SiteSetting::get('site_favicon');
+                        if ($siteFavicon) {
+                            $faviconPath = secure_storage_url($siteFavicon);
+                        } else {
+                            // Ultimate fallback
+                            $faviconPath = asset('assets/images/icon.webp');
                         }
                     }
                 @endphp
@@ -20,7 +53,7 @@
                     <img src="{{ asset('assets/images/icon.webp') }}" alt="Logo" height="50px" class="logo logo-lg" />
                 @endif
 
-                <img src="{{ \App\Models\Configuration::getFor('lab_favicon') ? asset('storage/' . \App\Models\Configuration::getFor('lab_favicon')) : asset('assets/images/logo-abbr.png') }}" alt="Logo" class="logo logo-sm" />
+                <img src="{{ $faviconPath }}" alt="Logo" class="logo logo-sm" />
             </a>
         </div>
         <div class="navbar-content">
@@ -68,6 +101,12 @@
                             <span class="nxl-mtext">Labs</span>
                         </a>
                     </li>
+                    <li class="nxl-item {{ request()->routeIs('admin.sales-agents') ? 'active' : '' }}">
+                        <a href="{{ route('admin.sales-agents') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-users"></i></span>
+                            <span class="nxl-mtext">Sales Agents</span>
+                        </a>
+                    </li>
 
                     <li class="nxl-item nxl-caption">
                         <label>Website CMS</label>
@@ -100,6 +139,26 @@
                             <span class="nxl-mtext">Global Audit Logs</span>
                         </a>
                     </li>
+                    <li class="nxl-item {{ request()->routeIs('admin.system-logs') ? 'active' : '' }}">
+                        <a href="{{ route('admin.system-logs') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-terminal"></i></span>
+                            <span class="nxl-mtext">System Log Monitor</span>
+                        </a>
+                    </li>
+                    <li class="nxl-item {{ request()->routeIs('admin.maintenance') ? 'active' : '' }}">
+                        <a href="{{ route('admin.maintenance') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-zap"></i></span>
+                            <span class="nxl-mtext">System Maintenance</span>
+                        </a>
+                    </li>
+                    @if(config('features.support_tickets', true))
+                    <li class="nxl-item {{ request()->routeIs('admin.support') ? 'active' : '' }}">
+                        <a href="{{ route('admin.support') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-help-circle"></i></span>
+                            <span class="nxl-mtext">System Support</span>
+                        </a>
+                    </li>
+                    @endif
                 @endrole
 
 
@@ -274,6 +333,14 @@
                             <span class="nxl-mtext">My Profile</span>
                         </a>
                     </li>
+                    @if(config('features.support_tickets', true))
+                    <li class="nxl-item {{ request()->routeIs('lab.support') ? 'active' : '' }}">
+                        <a href="{{ route('lab.support') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-help-circle"></i></span>
+                            <span class="nxl-mtext">Help & Support</span>
+                        </a>
+                    </li>
+                    @endif
                     <li class="nxl-item">
                         <form method="POST" action="{{ route('logout') }}" id="logout-form-lab" class="d-none">
                             @csrf
@@ -495,6 +562,14 @@
                             <span class="nxl-mtext">My Profile</span>
                         </a>
                     </li>
+                    @if(config('features.support_tickets', true))
+                    <li class="nxl-item {{ request()->routeIs('partner.support') ? 'active' : '' }}">
+                        <a href="{{ route('partner.support') }}" wire:navigate class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-help-circle"></i></span>
+                            <span class="nxl-mtext">Help & Support</span>
+                        </a>
+                    </li>
+                    @endif
                     <li class="nxl-item">
                         <form method="POST" action="{{ route('logout') }}" id="logout-form-sidebar" class="d-none">
                             @csrf

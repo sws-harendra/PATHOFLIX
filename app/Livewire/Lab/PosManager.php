@@ -112,20 +112,10 @@ class PosManager extends Component
         $this->expected_report_date = date('Y-m-d');
         $this->expected_report_time = date('H:i', strtotime('+24 hours'));
         $this->sample_received_at = now()->format('Y-m-d\TH:i');
+        $this->expected_report_date = date('Y-m-d');
+        $this->expected_report_time = date('H:i', strtotime('+24 hours'));
+        $this->sample_received_at = now()->format('Y-m-d\TH:i');
         $this->addPaymentRow();
-
-        // Cache static dropdown data once on mount
-        $this->paymentModesList = PaymentMode::where('company_id', $companyId)->where('is_active', true)->get();
-        $this->cachedMemberships = Membership::where('company_id', $companyId)->where('is_active', true)->get();
-
-        // Branch-Aware Dropdowns
-        if ($user->hasRole('branch_admin') && $restrictAccess) {
-            $this->cachedCenters = CollectionCenter::where('company_id', $companyId)->where('branch_id', $user->branch_id)->where('is_active', true)->get();
-            $this->cachedBranches = Branch::where('id', $user->branch_id)->get();
-        } else {
-            $this->cachedCenters = CollectionCenter::where('company_id', $companyId)->where('is_active', true)->get();
-            $this->cachedBranches = Branch::where('company_id', $companyId)->where('is_active', true)->get();
-        }
     }
 
     // ==========================================
@@ -355,10 +345,18 @@ class PosManager extends Component
             return;
         }
         try {
-            PaymentMode::create(['company_id' => auth()->user()->company_id, 'name' => trim($this->new_payment_mode_name), 'is_active' => true]);
+            $companyId = auth()->user()->company_id;
+            PaymentMode::create([
+                'company_id' => $companyId, 
+                'name' => trim($this->new_payment_mode_name), 
+                'is_active' => true
+            ]);
             
-            // Refresh the list so it updates in the UI instantly
-            $this->paymentModesList = PaymentMode::where('company_id', auth()->user()->company_id)->where('is_active', true)->get();
+            // Clear cache so it reflects in render()
+            \Illuminate\Support\Facades\Cache::forget("payment_modes_{$companyId}");
+            
+            // Also refresh the local list
+            $this->paymentModesList = PaymentMode::where('company_id', $companyId)->where('is_active', true)->get();
 
             $this->isPaymentModeModalOpen = false;
             $this->new_payment_mode_name = '';
@@ -489,7 +487,11 @@ class PosManager extends Component
     // ==========================================
     public function addPaymentRow()
     {
-        $this->payments[] = ['mode_id' => '', 'amount' => 0, 'transaction_id' => ''];
+        // Auto-fill the remaining due if possible
+        $currentCollected = collect($this->payments)->sum(fn($p) => (float)($p['amount'] ?? 0));
+        $remaining = max(0, $this->net_payable - $currentCollected);
+        
+        $this->payments[] = ['mode_id' => '', 'amount' => $remaining > 0 ? $remaining : 0, 'transaction_id' => ''];
     }
     public function removePaymentRow($index)
     {
@@ -523,7 +525,7 @@ class PosManager extends Component
                 'name' => $this->new_name,
                 'phone' => $this->new_phone,
                 'email' => $fallbackEmail,
-                'password' => Hash::make($defaultPass),
+                'password' => $defaultPass,
                 'is_active' => true,
                 'company_id' => $companyId,
                 'branch_id' => $this->branch_id,
@@ -587,7 +589,7 @@ class PosManager extends Component
                 'name' => $finalName,
                 'phone' => $phone,
                 'email' => 'doctor_' . $phone . '@noemail.local',
-                'password' => Hash::make($phone),
+                'password' => $phone,
                 'is_active' => true,
                 'company_id' => $companyId,
                 'branch_id' => $this->branch_id,
@@ -630,7 +632,7 @@ class PosManager extends Component
                 'name' => $this->new_agent_name,
                 'phone' => $phone,
                 'email' => 'agent_' . $phone . '@noemail.local',
-                'password' => Hash::make($phone),
+                'password' => $phone,
                 'is_active' => true,
                 'company_id' => $companyId,
                 'branch_id' => $this->branch_id,
@@ -671,6 +673,25 @@ class PosManager extends Component
 
         if ($this->overpaymentError) {
             session()->flash('error', 'Total payment cannot exceed Net Payable amount.');
+            return;
+        }
+
+        // Validate Payments: If an amount is entered, a mode MUST be selected
+        $hasPayment = false;
+        foreach ($this->payments as $index => $pay) {
+            $amt = (float)($pay['amount'] ?? 0);
+            if ($amt > 0) {
+                $hasPayment = true;
+                if (empty($pay['mode_id'])) {
+                    session()->flash('error', "Please select a Payment Mode for Payment row #" . ($index + 1));
+                    return;
+                }
+            }
+        }
+
+        // If the bill is marked as fully paid but no payment mode was selected (shouldn't happen with above check, but safe)
+        if ($this->due_amount <= 0 && !$hasPayment && $this->net_payable > 0) {
+            session()->flash('error', "Please add at least one payment method for a fully paid bill.");
             return;
         }
 
@@ -715,25 +736,45 @@ class PosManager extends Component
                 // 'never' — no filter, continuous count
             }
             $nextId = $counterQuery->count() + 1;
+            $invoiceNumber = '';
+            $barcode = '';
 
-            $counter = str_pad($nextId, $counterDigits, '0', STR_PAD_LEFT);
-            $parts = array_filter([$prefix, $datePart, $counter]);
-            $invoiceNumber = implode($separator, $parts);
+            // Loop until we find a unique invoice number and barcode for this company
+            $maxAttempts = 100; // Safety valve
+            $attempts = 0;
 
-            // Barcode generation based on settings
-            $bcPrefix = Configuration::getFor('barcode_prefix', 'LAB');
-            $bcDateFormat = Configuration::getFor('barcode_date_format', 'ymd');
-            $bcCounterDigits = (int) Configuration::getFor('barcode_counter_digits', 6);
+            do {
+                $counter = str_pad($nextId, $counterDigits, '0', STR_PAD_LEFT);
+                $parts = array_filter([$prefix, $datePart, $counter]);
+                $invoiceNumber = implode($separator, $parts);
 
-            $bcDateMap = [
-                'ym' => date('ym'),
-                'ymd' => date('ymd'),
-                'Ymd' => date('Ymd'),
-                'Y' => date('Y'),
-                'none' => '',
-            ];
-            $bcDatePart = $bcDateMap[$bcDateFormat] ?? date('ymd');
-            $barcode = $bcPrefix . $bcDatePart . str_pad($nextId, $bcCounterDigits, '0', STR_PAD_LEFT);
+                // Barcode generation settings
+                $bcPrefix = Configuration::getFor('barcode_prefix', 'LAB');
+                $bcDateFormat = Configuration::getFor('barcode_date_format', 'ymd');
+                $bcCounterDigits = (int) Configuration::getFor('barcode_counter_digits', 6);
+
+                $bcDateMap = [
+                    'ym' => date('ym'),
+                    'ymd' => date('ymd'),
+                    'Ymd' => date('Ymd'),
+                    'Y' => date('Y'),
+                    'none' => '',
+                ];
+                $bcDatePart = $bcDateMap[$bcDateFormat] ?? date('ymd');
+                $barcode = $bcPrefix . $bcDatePart . str_pad($nextId, $bcCounterDigits, '0', STR_PAD_LEFT);
+
+                $exists = Invoice::where('company_id', $companyId)
+                    ->where(function ($q) use ($invoiceNumber, $barcode) {
+                        $q->where('invoice_number', $invoiceNumber)
+                            ->orWhere('barcode', $barcode);
+                    })
+                    ->exists();
+
+                if ($exists) {
+                    $nextId++;
+                    $attempts++;
+                }
+            } while ($exists && $attempts < $maxAttempts);
 
             // ── Commission Calculation ──
             $docCommission = 0;
@@ -741,27 +782,40 @@ class PosManager extends Component
             $doctorId = $this->selectedDoctor['id'] ?? null;
             $agentId = $this->selectedAgent['id'] ?? null;
 
+            // Fetch B2B cost early for profit-based commission
+            $cartIds = collect($this->cart)->pluck('id');
+            $testPrices = LabTest::whereIn('id', $cartIds)->get()->keyBy('id');
+            $totalB2bForComm = 0;
+            foreach ($this->cart as $item) {
+                $totalB2bForComm += (float) data_get($testPrices->get($item['id']), 'b2b_price', 0);
+            }
+
             if ($doctorId) {
                 $profile = DoctorProfile::where('user_id', $doctorId)->first();
-                $docCommission = ($this->net_payable * ($profile->commission_percentage ?? 0)) / 100;
+                $basis = Configuration::getFor('commission_basis_doctor', 'gross');
+                
+                if ($basis === 'profit') {
+                    $profit = max(0, $this->net_payable - $totalB2bForComm);
+                    $docCommission = ($profit * ($profile->commission_percentage ?? 0)) / 100;
+                } else {
+                    $docCommission = ($this->net_payable * ($profile->commission_percentage ?? 0)) / 100;
+                }
             }
             if ($agentId) {
                 $profile = AgentProfile::where('user_id', $agentId)->first();
-                $agentCommission = ($this->net_payable * ($profile->commission_percentage ?? 0)) / 100;
+                $basis = Configuration::getFor('commission_basis_agent', 'gross');
+
+                if ($basis === 'profit') {
+                    $profit = max(0, $this->net_payable - $totalB2bForComm);
+                    $agentCommission = ($profit * ($profile->commission_percentage ?? 0)) / 100;
+                } else {
+                    $agentCommission = ($this->net_payable * ($profile->commission_percentage ?? 0)) / 100;
+                }
             }
 
             // ── B2B & Profit Calculation (for Collection Centers) ──
-            $totalB2bAmount = 0;
+            $totalB2bAmount = $totalB2bForComm;
             $ccId = $this->collection_center_id;
-
-            // We need to fetch B2B prices for all tests in cart
-            $cartIds = collect($this->cart)->pluck('id');
-            $testPrices = LabTest::whereIn('id', $cartIds)->get()->keyBy('id');
-
-            foreach ($this->cart as $item) {
-                $b2b = (float) data_get($testPrices->get($item['id']), 'b2b_price', 0);
-                $totalB2bAmount += $b2b;
-            }
 
             // CC Profit = Final Total (what patient pays) - B2B Total (what lab keeps)
             $ccProfitAmount = 0;
@@ -862,6 +916,15 @@ class PosManager extends Component
             $commissionService->applyCommissions($invoice);
 
             DB::commit();
+
+            // Pre-generate Invoice PDF for R2 offloading
+            try {
+                $pdfService = new \App\Services\PdfStorageService();
+                $pdfService->storeInvoicePdf($invoice);
+            } catch (\Exception $e) {
+                Log::error("Failed to pre-generate Invoice PDF: " . $e->getMessage());
+            }
+
             session()->flash('message', '✅ Bill Generated! Invoice: ' . $invoiceNumber);
 
             $this->cart = [];
@@ -964,15 +1027,39 @@ class PosManager extends Component
             $tests = $query->orderBy('id', 'desc')->take(15)->get();
         }
 
+        // Reactive Dropdowns (Cached with precise keys)
+        $paymentModes = \Illuminate\Support\Facades\Cache::remember("payment_modes_{$companyId}", 3600, function() use ($companyId) {
+            return PaymentMode::where('company_id', $companyId)->where('is_active', true)->get();
+        });
+
+        $memberships = \Illuminate\Support\Facades\Cache::remember("memberships_{$companyId}", 3600, function() use ($companyId) {
+            return Membership::where('company_id', $companyId)->where('is_active', true)->get();
+        });
+
+        $centers = \Illuminate\Support\Facades\Cache::remember("centers_{$companyId}_{$this->branch_id}", 3600, function() use ($companyId, $isGlobalAdmin, $restrictAccess, $myBranchId) {
+            $query = CollectionCenter::where('company_id', $companyId)->where('is_active', true);
+            if (!$isGlobalAdmin && $restrictAccess && $myBranchId) {
+                $query->where('branch_id', $myBranchId);
+            } elseif ($this->branch_id) {
+                // If a branch is explicitly selected by global admin
+                $query->where('branch_id', $this->branch_id);
+            }
+            return $query->get();
+        });
+
+        $branches = \Illuminate\Support\Facades\Cache::remember("branches_{$companyId}", 3600, function() use ($companyId) {
+            return Branch::where('company_id', $companyId)->where('is_active', true)->get();
+        });
+
         return view('livewire.lab.pos-manager', [
             'patients' => $patients,
             'doctors' => $doctors,
             'agents' => $agents,
             'tests' => $tests,
-            'paymentModes' => $this->paymentModesList,
-            'centers' => $this->cachedCenters,
-            'branches' => $this->cachedBranches,
-            'memberships' => $this->cachedMemberships,
+            'paymentModes' => $paymentModes,
+            'centers' => $centers,
+            'branches' => $branches,
+            'memberships' => $memberships,
         ])->layout('layouts.app', ['title' => 'Billing POS']);
     }
 }

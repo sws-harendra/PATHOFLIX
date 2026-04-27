@@ -95,12 +95,12 @@
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <span class="avatar-text avatar-xs bg-soft-success text-success rounded-circle me-3 fw-bold text-center d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">{{ is_array($test->default_parameters) ? count($test->default_parameters) : 0 }}</span>
-                                            <span class="fs-12 fw-medium text-dark">Parameters</span>
+                                            <span class="avatar-text bg-soft-success text-success rounded-circle me-3 fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 13px;">{{ is_array($test->default_parameters) ? count($test->default_parameters) : 0 }}</span>
+                                            <span class="fs-13 fw-bold text-dark">Parameters</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="fw-bold text-dark fs-14">₹{{ number_format($test->suggested_price ?? 0, 2) }}</div>
+                                        <div class="fw-bold text-dark fs-14">₹{{ number_format($test->mrp ?? 0, 2) }}</div>
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="hstack gap-2 justify-content-end">

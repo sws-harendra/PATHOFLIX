@@ -133,7 +133,11 @@ class InvoiceManager extends Component
 
         // Invoice Status (Active/Cancelled)
         if ($this->filterInvoiceStatus) {
-            $query->where('status', $this->filterInvoiceStatus);
+            if ($this->filterInvoiceStatus === 'Active') {
+                $query->where('status', '!=', 'Cancelled');
+            } else {
+                $query->where('status', $this->filterInvoiceStatus);
+            }
         }
 
         // Sample Status
@@ -167,7 +171,7 @@ class InvoiceManager extends Component
         $invoices = $query->paginate($this->perPage);
 
         // Stats calculations with strict scoping
-        $statsBase = Invoice::where('company_id', $companyId);
+        $statsBase = Invoice::where('company_id', $companyId)->where('status', '!=', 'Cancelled');
         if ($myBranchId) $statsBase->where('branch_id', $myBranchId);
         if ($user->collection_center_id) $statsBase->where('collection_center_id', $user->collection_center_id);
 
@@ -222,5 +226,20 @@ class InvoiceManager extends Component
         } catch (\Throwable $th) {
             session()->flash('error', 'Critical Error: ' . $th->getMessage());
         }
+    }
+
+    public function printInvoice($id, $withHeader)
+    {
+        if ($withHeader) {
+            $header = \App\Models\Configuration::getFor('pdf_header_image');
+            if (!$header) {
+                $this->dispatch('notify', ['type' => 'error', 'message' => 'Please upload your Letterhead (Header) in Settings before printing with header.']);
+                return;
+            }
+        }
+        
+        $route = $withHeader ? 'lab.invoice.pdf' : 'lab.invoice.pdf.plain';
+        $url = route($route, $id);
+        $this->dispatch('open-new-tab', ['url' => $url]);
     }
 }

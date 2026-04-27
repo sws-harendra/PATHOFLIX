@@ -7,13 +7,8 @@
 
     @php
         // ── Resolve image paths (Mirror of Report) ──
-        $headerImgSrc = $settings['pdf_header_image']
-            ? public_path('storage/' . $settings['pdf_header_image'])
-            : public_path('assets/images/pdf-header.jpeg');
-
-        $footerImgSrc = $settings['pdf_footer_image']
-            ? public_path('storage/' . $settings['pdf_footer_image'])
-            : public_path('assets/images/pdf-footer.jpeg');
+        $headerImgSrc = $settings['pdf_header_image'] ?? null;
+        $footerImgSrc = $settings['pdf_footer_image'] ?? null;
 
         // ── Margins from Settings ──
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
@@ -36,6 +31,7 @@
             background: #fff;
             line-height: 1.45;
             margin: {{ $marginTop }} 25px {{ $marginBottom }} 25px;
+            padding-top: 10px; /* Extra safety gap */
         }
 
         /* ══════════════════════════════════════════════
@@ -48,10 +44,12 @@
             right: 0;
             height: {{ (int)$headerHeight + 20 }}px;
             overflow: visible;
+            width: 100%;
         }
 
         .header-banner {
-            width: 100%;
+            width: 100% !important;
+            min-width: 100% !important;
             display: block;
         }
 
@@ -116,20 +114,23 @@
             left: 0;
             right: 0;
             height: {{ $footerHeight }};
+            width: 100%;
         }
 
         .footer-banner {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
+            width: 100% !important;
+            min-width: 100% !important;
+            display: block;
         }
 
         /* ── MAIN CONTENT ── */
         .bill-title-container {
             text-align: center;
             width: 100%;
-            margin: 15px 0 20px;
+            margin: 40px 0 30px; /* Significant top margin to move it below the fixed header info */
         }
 
         .bill-title {
@@ -151,7 +152,7 @@
 
         .items-table th {
             text-align: left;
-            padding: 8px 5px;
+            padding: 12px 5px; /* Increased padding to prevent line overlap */
             border-top: 1.5px solid #1a1a1a;
             border-bottom: 1.5px solid #1a1a1a;
             font-weight: 700;
@@ -223,8 +224,11 @@
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
-        <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header"
-            style="{{ $showHeader ? '' : 'visibility: hidden;' }} margin-bottom: 12px; display: block;">
+        <div style="height: {{ $headerHeight }}; width: 100%; overflow: hidden; margin-bottom: 12px; padding: 0;">
+            @if($showHeader && $headerImgSrc)
+                <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
+            @endif
+        </div>
 
         {{-- Patient Info Box (Fixed in Header - Stays at top of every page) --}}
         <div class="patient-box">
@@ -268,9 +272,13 @@
     </header>
 
     {{-- ══════════════════ FIXED FOOTER ══════════════════ --}}
-    @if($showFooter && $footerImgSrc)
+    @if($showFooter)
         <footer>
-            <img class="footer-banner" src="{{ $footerImgSrc }}" alt="Footer">
+            <div style="height: {{ $footerHeight }}; width: 100%; overflow: hidden; padding: 0;">
+                @if($footerImgSrc)
+                    <img class="footer-banner" src="{{ $footerImgSrc }}" alt="Footer">
+                @endif
+            </div>
         </footer>
     @endif
 

@@ -58,8 +58,8 @@
         }
 
         /* Custom Header/Footer Images */
-        .custom-header-img { width: 100%; max-height: 100px; object-fit: contain; }
-        .custom-footer-img { width: 100%; max-height: 60px; object-fit: contain; }
+        .custom-header-img { width: 100% !important; min-width: 100% !important; display: block; }
+        .custom-footer-img { width: 100% !important; min-width: 100% !important; display: block; }
 
         /* Patient Demographics Box */
         .patient-box {
@@ -242,7 +242,7 @@
     {{-- Watermark --}}
     @if(isset($company->logo) && $company->logo)
         <div class="watermark">
-            <img src="{{ public_path('storage/' . $company->logo) }}">
+            <img src="{{ storage_base64($company->logo) }}">
         </div>
     @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
         <div class="watermark">
@@ -254,7 +254,7 @@
     @if($settings['pdf_show_header'])
         <header>
             @if($settings['pdf_header_image'])
-                <img src="{{ public_path('storage/' . $settings['pdf_header_image']) }}" class="custom-header-img" alt="Header">
+                <img src="{{ $settings['pdf_header_image'] }}" class="custom-header-img" alt="Header">
             @else
                 <div class="header-content">
                     <div class="header-logo">
@@ -274,7 +274,7 @@
     @if($settings['pdf_show_footer'])
         <footer>
             @if($settings['pdf_footer_image'])
-                <img src="{{ public_path('storage/' . $settings['pdf_footer_image']) }}" class="custom-footer-img" alt="Footer">
+                <img src="{{ $settings['pdf_footer_image'] }}" class="custom-footer-img" alt="Footer">
             @else
                 <div style="text-align: center;">
                     <strong>{{ $company->name }}</strong> - {{ $company->tagline }}<br>
@@ -326,12 +326,18 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($tests as $testName => $results)
+                @foreach($tests as $testKey => $testData)
+                    @php
+                        $testName = $testData['name'];
+                        $results = $testData['results'];
+                        $labTest = $testData['labTest'];
+                        $remark = $testData['remark'] ?? '';
+                    @endphp
                     <tr>
                         <td colspan="4" class="test-title">
                             {{ $testName }}
-                            @if($results->first()->labTest->method)
-                                <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $results->first()->labTest->method }})</span>
+                            @if($labTest->method)
+                                <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
                             @endif
                         </td>
                     </tr>
@@ -359,37 +365,29 @@
                             <td><span style="white-space: pre-line;">{{ $r->reference_range }}</span></td>
                         </tr>
                     @endforeach
-                    @if($results->first()->labTest->description)
+                    @if($labTest->description)
                         <tr>
                             <td colspan="4" style="padding-left: 15px; padding-top: 5px; padding-bottom: 5px; font-size: 10px; color: #555;">
                                 <strong>Note:</strong> <br>
-                                {!! nl2br(e($results->first()->labTest->description)) !!}
+                                {!! nl2br(e($labTest->description)) !!}
                             </td>
                         </tr>
                     @endif
-                    @if($results->first()->labTest->interpretation)
+                    @if($labTest->interpretation)
                         <tr>
                             <td colspan="4" class="interpretation-block" style="padding-left: 15px; padding-top: 5px; padding-bottom: 15px; font-size: 11px; color: #333;">
                                 <strong>Interpretation:</strong> <br>
-                                {!! $results->first()->labTest->interpretation !!}
+                                {!! $labTest->interpretation !!}
                             </td>
                         </tr>
                     @endif
 
-                    <!-- Display Test Form specific remarks -->
-                    @php
-                        $testInvoiceItem = null;
-                        if($results->first()->invoice_item_id) {
-                            $testInvoiceItem = $invoice->items->where('id', $results->first()->invoice_item_id)->first();
-                        } else {
-                            $testInvoiceItem = $invoice->items->where('lab_test_id', $results->first()->lab_test_id)->first();
-                        }
-                    @endphp
-                    @if($testInvoiceItem && $testInvoiceItem->report_comments)
+                    <!-- Display Test specific remarks (Granular) -->
+                    @if(!empty($remark))
                         <tr>
                             <td colspan="4" class="interpretation-block" style="padding-left: 15px; padding-top: 5px; padding-bottom: 15px; font-size: 11px; color: #333; background: #fafafa; border: 1px dotted #ccc;">
                                 <strong>Feedback / Remarks:</strong> <br>
-                                {!! $testInvoiceItem->report_comments !!}
+                                {!! $remark !!}
                             </td>
                         </tr>
                     @endif
@@ -438,7 +436,7 @@
         <div class="signature-row">
             @if($settings['global_sig_1_path'])
                 <div class="signature-col">
-                    <img src="{{ public_path('storage/' . $settings['global_sig_1_path']) }}" class="signature-img"><br>
+                    <img src="{{ $settings['global_sig_1_path'] }}" class="signature-img"><br>
                     <strong>{{ $settings['global_sig_1_name'] }}</strong><br>
                     {{ $settings['global_sig_1_desig'] }}
                 </div>
@@ -446,7 +444,7 @@
 
             @if($settings['global_sig_2_path'])
                 <div class="signature-col">
-                    <img src="{{ public_path('storage/' . $settings['global_sig_2_path']) }}" class="signature-img"><br>
+                    <img src="{{ $settings['global_sig_2_path'] }}" class="signature-img"><br>
                     <strong>{{ $settings['global_sig_2_name'] }}</strong><br>
                     {{ $settings['global_sig_2_desig'] }}
                 </div>
@@ -454,7 +452,7 @@
 
             @if($settings['global_sig_3_path'])
                 <div class="signature-col">
-                    <img src="{{ public_path('storage/' . $settings['global_sig_3_path']) }}" class="signature-img"><br>
+                    <img src="{{ $settings['global_sig_3_path'] }}" class="signature-img"><br>
                     <strong>{{ $settings['global_sig_3_name'] }}</strong><br>
                     {{ $settings['global_sig_3_desig'] }}
                 </div>

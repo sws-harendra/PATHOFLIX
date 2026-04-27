@@ -19,6 +19,19 @@
                 <h6 class="card-title mb-0"><i class="feather-flask me-2 text-primary"></i>Test Results & Reports</h6>
             </div>
             <div class="card-body">
+                @if(session()->has('success'))
+                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3">
+                        <i class="feather-check-circle me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if(session()->has('error'))
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3">
+                        <i class="feather-alert-octagon me-2"></i>{{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
                 
                 {{-- Filters --}}
                 <div class="row g-3 mb-4">
@@ -168,8 +181,8 @@
                                                     </a>
                                                 @endcan
                                             @else
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-success dropdown-toggle fs-11" type="button" data-bs-toggle="dropdown">
+                                                <div class="dropdown {{ $loop->remaining < 2 ? 'dropup' : '' }}">
+                                                    <button class="btn btn-sm btn-success dropdown-toggle fs-11" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                                                         <i class="feather-printer me-1"></i> Print / Edit
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -181,8 +194,8 @@
                                                         @endcan
                                                         <li><hr class="dropdown-divider"></li>
                                                         <li class="dropdown-header fw-bold fs-10 text-uppercase text-muted px-3">Print All Tests</li>
-                                                        <li><a class="dropdown-item fs-12 text-primary" href="{{ route('lab.reports.print', [$invoice->id, 'new']) }}?header=1" target="_blank"><i class="feather-file-text me-2"></i> With Header</a></li>
-                                                        <li><a class="dropdown-item fs-12 text-secondary" href="{{ route('lab.reports.print', [$invoice->id, 'new']) }}?header=0" target="_blank"><i class="feather-file me-2"></i> Without Header</a></li>
+                                                        <li><button type="button" class="dropdown-item fs-12 text-primary" wire:click="printReport({{ $invoice->id }}, 1)"><i class="feather-file-text me-2"></i> With Header</button></li>
+                                                        <li><button type="button" class="dropdown-item fs-12 text-secondary" wire:click="printReport({{ $invoice->id }}, 0)"><i class="feather-file me-2"></i> Without Header</button></li>
                                                         <li><hr class="dropdown-divider"></li>
                                                         <li class="dropdown-header fw-bold fs-10 text-uppercase text-muted px-3">Print Selected Tests</li>
                                                         <li><button type="button" class="dropdown-item fs-12 text-success fw-bold" wire:click="printSelected({{ $invoice->id }}, 1)"><i class="feather-check-square me-2"></i> With Header</button></li>
@@ -192,8 +205,8 @@
                                             @endif
 
                                             {{-- WhatsApp Share --}}
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-success dropdown-toggle fs-11 px-2" type="button" data-bs-toggle="dropdown" @if(!$invoice->patient->phone) disabled title="Phone missing" @endif>
+                                            <div class="dropdown {{ $loop->remaining < 2 ? 'dropup' : '' }}">
+                                                <button class="btn btn-sm btn-outline-success dropdown-toggle fs-11 px-2" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" @if(!$invoice->patient->phone) disabled title="Phone missing" @endif>
                                                     <i class="bi bi-whatsapp"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-1">

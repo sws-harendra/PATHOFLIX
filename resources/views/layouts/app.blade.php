@@ -14,7 +14,7 @@
 
     {{-- THEME GUARD: Runs before anything renders. Reads localStorage and applies classes instantly. --}}
     <script>
-        (function() {
+        (function () {
             try {
                 // The template uses TWO keys: 'app-skin' (customizer) and 'app-skin-dark' (header toggle)
                 var skinCustomizer = localStorage.getItem('app-skin') || '';
@@ -45,15 +45,18 @@
 
                 // Sync cookie for server-side rendering on next request
                 document.cookie = "nxl_theme=" + (isDark ? 'dark' : 'light') + "; path=/; max-age=31536000; SameSite=Lax";
-            } catch (e) {}
+            } catch (e) { }
         })();
     </script>
 
     {{-- Inline critical dark-mode styles so there's zero flash even before CSS loads --}}
     <style>
         :root {
-            --ui-font-scale: {{ \App\Models\Configuration::getFor('ui_font_scale', 100) }}%;
+            --ui-font-scale:
+                {{ \App\Models\Configuration::getFor('ui_font_scale', 100) }}
+                %;
         }
+
         html.app-skin-dark,
         html.app-skin-dark body {
             background-color: #1a1d29 !important;
@@ -63,9 +66,9 @@
     @php
         $siteFavicon = \App\Models\SiteSetting::get('site_favicon');
         $labFavicon = \App\Models\Configuration::getFor('lab_favicon');
-        $faviconUrl = $labFavicon 
-            ? asset('storage/' . $labFavicon) 
-            : ($siteFavicon ? asset('storage/' . $siteFavicon) : asset('assets/images/icon.webp'));
+        $faviconUrl = $labFavicon
+            ? secure_storage_url($labFavicon)
+            : ($siteFavicon ? secure_storage_url($siteFavicon) : asset('assets/images/icon.webp'));
     @endphp
     <link rel="shortcut icon" type="image/x-icon" href="{{ $faviconUrl }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/bootstrap.min.css') }}" />
@@ -223,12 +226,65 @@
             z-index: 9999 !important;
         }
 
+        /* Fix background scroll when modal is open */
+        body:has(.modal.show),
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+        /* BRUTE FORCE MODAL SCROLL FIX */
+        .modal.show {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+        }
+
+        .modal.show .modal-dialog {
+            max-height: 95vh;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin: auto;
+        }
+
+        .modal.show .modal-content {
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* If there's a form directly inside modal-content (common in Livewire) */
+        .modal.show .modal-content>form {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .modal.show .modal-body {
+            overflow-y: auto !important;
+            flex: 1 1 auto;
+        }
+
+        .modal.show .modal-footer {
+            flex-shrink: 0;
+        }
+
         /* THE ULTIMATE BLUR KILLER */
+        body:has(.modal.show)>*:not(.modal):not(.modal-backdrop),
         body.modal-open>*:not(.modal):not(.modal-backdrop) {
             filter: none !important;
             backdrop-filter: none !important;
         }
 
+        body:has(.modal.show) .nxl-container,
+        body:has(.modal.show) .nxl-navigation,
+        body:has(.modal.show) .nxl-header,
         body.modal-open .nxl-container,
         body.modal-open .nxl-navigation,
         body.modal-open .nxl-header {
@@ -277,10 +333,10 @@
     </style>
 
     {{-- ============================================================ --}}
-    {{-- MASTER LAYOUT SCRIPT: Theme persistence, navigation, events  --}}
+    {{-- MASTER LAYOUT SCRIPT: Theme persistence, navigation, events --}}
     {{-- ============================================================ --}}
     <script data-navigate-once>
-        (function() {
+        (function () {
             // ── Helper: sync both localStorage keys + cookie ──
             function syncThemeState() {
                 var isDark = document.documentElement.classList.contains('app-skin-dark');
@@ -292,11 +348,11 @@
 
                 // Sync header button visibility
                 if (isDark) {
-                    document.querySelectorAll('.dark-button').forEach(function(el) { el.style.display = 'none'; });
-                    document.querySelectorAll('.light-button').forEach(function(el) { el.style.display = ''; });
+                    document.querySelectorAll('.dark-button').forEach(function (el) { el.style.display = 'none'; });
+                    document.querySelectorAll('.light-button').forEach(function (el) { el.style.display = ''; });
                 } else {
-                    document.querySelectorAll('.dark-button').forEach(function(el) { el.style.display = ''; });
-                    document.querySelectorAll('.light-button').forEach(function(el) { el.style.display = 'none'; });
+                    document.querySelectorAll('.dark-button').forEach(function (el) { el.style.display = ''; });
+                    document.querySelectorAll('.light-button').forEach(function (el) { el.style.display = 'none'; });
                 }
             }
 
@@ -362,11 +418,11 @@
 
             // ── Helper: Global Event Delegation for Theme Controls ──
             function initThemeDelegation() {
-                document.addEventListener('click', function(e) {
+                document.addEventListener('click', function (e) {
                     // 1. Dark/Light Mode Toggles (Header)
                     const darkBtn = e.target.closest('.dark-button');
                     const lightBtn = e.target.closest('.light-button');
-                    
+
                     if (darkBtn || lightBtn) {
                         e.preventDefault();
                         const isTurningDark = !!darkBtn;
@@ -404,12 +460,12 @@
                     }
                 });
 
-                document.addEventListener('change', function(e) {
+                document.addEventListener('change', function (e) {
                     const radio = e.target.closest('.theme-options-set input[type="radio"]');
                     if (radio) {
                         const name = radio.name;
                         const value = radio.getAttribute(`data-${name}`);
-                        
+
                         if (name === 'app-skin') {
                             if (value === 'app-skin-dark') {
                                 document.documentElement.classList.add('app-skin-dark');
@@ -437,7 +493,7 @@
             }
 
             // ── 1. After every Livewire SPA navigation ──
-            document.addEventListener('livewire:navigated', function() {
+            document.addEventListener('livewire:navigated', function () {
                 // Restore theme instantly (before paint if possible)
                 restoreThemeAfterNavigation();
 
@@ -447,36 +503,58 @@
                     var modal = bootstrap.Modal.getInstance(modalElement);
                     if (modal) modal.hide();
                 }
-                document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+                document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
                 document.body.classList.remove('modal-open');
                 document.body.style.overflow = '';
                 document.body.style.paddingRight = '';
 
                 // Restore Sidebar Scrollbar and Accordion interactions after Livewire Morph
-                setTimeout(function() {
+                setTimeout(function () {
                     if (typeof window.addscroller === 'function') {
                         window.addscroller();
                     }
                     // Ensure actively selected menus stay visible
                     if (typeof jQuery !== 'undefined') {
                         jQuery('.nxl-hasmenu.nxl-trigger > .nxl-submenu').css('display', 'block');
+
+                        // Re-bind mobile sidebar toggle (lost after wire:navigate DOM swap)
+                        jQuery('#mobile-collapse').off('click').on('click', function () {
+                            if (!jQuery('html').hasClass('nxl-horizontal')) {
+                                if (typeof window.menuclick === 'function') menuclick();
+                            }
+                            if (jQuery('.nxl-navigation').hasClass('mob-navigation-active')) {
+                                if (typeof window.rmmenu === 'function') rmmenu();
+                            } else {
+                                jQuery('.nxl-navigation').addClass('mob-navigation-active');
+                                jQuery('.nxl-navigation').append('<div class="nxl-menu-overlay"></div>');
+                                jQuery('.nxl-menu-overlay').on('click', function () {
+                                    if (typeof window.rmmenu === 'function') rmmenu();
+                                    jQuery('.hamburger').removeClass('is-active');
+                                });
+                            }
+                        });
+
+                        // Re-bind hamburger animation
+                        jQuery('.hamburger').off('click').on('click', function () {
+                            jQuery(this).toggleClass('is-active');
+                        });
                     }
-                }, 10);
+                }, 50);
             });
 
             // ── 2. Before Livewire starts navigating (prevent flash) ──
-            document.addEventListener('livewire:navigating', function() {
+            document.addEventListener('livewire:navigating', function () {
                 // Ensure the dark class stays on <html> during the swap
                 var isDark = localStorage.getItem('app-skin') === 'app-skin-dark' ||
-                             localStorage.getItem('app-skin-dark') === 'app-skin-dark';
+                    localStorage.getItem('app-skin-dark') === 'app-skin-dark';
                 if (isDark) {
                     document.documentElement.classList.add('app-skin-dark');
                 }
             });
 
             // ── 3. Watch for class changes on <html> to keep cookie in sync ──
-            var observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
+            var observer = new MutationObserver(function (mutations) {
+                mutations.forEach(function (mutation) {
                     if (mutation.attributeName === 'class') {
                         syncThemeState();
                     }
@@ -485,38 +563,98 @@
             observer.observe(document.documentElement, { attributes: true });
 
             // ── 4. Global Search ──
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 var searchInput = document.getElementById('globalSearchInput');
                 var navItems = document.querySelectorAll('.nav-search-item');
                 if (searchInput) {
-                    searchInput.addEventListener('input', function() {
+                    searchInput.addEventListener('input', function () {
                         var query = this.value.toLowerCase().trim();
-                        navItems.forEach(function(item) {
+                        navItems.forEach(function (item) {
                             var title = item.querySelector('.nav-title').textContent.toLowerCase();
                             item.classList.toggle('d-none', !title.includes(query));
                         });
                     });
                     var searchModal = document.getElementById('searchModal');
                     if (searchModal) {
-                        searchModal.addEventListener('shown.bs.modal', function() { searchInput.focus(); });
+                        searchModal.addEventListener('shown.bs.modal', function () { searchInput.focus(); });
                     }
                 }
             });
 
             // ── 5. Livewire Event Listeners & Global Delegation (Strict Once) ──
             if (!window.pathologyListenersAdded) {
-                document.addEventListener('livewire:init', function() {
+                document.addEventListener('livewire:init', function () {
                     if (window.pathologyListenersAdded) return;
 
 
 
-                    Livewire.on('open-new-tab', function(data) {
-                        var url = Array.isArray(data) ? data[0].url : data.url;
-                        if (url) window.open(url, '_blank');
+                    // Listeners start here
+                    window.pathologyListenersAdded = true;
+
+                    Livewire.on('notify', function (data) {
+                        var info = Array.isArray(data) ? data[0] : data;
+
+                        const toast = document.createElement('div');
+                        toast.style.position = 'fixed';
+                        toast.style.top = '30px';
+                        toast.style.right = '30px';
+                        toast.style.zIndex = '10000';
+                        toast.style.minWidth = '350px';
+                        toast.style.padding = '16px 20px';
+                        toast.style.borderRadius = '16px';
+                        toast.style.backgroundColor = '#ffffff';
+                        toast.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                        toast.style.border = `1px solid ${info.type === 'error' ? '#fee2e2' : '#dcfce7'}`;
+                        toast.style.display = 'flex';
+                        toast.style.alignItems = 'center';
+                        toast.style.gap = '15px';
+                        toast.style.transition = 'all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                        toast.style.transform = 'translateX(100px)';
+                        toast.style.opacity = '0';
+
+                        const accentColor = info.type === 'error' ? '#ef4444' : '#10b981';
+
+                        toast.innerHTML = `
+                            <div style="background: ${accentColor}; color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                                <i class="feather-${info.type === 'error' ? 'alert-octagon' : 'check-circle'}" style="font-size: 20px;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="color: #111827; font-weight: 700; font-size: 15px; margin-bottom: 2px;">${info.type === 'error' ? 'Attention Required' : 'Action Successful'}</div>
+                                <div style="color: #6b7280; font-size: 13px; font-weight: 500;">${info.message}</div>
+                            </div>
+                            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #9ca3af; cursor: pointer; padding: 5px;">
+                                <i class="feather-x"></i>
+                            </button>
+                        `;
+
+                        document.body.appendChild(toast);
+
+                        // Force reflow
+                        toast.offsetHeight;
+
+                        // Animate in
+                        toast.style.transform = 'translateX(0)';
+                        toast.style.opacity = '1';
+
+                        // Auto-remove
+                        setTimeout(() => {
+                            if (toast.parentElement) {
+                                toast.style.transform = 'translateX(100px)';
+                                toast.style.opacity = '0';
+                                setTimeout(() => toast.remove(), 500);
+                            }
+                        }, 5000);
                     });
 
-                    Livewire.on('print-window', function() {
+                    Livewire.on('print-window', function () {
                         window.print();
+                    });
+
+                    Livewire.on('open-new-tab', (event) => {
+                        const data = Array.isArray(event) ? event[0] : event;
+                        if (data && data.url) {
+                            window.open(data.url, '_blank');
+                        }
                     });
 
                     window.pathologyListenersAdded = true;
@@ -527,9 +665,9 @@
             syncThemeState();
             syncCustomizerUI();
             initThemeDelegation();
-            
+
             // Re-init specialized sidebar behavior on load
-            setTimeout(function() {
+            setTimeout(function () {
                 if (typeof jQuery !== 'undefined') {
                     jQuery('.nxl-hasmenu.active').addClass('nxl-trigger').find('.nxl-submenu').show();
                 }

@@ -34,7 +34,7 @@
                 <div class="flex items-center gap-3">
                     <div class="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
                         @if($siteLogo)
-                            <img src="{{ asset('storage/' . $siteLogo) }}" alt="{{ $siteName }}" class="h-10 w-auto">
+                            <img src="{{ secure_storage_url($siteLogo) }}" alt="{{ $siteName }}" class="h-10 w-auto">
                         @else
                             <x-app-logo-icon class="h-8 w-8 text-white" />
                         @endif
@@ -79,7 +79,7 @@
             <div class="flex items-center gap-3 lg:hidden mb-12">
                 <div class="bg-brand-600 p-2.5 rounded-xl">
                     @if($siteLogo)
-                        <img src="{{ asset('storage/' . $siteLogo) }}" alt="{{ $siteName }}"
+                        <img src="{{ secure_storage_url($siteLogo) }}" alt="{{ $siteName }}"
                             class="h-8 w-auto brightness-0 invert">
                     @else
                         <x-app-logo-icon class="h-6 w-6 text-white" />
@@ -95,6 +95,26 @@
                 <h1 class="text-4xl font-bold text-zinc-900 dark:text-white tracking-tight mb-4">Welcome Back</h1>
                 <p class="text-zinc-500 font-medium">Please enter your credentials to access the laboratory dashboard.
                 </p>
+
+                @if(Auth::check())
+                    <div class="mt-6 p-4 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Active Session</p>
+                                <p class="text-sm font-bold text-zinc-900 dark:text-white">{{ Auth::user()->name }}</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+                                Logout First
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
 
             <form wire:submit.prevent="login" class="space-y-6">
@@ -120,7 +140,7 @@
                 <div class="space-y-2">
                     <div class="flex justify-between items-center px-1">
                         <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Secret</label>
-                        <a href="#"
+                        <a href="{{ route('password.request') }}" wire:navigate
                             class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors">Forgot
                             Password?</a>
                     </div>

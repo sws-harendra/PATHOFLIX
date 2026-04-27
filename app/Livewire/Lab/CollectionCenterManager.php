@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
 
 class CollectionCenterManager extends Component
 {
@@ -135,7 +136,7 @@ class CollectionCenterManager extends Component
                     'is_active' => $this->is_active,
                 ];
                 if ($this->password) {
-                    $userData['password'] = Hash::make($this->password);
+                    $userData['password'] = $this->password;
                 }
                 $user->update($userData);
             } elseif ($this->phone || $this->email) {
@@ -145,7 +146,7 @@ class CollectionCenterManager extends Component
                     'name' => $this->name,
                     'phone' => $this->phone,
                     'email' => $this->email ?: null,
-                    'password' => Hash::make($this->password ?? $this->phone ?? '12345678'),
+                    'password' => $this->password ?? $this->phone ?? '12345678',
                     'is_active' => $this->is_active,
                 ]);
 
@@ -196,6 +197,12 @@ class CollectionCenterManager extends Component
             }
 
             DB::commit();
+            
+            // Clear cache for POS
+            Cache::forget("centers_" . auth()->user()->company_id . "_" . $this->branch_id);
+            Cache::forget("centers_" . auth()->user()->company_id . "_all");
+            Cache::forget("centers_" . auth()->user()->company_id . "_");
+
             $this->closeModal();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -211,7 +218,8 @@ class CollectionCenterManager extends Component
         $this->authorize('edit collection_centers');
         $center = CollectionCenter::findOrFail($id);
         $center->update(['is_active' => !$center->is_active]);
-        
+        Cache::forget("centers_" . auth()->user()->company_id . "_" . $center->branch_id);
+        Cache::forget("centers_" . auth()->user()->company_id . "_all");
         session()->flash('message', 'Status updated successfully.');
     }
 
@@ -221,7 +229,12 @@ class CollectionCenterManager extends Component
     public function delete($id)
     {
         $this->authorize('delete collection_centers');
-        CollectionCenter::findOrFail($id)->delete();
+        $center = CollectionCenter::findOrFail($id);
+        $companyId = $center->company_id;
+        $branchId = $center->branch_id;
+        $center->delete();
+        Cache::forget("centers_" . $companyId . "_" . $branchId);
+        Cache::forget("centers_" . $companyId . "_all");
         session()->flash('message', 'Collection Center deleted successfully.');
     }
 

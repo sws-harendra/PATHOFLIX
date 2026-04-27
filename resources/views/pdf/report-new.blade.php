@@ -8,16 +8,11 @@
 
     @php
         // ── Resolve image paths ──
-        $headerImgSrc = $settings['pdf_header_image']
-            ? public_path('storage/' . $settings['pdf_header_image'])
-            : public_path('assets/images/pdf-header.jpeg');
-
-        $footerImgSrc = $settings['pdf_footer_image']
-            ? public_path('storage/' . $settings['pdf_footer_image'])
-            : public_path('assets/images/pdf-footer.jpeg');
+        $headerImgSrc = $settings['pdf_header_image'] ?? null;
+        $footerImgSrc = $settings['pdf_footer_image'] ?? null;
 
         $sigImgSrc = $settings['global_sig_1_path']
-            ? public_path('storage/' . $settings['global_sig_1_path'])
+            ? $settings['global_sig_1_path']
             : (file_exists(public_path('assets/images/signature.jpg'))
                 ? public_path('assets/images/signature.jpg')
                 : null);
@@ -57,19 +52,33 @@
             top: 0;
             left: 0;
             right: 0;
-            height: {{ (int)$headerHeight + 20 }}px;
-            overflow: visible;
+            height: {{ $marginTop }};
+            overflow: hidden;
+        }
+
+        .header-logo-container {
+            width: 100%;
+            height: {{ $headerHeight }};
+            display: block;
+            overflow: hidden;
+            text-align: center;
+            padding: 0;
         }
 
         .header-banner {
-            width: 100%;
+            width: 100% !important;
+            min-width: 100% !important;
             display: block;
         }
 
         /* ── PATIENT INFO BOX ── */
         .patient-box {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
             border: 1px solid #1a1a1a !important;
-            margin: 4px 25px 0;
+            margin: 0 25px 0;
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
@@ -184,13 +193,15 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
+            width: 100% !important;
+            min-width: 100% !important;
+            display: block;
         }
 
         /* ── Multi-Signature Row ── */
         .sig-container {
             position: absolute;
-            bottom: 175px; /* Shifted UP by ~1cm (35-40px) from 140px */
+            bottom: 185px; /* Positioned just above the footer banner */
             left: 0;
             width: 100%;
         }
@@ -259,6 +270,10 @@
             font-size: 10px;
         }
 
+        .result-table tr {
+            page-break-inside: avoid;
+        }
+
         .result-table thead th {
             border-top: 1.5px solid #333;
             border-bottom: 1.5px solid #333;
@@ -321,10 +336,11 @@
            INTERPRETATION & REMARKS BLOCKS
            ══════════════════════════════════════════════ */
         .interp-block {
-            margin: 6px 0 10px;
-            padding: 4px 6px;
+            margin: 15px 0 10px;
+            padding: 4px 0;
             font-size: 10px;
             line-height: 1.5;
+            page-break-inside: avoid;
         }
 
         .interp-label {
@@ -332,6 +348,11 @@
             font-size: 10px;
             margin-bottom: 3px;
             color: #1a1a1a;
+        }
+
+        .interp-content {
+            margin-left: 0;
+            padding-left: 0;
         }
 
         /* Render HTML interpretation tables cleanly */
@@ -355,6 +376,10 @@
             border: 1px solid #bbb;
             padding: 3px 6px;
             font-size: 10px;
+        }
+
+        .interp-content table tr {
+            page-break-inside: avoid;
         }
 
         .interp-content table tr:nth-child(even) {
@@ -383,11 +408,12 @@
 
         /* Remarks block (from result entry) */
         .remarks-block {
-            margin: 10px 0;
-            padding: 5px 0;
+            margin: 20px 0 10px;
+            padding: 10px 0;
             font-size: 10px;
             line-height: 1.5;
             border-top: 1px dashed #ccc;
+            page-break-inside: avoid;
         }
 
         .remarks-block table {
@@ -407,6 +433,12 @@
         .remarks-block table td {
             border: 1px solid #bbb;
             padding: 3px 6px;
+        }
+
+        .doctor-comments {
+            margin: 25px 0 10px;
+            padding: 10px 0;
+            border-top: 1.5px solid #eee;
         }
 
         /* ══════════════════════════════════════════════
@@ -457,7 +489,7 @@
     {{-- ══════════════════ WATERMARK ══════════════════ --}}
     @if(isset($company->logo) && $company->logo)
         <div class="watermark">
-            <img src="{{ public_path('storage/' . $company->logo) }}">
+            <img src="{{ storage_base64($company->logo) }}">
         </div>
     @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
         <div class="watermark">
@@ -467,8 +499,11 @@
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
-        <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header"
-            style="{{ $showHeader ? '' : 'visibility: hidden;' }} margin-bottom: 12px; display: block;">
+        <div class="header-logo-container">
+            @if($headerImgSrc && $showHeader)
+                <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
+            @endif
+        </div>
 
         {{-- Patient Info Box — always visible --}}
         <div class="patient-box" style="margin-top: 0; clear: both;">
@@ -552,7 +587,7 @@
                         @if($settings['global_sig_2_name'])
                             <td>
                                 @if($settings['global_sig_2_path'])
-                                    <img class="sign-img" src="{{ public_path('storage/' . $settings['global_sig_2_path']) }}"><br>
+                                    <img class="sign-img" src="{{ $settings['global_sig_2_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_2_name'] }}</span>
                                 <span class="doc-desig">{{ $settings['global_sig_2_desig'] }}</span>
@@ -565,10 +600,10 @@
                             <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
                             <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
                         </td>
-                        @if($settings['global_sig_3_name'])
+                        @if($settings['global_sig_3_path'])
                             <td>
                                 @if($settings['global_sig_3_path'])
-                                    <img class="sign-img" src="{{ public_path('storage/' . $settings['global_sig_3_path']) }}"><br>
+                                    <img class="sign-img" src="{{ $settings['global_sig_3_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_3_name'] }}</span>
                                 <span class="doc-desig">{{ $settings['global_sig_3_desig'] }}</span>
@@ -600,9 +635,9 @@
                 $results = $testData['results'];
             @endphp
 
-            {{-- Page break between tests (not before the first) --}}
+            {{-- Page break before each test --}}
             @if($testIndex > 0)
-                <div class="page-break"></div>
+                <div style="page-break-after: always;"></div>
             @endif
 
             {{-- ── Department & Test Title ── --}}
@@ -744,20 +779,12 @@
                 </div>
             @endif
 
-            {{-- ── Result Entry Remarks (from InvoiceItem — stored as HTML) ── --}}
-            @php
-                $testInvoiceItem = null;
-                if ($results->first()->invoice_item_id) {
-                    $testInvoiceItem = $invoice->items->where('id', $results->first()->invoice_item_id)->first();
-                } else {
-                    $testInvoiceItem = $invoice->items->where('lab_test_id', $results->first()->lab_test_id)->first();
-                }
-            @endphp
-            @if($testInvoiceItem && $testInvoiceItem->report_comments)
+            {{-- ── Result Entry Remarks (Granular per test) ── --}}
+            @if(!empty($testData['remark']))
                 <div class="remarks-block">
                     <div class="interp-label">Remarks:</div>
                     <div class="interp-content">
-                        {!! $testInvoiceItem->report_comments !!}
+                        {!! $testData['remark'] !!}
                     </div>
                 </div>
             @endif
@@ -772,14 +799,14 @@
                             </td>
                             @if(isset($dept->sig_1_path) && $dept->sig_1_path)
                                 <td>
-                                    <img style="max-height:40px;" src="{{ public_path('storage/' . $dept->sig_1_path) }}"><br>
+                                    <img style="max-height:40px;" src="{{ storage_base64($dept->sig_1_path) }}"><br>
                                     <span class="doc-name">{{ $dept->sig_1_name ?? '' }}</span>
                                     <span class="doc-desig">{{ $dept->sig_1_desig ?? '' }}</span>
                                 </td>
                             @endif
                             @if(isset($dept->sig_2_path) && $dept->sig_2_path)
                                 <td>
-                                    <img style="max-height:40px;" src="{{ public_path('storage/' . $dept->sig_2_path) }}"><br>
+                                    <img style="max-height:40px;" src="{{ storage_base64($dept->sig_2_path) }}"><br>
                                     <span class="doc-name">{{ $dept->sig_2_name ?? '' }}</span>
                                     <span class="doc-desig">{{ $dept->sig_2_desig ?? '' }}</span>
                                 </td>

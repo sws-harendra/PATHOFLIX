@@ -35,6 +35,8 @@ class SettingsManager extends Component
     public $invoice_counter_digits = 4;
     public $invoice_counter_reset = 'monthly';
     public $restrict_billing_below_b2b = false;
+    public $commission_basis_doctor = 'gross';
+    public $commission_basis_agent = 'gross';
     public $invoiceSaved = false;
 
     // ==========================================
@@ -130,6 +132,8 @@ class SettingsManager extends Component
         $this->invoice_counter_digits = (int) Configuration::getFor('invoice_counter_digits', 4);
         $this->invoice_counter_reset = Configuration::getFor('invoice_counter_reset', 'monthly');
         $this->restrict_billing_below_b2b = Configuration::getFor('restrict_billing_below_b2b', '0') === '1';
+        $this->commission_basis_doctor = Configuration::getFor('commission_basis_doctor', 'gross');
+        $this->commission_basis_agent = Configuration::getFor('commission_basis_agent', 'gross');
         $this->bill_template = Configuration::getFor('bill_template', 'classic');
 
         // Patient ID settings
@@ -208,13 +212,13 @@ class SettingsManager extends Component
         // Handle logo upload
         $logoPath = $company->logo;
         if (is_object($this->new_logo) && method_exists($this->new_logo, 'store')) {
-            $logoPath = $this->new_logo->store('logos', 'public');
+            $logoPath = $this->new_logo->store('logos');
         }
 
         // Handle favicon upload
         $faviconPath = $this->lab_favicon;
         if (is_object($this->new_favicon) && method_exists($this->new_favicon, 'store')) {
-            $faviconPath = $this->new_favicon->store('favicons', 'public');
+            $faviconPath = $this->new_favicon->store('favicons');
             Configuration::setFor('lab_favicon', $faviconPath);
         }
 
@@ -258,8 +262,10 @@ class SettingsManager extends Component
         Configuration::setFor('invoice_separator', $this->invoice_separator);
         Configuration::setFor('invoice_date_format', $this->invoice_date_format);
         Configuration::setFor('invoice_counter_digits', $this->invoice_counter_digits);
-        Configuration::setFor('invoice_counter_reset', $this->invoice_counter_reset);
+        Configuration::getFor('invoice_counter_reset', $this->invoice_counter_reset);
         Configuration::setFor('restrict_billing_below_b2b', $this->restrict_billing_below_b2b ? '1' : '0');
+        Configuration::setFor('commission_basis_doctor', $this->commission_basis_doctor);
+        Configuration::setFor('commission_basis_agent', $this->commission_basis_agent);
 
         $this->invoiceSaved = true;
     }
@@ -343,19 +349,19 @@ class SettingsManager extends Component
 
         // Upload header image
         if (is_object($this->new_header_image) && method_exists($this->new_header_image, 'store')) {
-            $this->pdf_header_image = $this->new_header_image->store('invoice-headers', 'public');
+            $this->pdf_header_image = $this->new_header_image->store('invoice-headers');
             $this->new_header_image = null;
         }
 
         // Upload footer image
         if (is_object($this->new_footer_image) && method_exists($this->new_footer_image, 'store')) {
-            $this->pdf_footer_image = $this->new_footer_image->store('invoice-footers', 'public');
+            $this->pdf_footer_image = $this->new_footer_image->store('invoice-footers');
             $this->new_footer_image = null;
         }
 
         // Upload signature image
         if (is_object($this->new_signature_image) && method_exists($this->new_signature_image, 'store')) {
-            $this->signature_image = $this->new_signature_image->store('signatures', 'public');
+            $this->signature_image = $this->new_signature_image->store('signatures');
             $this->new_signature_image = null;
         }
 
@@ -410,15 +416,15 @@ class SettingsManager extends Component
 
         // 1. Save Global Signatures
         if ($this->new_signature_image) {
-            $this->signature_image = $this->new_signature_image->store('signatures', 'public');
+            $this->signature_image = $this->new_signature_image->store('signatures');
             $this->new_signature_image = null;
         }
         if ($this->new_global_sig_2) {
-            $this->global_sig_2_path = $this->new_global_sig_2->store('signatures', 'public');
+            $this->global_sig_2_path = $this->new_global_sig_2->store('signatures');
             $this->new_global_sig_2 = null;
         }
         if ($this->new_global_sig_3) {
-            $this->global_sig_3_path = $this->new_global_sig_3->store('signatures', 'public');
+            $this->global_sig_3_path = $this->new_global_sig_3->store('signatures');
             $this->new_global_sig_3 = null;
         }
 
@@ -449,17 +455,17 @@ class SettingsManager extends Component
                 ];
 
                 if ($this->new_dept_sig_1) {
-                    $updateData['sig_1_path'] = $this->new_dept_sig_1->store('signatures', 'public');
+                    $updateData['sig_1_path'] = $this->new_dept_sig_1->store('signatures');
                     $this->dept_sig_1_path = $updateData['sig_1_path'];
                     $this->new_dept_sig_1 = null;
                 }
                 if ($this->new_dept_sig_2) {
-                    $updateData['sig_2_path'] = $this->new_dept_sig_2->store('signatures', 'public');
+                    $updateData['sig_2_path'] = $this->new_dept_sig_2->store('signatures');
                     $this->dept_sig_2_path = $updateData['sig_2_path'];
                     $this->new_dept_sig_2 = null;
                 }
                 if ($this->new_dept_sig_3) {
-                    $updateData['sig_3_path'] = $this->new_dept_sig_3->store('signatures', 'public');
+                    $updateData['sig_3_path'] = $this->new_dept_sig_3->store('signatures');
                     $this->dept_sig_3_path = $updateData['sig_3_path'];
                     $this->new_dept_sig_3 = null;
                 }
