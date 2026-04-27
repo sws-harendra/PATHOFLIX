@@ -11,24 +11,27 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Roles Create
-        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
-        $labAdminRole = Role::firstOrCreate(['name' => 'lab_admin']);
-        $patientRole = Role::firstOrCreate(['name' => 'patient']);
+        // 1. Roles & Permissions
+        $this->call(RoleSeeder::class);
+
+        // 2. System Departments
+        $this->call(SystemDepartmentSeeder::class);
 
         // 2. Super Admin Account 
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $superAdmin = User::firstOrCreate(
-            ['email' => 'admin@zytrixon.com'], 
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('password123'), 
-                'is_active' => true,
-            ]
+        ['email' => 'admin@sws.com'],
+        [
+            'name' => 'Super Admin',
+            'password' => Hash::make('password123'),
+            'is_active' => true,
+        ]
         );
-
-        // 3. Assign Super Admin Role
         if (!$superAdmin->hasRole('super_admin')) {
             $superAdmin->assignRole($superAdminRole);
         }
+
+        // 3. Demo Lab Data (Company, Tests, Patients, Invoices, etc.)
+        $this->call(DemoSeeder::class);
     }
 }

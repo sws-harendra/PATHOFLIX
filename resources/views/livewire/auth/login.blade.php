@@ -1,134 +1,199 @@
-<div class="auth-cover-wrapper bg-white">
-    <div class="d-flex flex-column flex-lg-row min-vh-100">
-        
-        <div class="auth-cover-sidebar d-none d-lg-flex align-items-center justify-content-center bg-light w-50 position-relative">
-            <div class="auth-cover-content text-center p-5">
-                <img src="https://img.freepik.com/free-vector/medical-technology-science-background-vector-blue-with-blank-space_53876-117739.jpg" 
-                     alt="Auth Cover" class="img-fluid auth-img animate__animated animate__fadeIn">
-                <div class="mt-4">
-                    <h3 class="fw-bold text-dark">Zytrixon Pathology SaaS</h3>
-                    <p class="text-muted mx-auto" style="max-width: 400px;">
-                        Manage your laboratory reports, patients, and financial data with our all-in-one enterprise solution.
-                    </p>
-                </div>
-            </div>
-            <div class="position-absolute bottom-0 start-0 p-4">
-                <span class="fs-12 text-muted fw-medium">© 2026 Zytrixon Labs</span>
-            </div>
-        </div>
+@php
+    $siteName = \App\Models\SiteSetting::get('site_name', 'SWS Pathology');
+    $siteLogo = \App\Models\SiteSetting::get('site_logo');
+    $primaryColor = \App\Models\SiteSetting::get('primary_color', '#0284c7');
 
-        <div class="auth-cover-form-inner d-flex align-items-center justify-content-center w-100 w-lg-50 p-4 p-md-5">
-            <div class="w-100" style="max-width: 420px;">
-                <div class="mb-5 d-flex align-items-center gap-2">
-                    <div class="bg-primary rounded-3 p-2 d-inline-block shadow-sm">
-                        <i class="feather-activity text-white fs-20"></i>
+    // Split name for styling
+    $nameParts = explode(' ', $siteName);
+    $firstName = $nameParts[0] ?? 'SWS';
+    $lastName = implode(' ', array_slice($nameParts, 1)) ?: 'Pathology';
+@endphp
+
+<div class="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col lg:flex-row font-sans selection:bg-brand-500 selection:text-white transition-colors duration-300">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-brand-50: color-mix(in srgb, {{ $primaryColor }}, white 95%);
+            --color-brand-100: color-mix(in srgb, {{ $primaryColor }}, white 90%);
+            --color-brand-200: color-mix(in srgb, {{ $primaryColor }}, white 80%);
+            --color-brand-400: color-mix(in srgb, {{ $primaryColor }}, white 40%);
+            --color-brand-500: {{ $primaryColor }};
+            --color-brand-600: color-mix(in srgb, {{ $primaryColor }}, black 10%);
+            --color-brand-700: color-mix(in srgb, {{ $primaryColor }}, black 20%);
+        }
+    </style>
+
+    <!-- Left: Branding & Visual (Desktop Only) -->
+    <div class="hidden lg:flex lg:w-1/2 p-2 relative overflow-hidden">
+        <div class="w-full h-full rounded-[2.5rem] bg-zinc-900 border border-white/10 relative overflow-hidden group">
+            <!-- Decorative BG -->
+            <img src="/hero_pathology_modern_1775107463115.png"
+                class="absolute inset-0 w-full h-full object-cover opacity-30 scale-105 group-hover:scale-110 transition-transform duration-[10s] blur-sm">
+            <div class="absolute inset-0 bg-linear-to-br from-brand-600/50 via-zinc-900/90 to-zinc-900"></div>
+
+            <div class="relative z-10 w-full h-full p-20 flex flex-col justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
+                        @if($siteLogo)
+                            <img src="{{ secure_storage_url($siteLogo) }}" alt="{{ $siteName }}" class="h-10 w-auto">
+                        @else
+                            <x-app-logo-icon class="h-8 w-8 text-white" />
+                        @endif
                     </div>
-                    <span class="fw-bold fs-20 tracking-tight text-dark">Zytrixon</span>
-                </div>
-
-                <div class="mb-4">
-                    <h2 class="fw-bolder text-dark mb-1">Login</h2>
-                    <p class="text-muted fs-13">Welcome back! Please enter your details.</p>
-                </div>
-
-                <form wire:submit.prevent="login" class="mt-4">
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-dark fs-12 text-uppercase">Email or Username</label>
-                        <input type="email" 
-                            class="form-control form-control-lg fs-14 @error('email') is-invalid @enderror" 
-                            placeholder="admin@lab.com" 
-                            wire:model="email" required>
-                        @error('email') <span class="text-danger fs-11 mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <label class="form-label fw-bold text-dark fs-12 text-uppercase">Password</label>
-                            <a href="#" class="fs-11 fw-bold text-primary text-decoration-none">Forgot password?</a>
-                        </div>
-                        <input type="password" 
-                            class="form-control form-control-lg fs-14 @error('password') is-invalid @enderror" 
-                            placeholder="••••••••" 
-                            wire:model="password" required>
-                        @error('password') <span class="text-danger fs-11 mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <div class="form-check custom-checkbox">
-                            <input type="checkbox" class="form-check-input" id="rememberMe" wire:model="remember">
-                            <label class="form-check-label fs-13 text-muted" for="rememberMe">Keep me logged in</label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold py-3 shadow-sm">
-                        <span wire:loading.remove>Sign In</span>
-                        <span wire:loading class="spinner-border spinner-border-sm"></span>
-                    </button>
-                </form>
-
-                <div class="mt-5">
-                    <div class="position-relative text-center mb-4">
-                        <hr class="text-light">
-                        <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted fs-11 text-uppercase">Or connect with</span>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-light border flex-fill py-2"><i class="feather-facebook text-primary"></i></button>
-                        <button class="btn btn-light border flex-fill py-2"><i class="feather-twitter text-info"></i></button>
-                        <button class="btn btn-light border flex-fill py-2"><i class="feather-github text-dark"></i></button>
-                    </div>
+                    <span
+                        class="font-display font-bold text-2xl tracking-tight text-white uppercase transition-all duration-300">
+                        {{ $firstName }} <span class="text-brand-400">{{ $lastName }}</span>
+                    </span>
                 </div>
 
-                <div class="mt-5 text-center">
-                    <p class="fs-13 text-muted">Don't have an account? <a href="#" class="fw-bold text-primary text-decoration-none">Create Account</a></p>
+                <div class="max-w-md">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/30 mb-8">
+                        <span class="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Enterprise
+                            Ready</span>
+                    </div>
+                    <h2 class="text-5xl font-bold text-white mb-6 leading-tight tracking-tight">Intelligence at the
+                        <span class="text-brand-400">Core</span> of Diagnostics.
+                    </h2>
+                    <p class="text-xl text-zinc-400 leading-relaxed">Securely manage laboratory reports, patient
+                        demographics, and partner settlements in one unified cloud ecosystem.</p>
+                </div>
+
+                <div class="flex items-center gap-12 border-t border-white/10 pt-12">
+                    <div>
+                        <p class="text-3xl font-bold text-white font-display">500+</p>
+                        <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Labs Integrated</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold text-white font-display">1M+</p>
+                        <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Reports Monthly</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <style>
-        /* Cover Style Core CSS */
-        .auth-cover-wrapper {
-            min-height: 100vh;
-        }
+    <!-- Right: Login Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-12">
+        <div class="w-full max-w-lg space-y-12">
+            <!-- Mobile Logo -->
+            <div class="flex items-center gap-3 lg:hidden mb-12">
+                <div class="bg-brand-600 p-2.5 rounded-xl">
+                    @if($siteLogo)
+                        <img src="{{ secure_storage_url($siteLogo) }}" alt="{{ $siteName }}"
+                            class="h-8 w-auto brightness-0 invert">
+                    @else
+                        <x-app-logo-icon class="h-6 w-6 text-white" />
+                    @endif
+                </div>
+                <span
+                    class="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-white uppercase transition-all duration-300">
+                    {{ $firstName }} <span class="text-brand-600">{{ $lastName }}</span>
+                </span>
+            </div>
 
-        /* Left Sidebar Background */
-        .auth-cover-sidebar {
-            background-color: #f8fafc; /* Professional off-white/light-grey */
-            border-right: 1px solid #e2e8f0;
-        }
+            <div>
+                <h1 class="text-4xl font-bold text-zinc-900 dark:text-white tracking-tight mb-4">Welcome Back</h1>
+                <p class="text-zinc-500 font-medium">Please enter your credentials to access the laboratory dashboard.
+                </p>
 
-        .auth-img {
-            max-width: 100%;
-            height: auto;
-            max-height: 400px;
-        }
+                @if(Auth::check())
+                    <div class="mt-6 p-4 rounded-2xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Active Session</p>
+                                <p class="text-sm font-bold text-zinc-900 dark:text-white">{{ Auth::user()->name }}</p>
+                            </div>
+                        </div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-widest px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+                                Logout First
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            </div>
 
-        /* Input Styling */
-        .form-control-lg {
-            border-radius: 8px !important;
-            border: 1.5px solid #e2e8f0;
-            padding: 12px 16px;
-            transition: all 0.2s ease-in-out;
-        }
+            <form wire:submit.prevent="login" class="space-y-6">
+                <!-- Email or Phone -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">Identity</label>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
+                            <i class="feather-user"></i>
+                        </div>
+                        <input type="text" wire:model="email" placeholder="Email or 10-digit Phone"
+                            class="block w-full pl-14 pr-5 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
+                            required>
+                    </div>
+                    @error('email') <p
+                        class="text-[10px] font-bold text-red-500 ml-1 uppercase tracking-wider animate-shake">
+                        {{ $message }}
+                    </p> @enderror
+                </div>
 
-        .form-control-lg:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
-        }
+                <!-- Password -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Secret</label>
+                        <a href="{{ route('password.request') }}" wire:navigate
+                            class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors">Forgot
+                            Password?</a>
+                    </div>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
+                            <i class="feather-lock"></i>
+                        </div>
+                        <input type="password" wire:model="password" placeholder="••••••••"
+                            class="block w-full pl-14 pr-5 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
+                            required>
+                    </div>
+                    @error('password') <p
+                        class="text-[10px] font-bold text-red-500 ml-1 uppercase tracking-wider animate-shake">
+                        {{ $message }}
+                    </p> @enderror
+                </div>
 
-        /* Button Styling */
-        .btn-lg {
-            border-radius: 8px !important;
-        }
+                <!-- Remember Me -->
+                <div class="flex items-center px-1 justify-between">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" wire:model="remember" class="peer hidden">
+                            <div
+                                class="w-5 h-5 border-2 border-zinc-300 dark:border-zinc-700 rounded-md peer-checked:bg-brand-600 peer-checked:border-brand-600 transition-all">
+                            </div>
+                            <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity left-1"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <span
+                            class="text-sm font-semibold text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">Remember
+                            my account</span>
+                    </label>
+                </div>
 
-        .tracking-tight { letter-spacing: -0.5px; }
+                <!-- Submit Button -->
+                <button type="submit"
+                    class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-brand-600/30 hover:shadow-brand-700/40 hover:-translate-y-1 transition-all flex justify-center items-center gap-3 group">
+                    <span wire:loading.remove>Sign into Dashboard</span>
+                    <i wire:loading.remove
+                        class="feather-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    <div wire:loading class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin">
+                    </div>
+                    <span wire:loading>Authenticating...</span>
+                </button>
+            </form>
 
-        /* Ensuring mobile responsiveness */
-        @media (max-width: 991px) {
-            .auth-cover-form-inner {
-                background-color: #ffffff;
-            }
-        }
-    </style>
+            <div class="pt-8 border-t border-zinc-200 dark:border-zinc-800 text-center">
+                <p class="text-zinc-500 font-medium">Please contact administration for access.</p>
+            </div>
+        </div>
+    </div>
 </div>

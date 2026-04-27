@@ -9,11 +9,13 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Traits\BelongsToCompany;
+use App\Traits\Auditable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasRoles, HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, HasRoles, TwoFactorAuthenticatable, BelongsToCompany, Auditable;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +26,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'remember_token',
+        'email_verified_at',
+        'company_id',
+        'branch_id',
+        'collection_center_id',
+        'is_active',
     ];
 
     /**
@@ -37,6 +48,11 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'remember_token',
     ];
+
+    /**
+     * Attributes to append to the model's array form.
+     */
+    protected $appends = ['formatted_id'];
 
     /**
      * Get the attributes that should be cast.
@@ -59,7 +75,139 @@ class User extends Authenticatable
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
+    }
+
+    /**
+     * Get the user's formatted ID (e.g., PAT-1015)
+     */
+    public function getFormattedIdAttribute()
+    {
+        $prefix = \App\Models\Configuration::getFor('patient_id_prefix', 'PAT');
+        $digits = (int) \App\Models\Configuration::getFor('patient_id_digits', 4);
+        return $prefix . str_pad($this->id, $digits, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get the company (tenant) that owns the user.
+     */
+    public function company()
+    {
+        return $this->belongsTo(\App\Models\Company::class, 'company_id');
+    }
+
+    /**
+     * Get the branch that owns the user.
+     */
+    public function branch()
+    {
+        return $this->belongsTo(\App\Models\Branch::class, 'branch_id');
+    }
+
+    /**
+     * Get the user details record associated with this user.
+     */
+    public function details()
+    {
+        return $this->hasOne(\App\Models\UserDetail::class, 'user_id');
+    }
+
+    // ==========================================
+    // ROLE-BASED PROFILE RELATIONSHIPS
+    // ==========================================
+
+    /**
+     * Get the patient profile associated with the user.
+     */
+    public function patientProfile() 
+    {
+        return $this->hasOne(PatientProfile::class);
+    }
+
+    /**
+     * Get the doctor profile associated with the user.
+     */
+    public function doctorProfile() 
+    {
+        return $this->hasOne(DoctorProfile::class);
+    }
+
+    /**
+     * Get the agent profile associated with the user.
+     */
+    public function agentProfile() 
+    {
+        return $this->hasOne(AgentProfile::class);
+    }
+
+    /**
+     * Get the collection center associated with the user.
+     */
+    public function collectionCenter()
+    {
+        return $this->belongsTo(CollectionCenter::class, 'collection_center_id');
+    }
+
+    /**
+     * Get the settlements for this user.
+     */
+    public function settlements()
+    {
+        return $this->hasMany(Settlement::class);
+    }
+
+    /**
+     * Invoices where this user is the referring doctor.
+     */
+    public function invoicesAsDoctor()
+    {
+        return $this->hasMany(Invoice::class, 'referred_by_doctor_id');
+    }
+
+    /**
+     * Invoices where this user is the referring agent.
+     */
+    public function invoicesAsAgent()
+    {
+        return $this->hasMany(Invoice::class, 'referred_by_agent_id');
+    }
+
+    /**
+     * Invoices associated with the collection center this user belongs to.
+     */
+    public function collectionCenterInvoices()
+    {
+        return $this->hasMany(Invoice::class, 'collection_center_id', 'collection_center_id');
+    }
+
+    /**
+     * Membership history for the user (as a patient).
+     */
+    public function memberships()
+    {
+        return $this->hasMany(PatientMembership::class, 'patient_id');
+    }
+
+    /**
+     * Current active membership for the patient.
+     */
+    public function activeMembership()
+    {
+        return $this->hasOne(PatientMembership::class, 'patient_id')
+            ->where('is_active', true)
+            ->where('valid_until', '>=', now())
+            ->latest();
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
     }
 }
