@@ -102,39 +102,39 @@
                         <img src="{{ $avatarUrl }}" alt="user-image"
                             class="img-fluid user-avtar me-0 rounded-2 border shadow-sm" style="width: 38px; height: 38px; object-fit: cover;" />
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown shadow-lg border-0 rounded-3">
-                        <div class="dropdown-header p-4" style="background: linear-gradient(135deg, rgba(59,113,202,0.05) 0%, rgba(124,58,237,0.05) 100%);">
+                    <div class="dropdown-menu dropdown-menu-end nxl-h-dropdown nxl-user-dropdown shadow-lg border-0 rounded-3 p-0 overflow-hidden">
+                        <div class="dropdown-header p-4" style="background: #1e293b; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <div class="d-flex align-items-center gap-3">
                                 <img src="{{ $avatarUrl }}" alt="user-image"
-                                    class="img-fluid user-avtar rounded-2 border border-white border-4 shadow-sm" style="width:50px; height:50px; object-fit: cover;" />
+                                    class="img-fluid user-avtar rounded-2 border border-white border-2 shadow-sm" style="width:48px; height:48px; object-fit: cover;" />
                                 <div>
-                                    <h6 class="text-dark fw-bold mb-0 fs-14 text-truncate" style="max-width: 150px;">{{ auth()->user()->name }} 
-                                        <span class="badge bg-soft-success text-success ms-1 fs-9 text-uppercase">
+                                    <h6 class="text-white fw-bold mb-0 fs-14 text-truncate" style="max-width: 150px;">{{ auth()->user()->name }} 
+                                        <span class="badge bg-success text-white ms-1 fs-9 text-uppercase" style="font-size: 8px !important;">
                                             {{ $company->plan->name ?? 'Free' }}
                                         </span>
                                     </h6>
-                                    <span class="fs-12 fw-medium text-muted d-block text-truncate" style="max-width: 150px;">{{ auth()->user()->email }}</span>
+                                    <span class="fs-12 fw-medium text-white-50 d-block text-truncate" style="max-width: 150px;">{{ auth()->user()->email }}</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="p-2">
+                        <div class="p-2" style="background: #1e293b;">
                             @php
                                 $isInternalStaff = auth()->user()->hasAnyRole(['lab_admin', 'staff', 'branch_admin']);
                                 $profileRoute = $isInternalStaff ? 'lab.profile' : 'partner.profile';
                                 $settingsRoute = $isInternalStaff ? 'lab.settings' : 'partner.profile';
                             @endphp
-                            <a href="{{ route($profileRoute) }}" wire:navigate class="dropdown-item rounded-3 py-2 px-3 transition-all">
-                                <i class="feather-user me-2 text-primary"></i>
+                            <a href="{{ route($profileRoute) }}" wire:navigate class="dropdown-item rounded-2 py-2 px-3 text-white-50 transition-all profile-item-dark">
+                                <i class="feather-user me-2 text-info"></i>
                                 <span class="fw-medium">Profile Details</span>
                             </a>
-                            <a href="{{ route($settingsRoute) }}" wire:navigate class="dropdown-item rounded-3 py-2 px-3 transition-all">
-                                <i class="feather-settings me-2 text-primary"></i>
+                            <a href="{{ route($settingsRoute) }}" wire:navigate class="dropdown-item rounded-2 py-2 px-3 text-white-50 transition-all profile-item-dark">
+                                <i class="feather-settings me-2 text-info"></i>
                                 <span class="fw-medium">Account Settings</span>
                             </a>
-                            <div class="dropdown-divider mx-3"></div>
+                            <div class="dropdown-divider mx-3 opacity-10"></div>
                             <form method="POST" action="{{ route('logout') }}" id="logout-form-header">
                                 @csrf
-                                <button type="submit" class="dropdown-item rounded-3 py-2 px-3 text-danger transition-all">
+                                <button type="submit" class="dropdown-item rounded-2 py-2 px-3 text-danger transition-all profile-item-dark">
                                     <i class="feather-log-out me-2"></i>
                                     <span class="fw-bold">Logout</span>
                                 </button>
@@ -222,11 +222,20 @@
         /* Dropdown Alignment: Eliminate hover 'dead zone' with a pseudo-element bridge */
         .nxl-h-dropdown {
             margin-top: 10px !important;
-            border: 1px solid rgba(0,0,0,0.05) !important;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
             border-radius: 12px !important;
-            overflow: visible !important; /* Allow pseudo-element to overflow for the hover bridge */
-            background: white !important;
+            overflow: visible !important;
+            background: #1e293b !important;
+        }
+
+        .profile-item-dark:hover {
+            background: rgba(255,255,255,0.05) !important;
+            color: #ffffff !important;
+        }
+
+        .nxl-user-dropdown .dropdown-divider {
+            border-top: 1px solid rgba(255,255,255,0.05) !important;
         }
         
         /* The Hover Bridge: Standardized for all header dropdowns */
