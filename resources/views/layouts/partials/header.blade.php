@@ -18,6 +18,7 @@
             </div>
             
             {{-- Global Search Trigger --}}
+            {{-- 
             @if(!auth()->user()->hasRole('super_admin') && !auth()->user()->patientProfile)
             <div class="header-search-wrapper d-none d-md-flex">
                 <div class="search-form-wrapper">
@@ -33,6 +34,7 @@
                 </div>
             </div>
             @endif
+             --}}
         </div>
 
         <div class="header-right ms-auto">
@@ -145,9 +147,48 @@
     </div>
 
     <style>
+        /* Header Styling */
+        .nxl-header {
+            background: #0f172a !important; /* DARK HEADER */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            height: 72px !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+        }
+        
+        .header-wrapper {
+            background: transparent !important;
+        }
+
+        /* Icon & Text contrast for dark header */
+        .nxl-header .nxl-mtext, 
+        .nxl-header .fs-11,
+        .nxl-header .fw-bolder,
+        .nxl-header i {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .nxl-header .hamburger-inner, 
+        .nxl-header .hamburger-inner::before, 
+        .nxl-header .hamburger-inner::after {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .nxl-header .text-muted {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* User Profile & Plan area refinement */
+        .nxl-header .bg-white {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .nxl-header .text-dark {
+            color: #ffffff !important;
+        }
+
         /* Revert to box aesthetics for user avatar */
         .user-avtar.rounded-2 { border-radius: 6px !important; }
-        
         /* Modal Backdrop & Global Blur: Remove blur effect */
         .modal-backdrop.show {
             backdrop-filter: none !important;

@@ -95,16 +95,19 @@
         .test-item:hover { background: #fcfcfc; }
 
         .table-pos thead th {
-            background: #f8f9fa;
-            font-size: 12px;
+            background: #0d6efd !important;
+            color: #fff !important;
+            font-size: 15px !important;
             text-transform: uppercase;
-            color: #666;
-            padding: 12px 10px;
-            border-bottom: 2px solid #dee2e6;
+            font-weight: 800 !important;
+            padding: 15px 10px !important;
+            border: 1px solid #0056b3 !important;
         }
         .table-pos tbody td {
-            padding: 12px 10px;
-            font-size: 13px;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            padding: 15px 10px !important;
+            color: #1a1d29 !important;
             vertical-align: middle;
         }
 
@@ -114,17 +117,18 @@
             color: #333;
         }
 
-        .receipt-row {
-            display: flex;
-            align-items: center;
+        .receipt-row { 
+            display: flex; 
+            align-items: center; 
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f1f1;
+            padding: 15px 0; 
+            border-bottom: 1px dashed #ddd; 
         }
-        .receipt-label {
-            font-size: 13.5px;
-            color: #555;
-            font-weight: 500;
+        .receipt-label { 
+            font-size: 18px !important; 
+            font-weight: 800 !important; 
+            flex: 1; 
+            color: #333;
         }
         .receipt-total {
             font-size: 20px;
@@ -551,8 +555,8 @@
                         <div class="card-body p-4">
                             <div class="receipt-row">
                                 <span class="receipt-label">Subtotal (MRP)</span>
-                                <div class="d-flex align-items-center bg-light border rounded px-3 py-2" style="width: 220px;">
-                                    <span class="fw-bold me-auto">{{ number_format($subtotal, 2) }}</span>
+                                <div class="d-flex align-items-center bg-light border rounded px-3 py-3" style="width: 280px;">
+                                    <span class="fw-bold fs-18 me-auto">{{ number_format($subtotal, 2) }}</span>
                                     <span class="small text-muted fw-bold">INR</span>
                                 </div>
                             </div>
@@ -562,15 +566,15 @@
                             @if($item_discount > 0)
                             <div class="receipt-row">
                                 <span class="receipt-label text-danger">Item Discount</span>
-                                <div class="d-flex align-items-center bg-soft-danger border border-danger border-opacity-25 rounded px-3 py-2" style="width: 220px;">
-                                    <span class="fw-bold text-danger me-auto">- {{ number_format($item_discount, 2) }}</span>
+                                <div class="d-flex align-items-center bg-soft-danger border border-danger border-opacity-25 rounded px-3 py-3" style="width: 280px;">
+                                    <span class="fw-bold fs-18 text-danger me-auto">- {{ number_format($item_discount, 2) }}</span>
                                     <span class="small text-danger fw-bold">INR</span>
                                 </div>
                             </div>
                             @endif
                             <div class="receipt-row">
                                 <span class="receipt-label">Membership</span>
-                                <select class="form-select form-select-sm" style="width: 220px; height: 38px;" wire:model.live="selectedMembershipId">
+                                <select class="form-select fw-bold fs-18" style="width: 280px; height: 50px;" wire:model.live="selectedMembershipId">
                                     <option value="">Select contract</option>
                                     @foreach(\App\Models\Membership::all() as $mem)
                                         <option value="{{ $mem->id }}">{{ $mem->name }}</option>
@@ -580,8 +584,8 @@
                             @if($membership_fee > 0)
                             <div class="receipt-row">
                                 <span class="receipt-label text-primary">Membership Fee</span>
-                                <div class="d-flex align-items-center bg-soft-primary border border-primary border-opacity-25 rounded px-3 py-2" style="width: 220px;">
-                                    <span class="fw-bold text-primary me-auto">+ {{ number_format($membership_fee, 2) }}</span>
+                                <div class="d-flex align-items-center bg-soft-primary border border-primary border-opacity-25 rounded px-3 py-3" style="width: 280px;">
+                                    <span class="fw-bold fs-18 text-primary me-auto">+ {{ number_format($membership_fee, 2) }}</span>
                                     <span class="small text-primary fw-bold">INR</span>
                                 </div>
                             </div>

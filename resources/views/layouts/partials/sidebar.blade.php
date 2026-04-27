@@ -178,19 +178,19 @@
                     <li class="nxl-item {{ request()->routeIs('lab.pos') ? 'active' : '' }}">
                         <a href="{{ route('lab.pos') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-plus-circle"></i></span>
-                            <span class="nxl-mtext">New Bill (POS)</span>
+                            <span class="nxl-mtext">Book Test</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('lab.invoices') || request()->routeIs('lab.invoice.edit') ? 'active' : '' }}">
                         <a href="{{ route('lab.invoices') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
-                            <span class="nxl-mtext">All Invoices</span>
+                            <span class="nxl-mtext">Invoice</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('lab.reports') || request()->routeIs('lab.reports.entry') ? 'active' : '' }}">
                         <a href="{{ route('lab.reports') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-clipboard"></i></span>
-                            <span class="nxl-mtext">Test Reports</span>
+                            <span class="nxl-mtext">Medical Reports</span>
                         </a>
                     </li>
 
@@ -206,7 +206,7 @@
                     <li class="nxl-item {{ request()->routeIs('lab.tests') ? 'active' : '' }}">
                         <a href="{{ route('lab.tests') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-activity"></i></span>
-                            <span class="nxl-mtext">Test Catalog</span>
+                            <span class="nxl-mtext">Test</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('lab.packages') ? 'active' : '' }}">
@@ -375,19 +375,19 @@
                     <li class="nxl-item {{ request()->routeIs('lab.pos') ? 'active' : '' }}">
                         <a href="{{ route('lab.pos') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-plus-circle"></i></span>
-                            <span class="nxl-mtext">New Bill (POS)</span>
+                            <span class="nxl-mtext">Book Test</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('lab.invoices') || request()->routeIs('lab.invoice.edit') ? 'active' : '' }}">
                         <a href="{{ route('lab.invoices') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
-                            <span class="nxl-mtext">All Invoices</span>
+                            <span class="nxl-mtext">Invoice</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('lab.reports') || request()->routeIs('lab.reports.entry') ? 'active' : '' }}">
                         <a href="{{ route('lab.reports') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-clipboard"></i></span>
-                            <span class="nxl-mtext">Test Reports</span>
+                            <span class="nxl-mtext">Medical Reports</span>
                         </a>
                     </li>
 
@@ -482,7 +482,7 @@
                     <li class="nxl-item {{ request()->routeIs('lab.pos') ? 'active' : '' }}">
                         <a href="{{ route('lab.pos') }}" wire:navigate class="nxl-link">
                             <span class="nxl-micon"><i class="feather-plus-circle"></i></span>
-                            <span class="nxl-mtext">Create Bill (POS)</span>
+                            <span class="nxl-mtext">Book Test</span>
                         </a>
                     </li>
                     @endcan
@@ -509,7 +509,7 @@
                     <li class="nxl-item {{ request()->routeIs('lab.reports') ? 'active' : '' }}">
                         <a href="{{ route('lab.reports') }}" wire:navigate class="nxl-link">
                             <span class="nxl-micon"><i class="feather-clipboard"></i></span>
-                            <span class="nxl-mtext">Test Reports</span>
+                            <span class="nxl-mtext">Medical Reports</span>
                         </a>
                     </li>
                     @endif
@@ -596,7 +596,7 @@
                     <li class="nxl-item {{ request()->routeIs('portal.reports') ? 'active' : '' }}">
                         <a href="{{ route('portal.reports') }}" wire:navigate class="nxl-link">
                             <span class="nxl-micon"><i class="feather-clipboard"></i></span>
-                            <span class="nxl-mtext">My Test Reports</span>
+                            <span class="nxl-mtext">Medical Reports</span>
                         </a>
                     </li>
                     <li class="nxl-item {{ request()->routeIs('portal.membership') ? 'active' : '' }}">
@@ -626,18 +626,102 @@
         </div>
     </div>
     <style>
-        /* Increase main menu font size */
+        /* Sidebar Premium Background & Color */
+        .nxl-navigation {
+            background: #0f172a !important; /* solid deep dark for stability */
+            border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nxl-navigation .navbar-wrapper {
+            background: transparent !important;
+        }
+
+        /* Logo Area */
+        .nxl-navigation .m-header {
+            background: #0f172a !important; /* MATCH SIDEBAR DARK */
+            padding: 10px 20px !important;
+            margin-bottom: 0;
+            height: 72px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Increase main menu font size & color */
+        .nxl-navigation .nxl-navbar .nxl-item > .nxl-link {
+            padding: 8px 20px !important; /* REDUCED VERTICAL SPACING */
+            margin: 2px 10px !important;
+            border-radius: 8px;
+        }
+
         .nxl-navigation .nxl-navbar .nxl-item > .nxl-link .nxl-mtext {
-            font-size: 14.5px !important;
-            font-weight: 600 !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: rgba(255, 255, 255, 0.7) !important;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+        }
+
+        /* Hover State: Subtle Highlight, NO WASH OUT */
+        .nxl-navigation .nxl-navbar .nxl-item > .nxl-link:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #ffffff !important;
+        }
+
+        .nxl-navigation .nxl-navbar .nxl-item > .nxl-link:hover .nxl-mtext {
+            color: #ffffff !important;
+            transform: translateX(3px);
+        }
+
+        /* Active State: Premium Blue Glow */
+        .nxl-navigation .nxl-navbar .nxl-item.active {
+            background: rgba(59, 130, 246, 0.15) !important;
+            border-radius: 8px;
+            margin: 2px 10px !important;
+            border-left: 3px solid #3b82f6 !important;
+        }
+
+        .nxl-navigation .nxl-navbar .nxl-item.active > .nxl-link {
+            background: transparent !important;
+        }
+
+        .nxl-navigation .nxl-navbar .nxl-item.active > .nxl-link .nxl-mtext {
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+
+        /* Icon Styling */
+        .nxl-navigation .nxl-navbar .nxl-item > .nxl-link .nxl-micon i {
+            font-size: 1.1rem !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            transition: all 0.2s ease;
+        }
+
+        .nxl-navigation .nxl-navbar .nxl-item:hover > .nxl-link .nxl-micon i,
+        .nxl-navigation .nxl-navbar .nxl-item.active > .nxl-link .nxl-micon i {
+            color: #3b82f6 !important;
+            transform: scale(1.1);
         }
         
         /* Caption/Label styling */
         .nxl-navigation .nxl-navbar .nxl-caption label {
-            font-size: 10px !important;
-            letter-spacing: 1px !important;
-            font-weight: 700 !important;
-            color: #64748b !important;
+            font-size: 10.5px !important;
+            letter-spacing: 1.2px !important;
+            font-weight: 800 !important;
+            color: rgba(255, 255, 255, 0.25) !important;
+            text-transform: uppercase;
+            padding: 15px 20px 5px 20px !important; /* REDUCED SPACING */
+        }
+
+        /* Remove the weird green line and any other indicators from theme */
+        .nxl-navigation .nxl-navbar .nxl-item.active::after,
+        .nxl-navigation .nxl-navbar .nxl-item.active::before,
+        .nxl-navigation .nxl-navbar .nxl-item::after,
+        .nxl-navigation .nxl-navbar .nxl-item::before {
+            display: none !important;
+            content: none !important;
         }
     </style>
 </nav>

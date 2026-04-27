@@ -1,158 +1,123 @@
 <div>
     {{-- ======================== PAGE HEADER ======================== --}}
-    <div class="page-header">
+    {{-- ======================== PAGE HEADER ======================== --}}
+    <div class="page-header py-4 border-0">
         <div class="page-header-left d-flex align-items-center">
-            <div class="page-header-title">
-                <h5 class="text-dark fw-bold">Settings</h5>
+            <div class="page-header-title d-flex align-items-center">
+                <i class="feather-settings text-dark me-3" style="font-size: 2.5rem;"></i>
+                <h2 class="text-dark fw-bold mb-0">Account Settings</h2>
             </div>
-            <ul class="breadcrumb d-none d-md-flex ms-3">
+        </div>
+        <div class="page-header-right d-none d-md-block">
+            <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('lab.dashboard') }}" wire:navigate class="text-muted">Home</a></li>
-                <li class="breadcrumb-item text-primary fw-medium">Settings</li>
+                <li class="breadcrumb-item text-muted">/ Account Settings</li>
             </ul>
         </div>
     </div>
 
     {{-- ======================== MAIN CONTENT ======================== --}}
     <div class="main-content">
+        <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 0;">
+            <div class="settings-main-header">
+                Settings
+            </div>
+            <div class="row g-0">
+                {{-- Sidebar --}}
+                <div class="col-md-3 border-end bg-white">
+                    <div class="py-3">
+                        @role('lab_admin|super_admin')
+                        <button wire:click="$set('activeTab', 'general')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'general' ? 'active' : '' }}">
+                            <i class="feather-settings"></i> Basic Setup
+                        </button>
+                        <button wire:click="$set('activeTab', 'profile')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'profile' ? 'active' : '' }}">
+                            <i class="feather-home"></i> Lab Profile
+                        </button>
+                        <button wire:click="$set('activeTab', 'invoice')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'invoice' ? 'active' : '' }}">
+                            <i class="feather-file-text"></i> Billing Rules
+                        </button>
+                        <button wire:click="$set('activeTab', 'template')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'template' ? 'active' : '' }}">
+                            <i class="feather-layout"></i> Print Designs
+                        </button>
+                        <button wire:click="$set('activeTab', 'pdf')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'pdf' ? 'active' : '' }}">
+                            <i class="feather-printer"></i> Letterpad Setup
+                        </button>
+                        <button wire:click="$set('activeTab', 'signatures')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'signatures' ? 'active' : '' }}">
+                            <i class="feather-edit-3"></i> E-Signatures
+                        </button>
+                        <button wire:click="$set('activeTab', 'barcode')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'barcode' ? 'active' : '' }}">
+                            <i class="feather-maximize"></i> Barcode Label
+                        </button>
+                        @endrole
 
-        {{-- Tab Navigation --}}
-        <ul class="nav nav-tabs mb-4" role="tablist">
-            @role('lab_admin|super_admin')
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'general')" class="nav-link {{ $activeTab === 'general' ? 'active' : '' }}">
-                    <i class="feather-settings me-1"></i> General
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'profile')" class="nav-link {{ $activeTab === 'profile' ? 'active' : '' }}">
-                    <i class="feather-home me-1"></i> Lab Profile
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'invoice')" class="nav-link {{ $activeTab === 'invoice' ? 'active' : '' }}">
-                    <i class="feather-file-text me-1"></i> Invoice Settings
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'template')" class="nav-link {{ $activeTab === 'template' ? 'active' : '' }}">
-                    <i class="feather-layout me-1"></i> Bill Templates
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'pdf')" class="nav-link {{ $activeTab === 'pdf' ? 'active' : '' }}">
-                    <i class="feather-printer me-1"></i> PDF Header / Footer
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'signatures')" class="nav-link {{ $activeTab === 'signatures' ? 'active' : '' }}">
-                    <i class="feather-edit-3 me-1"></i> Signatures
-                </button>
-            </li>
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'barcode')" class="nav-link {{ $activeTab === 'barcode' ? 'active' : '' }}">
-                    <i class="feather-maximize me-1"></i> Barcode Settings
-                </button>
-            </li>
-            @endrole
+                        @can('view staff_roles')
+                        <button wire:click="$set('activeTab', 'staff')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'staff' ? 'active' : '' }}">
+                            <i class="feather-users"></i> Staff Access
+                        </button>
+                        @endcan
 
-            @can('view staff_roles')
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'staff')" class="nav-link {{ $activeTab === 'staff' ? 'active' : '' }}">
-                    <i class="feather-users me-1"></i> Staff & Roles
-                </button>
-            </li>
-            @endcan
+                        @role('lab_admin|super_admin')
+                        @if(\App\Models\Configuration::getFor('restrict_branch_access', '1') === '1')
+                        <button wire:click="$set('activeTab', 'branch')" class="settings-sidebar-link w-100 border-0 {{ $activeTab === 'branch' ? 'active' : '' }}">
+                            <i class="feather-git-merge"></i> Branch Control
+                        </button>
+                        @endif
+                        @endrole
+                    </div>
+                </div>
 
-            @role('lab_admin|super_admin')
-            @if(\App\Models\Configuration::getFor('restrict_branch_access', '1') === '1')
-            <li class="nav-item">
-                <button wire:click="$set('activeTab', 'branch')" class="nav-link {{ $activeTab === 'branch' ? 'active' : '' }}">
-                    <i class="feather-git-merge me-1"></i> Branch Controls
-                </button>
-            </li>
-            @endif
-            @endrole
-        </ul>
+                {{-- Content Area --}}
+                <div class="col-md-9 bg-white">
+                    <div class="p-4" style="min-height: 600px;">
 
         {{-- ═══════════════════════════════════════════════════════ --}}
         {{-- TAB 0: GENERAL SETTINGS --}}
         {{-- ═══════════════════════════════════════════════════════ --}}
         @if($activeTab === 'general')
-            {{-- UI Scaling Section --}}
-            <div class="card mb-4 border-info" style="background: rgba(59, 113, 202, 0.03);">
-                <div class="card-header bg-transparent border-info">
-                    <h6 class="card-title mb-0 fs-13 text-info"><i class="feather-maximize me-2"></i>UI Accessibility & Scaling</h6>
-                </div>
-                <div class="card-body">
-                    @if(session()->has('ui_updated'))
-                        <div class="alert alert-info py-2 fs-12 mb-3 d-flex align-items-center gap-2 border-0 shadow-sm" style="background:rgba(13,202,240,0.1); color:#0dcaf0;">
-                            <i class="feather-check-circle"></i> {{ session('ui_updated') }} Refreshing page...
-                        </div>
-                        <script>
-                            setTimeout(function() { window.location.reload(); }, 1200);
-                        </script>
-                    @endif
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="fw-bold fs-13 text-dark">Global UI Scale (Font Size)</div>
-                            <div class="fs-11 text-muted">Increase this if the text on screen feels too small. This will scale fonts and spacing globally across the entire application.</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
-                                <span class="fs-11 text-muted">Smaller</span>
-                                <input type="range" class="form-range" min="90" max="120" step="5" wire:model.live="ui_font_scale">
-                                <span class="fs-11 text-muted">Larger</span>
-                                <span class="badge bg-info fs-12 fw-bold py-2" style="min-width: 60px;">{{ $ui_font_scale }}%</span>
-                            </div>
-                        </div>
-                    </div>
-                    @can('edit settings')
-                    <div class="mt-3 text-end">
-                         <button wire:click="saveProfile" class="btn btn-sm btn-info fw-bold">
-                            <i class="feather-save me-1"></i>Apply UI Scale
-                         </button>
-                    </div>
-                    @endcan
-                </div>
-            </div>
-
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-user text-primary me-2"></i>Patient ID Configuration</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="settings-section-header d-flex align-items-center gap-3">
+                            <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                                <i class="feather-user-check"></i>
+                            </div>
+                            <span class="fs-15 fw-bold">Patient Registration Rules</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             @if($patientSettingsSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> Patient settings saved!
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Configuration saved successfully!</span>
                                 </div>
                             @endif
 
-                            <div class="row g-3">
+                            <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Patient ID Prefix <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" wire:model.live.debounce.500ms="patient_id_prefix" placeholder="e.g. PAT, REG, PT">
-                                    <div class="fs-10 text-muted mt-1">Text at the start of Patient ID. Default: PAT</div>
+                                    <label class="form-label fw-bolder text-dark fs-13 mb-2">Patient ID Prefix</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-user"></i></div>
+                                        <input type="text" class="form-control" wire:model.live.debounce.500ms="patient_id_prefix" placeholder="e.g. PAT, REG, PT">
+                                    </div>
+                                    <div class="fs-12 text-muted mt-2">Example: <strong>{{ $patient_id_prefix }}</strong>00001</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Counter Digits</label>
-                                    <select class="form-select" wire:model.live="patient_id_digits">
-                                        <option value="4">4 digits (0001)</option>
-                                        <option value="5">5 digits (00001)</option>
-                                        <option value="6">6 digits (000001)</option>
-                                        <option value="8">8 digits (00000001)</option>
-                                    </select>
-                                    <div class="fs-10 text-muted mt-1">Number of zero-padded digits in the ID.</div>
+                                    <label class="form-label fw-bolder text-dark fs-13 mb-2">ID Padding Length</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-hash"></i></div>
+                                        <select class="form-control form-select" wire:model.live="patient_id_digits">
+                                            <option value="4">4 Digits (Standard)</option>
+                                            <option value="5">5 Digits (Medium Lab)</option>
+                                            <option value="6">6 Digits (Large Lab)</option>
+                                            <option value="8">8 Digits (Maximum)</option>
+                                        </select>
+                                    </div>
+                                    <div class="fs-12 text-muted mt-2">Total digits including leading zeros.</div>
                                 </div>
                             </div>
 
                             @can('edit settings')
-                            <hr class="my-3">
-                            <div class="text-end">
-                                <button wire:click="savePatientSettings" class="btn btn-primary fw-bold px-4">
-                                    <span wire:loading.remove wire:target="savePatientSettings"><i class="feather-save me-1"></i>Save Patient Settings</span>
-                                    <span wire:loading wire:target="savePatientSettings"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                            <div class="mt-4 pt-3 text-start">
+                                <button wire:click="savePatientSettings" class="settings-save-btn">
+                                    <i class="feather-check"></i> Save Patient Rules
                                 </button>
                             </div>
                             @endcan
@@ -161,18 +126,18 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-primary h-100">
-                        <div class="card-header" style="background:rgba(59,113,202,0.08);">
-                            <h6 class="card-title mb-0 fs-13 text-primary"><i class="feather-eye me-2"></i>Patient ID Preview</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                        <div class="settings-section-header bg-dark">
+                            <i class="feather-eye me-2"></i> ID Preview
                         </div>
                         <div class="card-body text-center py-5 d-flex flex-column justify-content-center">
                             <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Sample Patient ID:</div>
-                            <div class="fs-3 fw-bold text-dark py-3 px-3 rounded-3 border bg-light font-monospace" style="letter-spacing:1px;">
+                            <div class="display-5 fw-bold text-primary py-3 px-3 rounded-3 border bg-light font-monospace" style="letter-spacing:1px;">
                                 {{ $this->patientIdPreview }}
                             </div>
                             <div class="mt-4">
-                                <div class="fs-10 text-muted px-3 text-start">
-                                    <p><i class="feather-info me-1"></i> This pattern will be used for all patient records. Existing IDs will also reflect this change.</p>
+                                <div class="fs-11 text-muted px-3 text-start">
+                                    <p class="mb-0"><i class="feather-info me-1"></i> This pattern will be used for all patient records. Existing IDs will also reflect this change.</p>
                                 </div>
                             </div>
                         </div>
@@ -180,115 +145,135 @@
                 </div>
             </div>
         @endif
+
+
         @if($activeTab === 'profile')
             <div class="row g-4">
-                {{-- Logo & Branding --}}
-                <div class="col-lg-4">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-image text-primary me-2"></i>Lab Logo</h6>
-                        </div>
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                @if($lab_logo)
-                                    <img src="{{ secure_storage_url($lab_logo) }}" alt="Lab Logo" class="rounded border" style="max-height:80px;max-width:140px;object-fit:contain;">
-                                @else
-                                    <div class="avatar-text avatar-xl mx-auto rounded" style="background:rgba(59,113,202,0.1);">
-                                        <i class="feather-image text-primary" style="font-size:32px;"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            @if($new_logo)
-                                <div class="mb-2">
-                                    <img src="{{ $new_logo->temporaryUrl() }}" alt="Preview" class="rounded border" style="max-height:80px;">
-                                </div>
-                            @endif
-                            <input type="file" wire:model="new_logo" accept="image/*" class="form-control form-control-sm">
-                            <div class="fs-10 text-muted mt-1">Main sidebar logo (Max 2MB)</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-compass text-primary me-2"></i>Browser Favicon</h6>
-                        </div>
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                @if($lab_favicon)
-                                    <img src="{{ secure_storage_url($lab_favicon) }}" alt="Favicon" class="rounded border p-1" style="height:48px;width:48px;object-fit:contain;">
-                                @else
-                                    <div class="avatar-text avatar-md mx-auto rounded" style="background:rgba(20,184,166,0.1);">
-                                        <i class="feather-compass text-teal" style="font-size:24px;"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            @if($new_favicon)
-                                <div class="mb-2">
-                                    <img src="{{ $new_favicon->temporaryUrl() }}" alt="Preview" class="rounded border p-1" style="height:32px;width:32px;">
-                                </div>
-                            @endif
-                            <input type="file" wire:model="new_favicon" accept="image/*" class="form-control form-control-sm">
-                            <div class="fs-10 text-muted mt-1">Browser tab icon (Square, Max 1MB)</div>
-                        </div>
-                    </div>
-                </div>
-
                 {{-- Contact Details --}}
                 <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-info text-primary me-2"></i>Lab Information</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="settings-section-header d-flex align-items-center gap-3">
+                            <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                                <i class="feather-info"></i>
+                            </div>
+                            <span class="fs-15 fw-bold">Laboratory Profile Information</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             @if($profileSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> Profile saved successfully!
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Profile updated successfully!</span>
                                 </div>
                             @endif
 
-                            <div class="row g-3">
+                            <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Lab / Pathology Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" wire:model="lab_name" placeholder="e.g. Sahani Pathology Lab">
-                                    @error('lab_name') <span class="text-danger fs-10">{{ $message }}</span> @enderror
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Laboratory Name <span class="text-danger">*</span></label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-home"></i></div>
+                                        <input type="text" class="form-control" wire:model="lab_name" placeholder="e.g. Sahani Pathology Lab">
+                                    </div>
+                                    @error('lab_name') <span class="text-danger fs-11 mt-1 d-block">{{ $message }}</span> @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Tagline / Subtitle</label>
-                                    <input type="text" class="form-control" wire:model="lab_tagline" placeholder="e.g. Trusted Diagnostics Since 2010">
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Brand Tagline</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-tag"></i></div>
+                                        <input type="text" class="form-control" wire:model="lab_tagline" placeholder="e.g. Trusted Diagnostics Since 2010">
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11"><i class="feather-mail me-1 text-muted"></i>Email</label>
-                                    <input type="email" class="form-control" wire:model="lab_email" placeholder="lab@example.com">
-                                    @error('lab_email') <span class="text-danger fs-10">{{ $message }}</span> @enderror
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Official Email</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-mail"></i></div>
+                                        <input type="email" class="form-control" wire:model="lab_email" placeholder="lab@example.com">
+                                    </div>
+                                    @error('lab_email') <span class="text-danger fs-11 mt-1 d-block">{{ $message }}</span> @enderror
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11"><i class="feather-phone me-1 text-muted"></i>Phone</label>
-                                    <input type="text" class="form-control" wire:model="lab_phone" placeholder="+91 9876543210">
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Contact Number</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-phone"></i></div>
+                                        <input type="text" class="form-control" wire:model="lab_phone" placeholder="+91 9876543210">
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11"><i class="feather-globe me-1 text-muted"></i>Website</label>
-                                    <input type="url" class="form-control" wire:model="lab_website" placeholder="https://www.example.com">
-                                    @error('lab_website') <span class="text-danger fs-10">{{ $message }}</span> @enderror
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Website</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-globe"></i></div>
+                                        <input type="url" class="form-control" wire:model="lab_website" placeholder="https://www.example.com">
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11"><i class="feather-hash me-1 text-muted"></i>GST / Tax Number</label>
-                                    <input type="text" class="form-control" wire:model="lab_gst_number" placeholder="e.g. 22AAAAA0000A1Z5">
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">GST / Tax Number</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-hash"></i></div>
+                                        <input type="text" class="form-control" wire:model="lab_gst_number" placeholder="e.g. 22AAAAA0000A1Z5">
+                                    </div>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label fw-semibold fs-11"><i class="feather-map-pin me-1 text-muted"></i>Full Address</label>
-                                    <textarea class="form-control" wire:model="lab_address" rows="3" placeholder="Street, City, State, PIN"></textarea>
+                                    <label class="form-label fw-bolder text-dark fs-12 mb-2">Full Address</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-map-pin"></i></div>
+                                        <textarea class="form-control" wire:model="lab_address" rows="3" placeholder="Street, City, State, PIN"></textarea>
+                                    </div>
                                 </div>
                             </div>
 
                             @can('edit settings')
-                            <hr class="my-3">
-                            <div class="text-end">
-                                <button wire:click="saveProfile" class="btn btn-primary fw-bold px-4">
-                                    <span wire:loading.remove wire:target="saveProfile"><i class="feather-save me-1"></i>Save Profile</span>
-                                    <span wire:loading wire:target="saveProfile"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                            <div class="mt-4 pt-3 text-start">
+                                <button wire:click="saveProfile" class="settings-save-btn">
+                                    <i class="feather-check"></i> Save
                                 </button>
                             </div>
                             @endcan
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Logo & Branding --}}
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="settings-section-header bg-secondary">
+                            <i class="feather-image me-2"></i> Lab Branding
+                        </div>
+                        <div class="card-body p-4 text-center">
+                            <div class="p-4 rounded-4 bg-light mb-4 text-center border-dashed border-2">
+                                @if($lab_logo)
+                                    <img src="{{ secure_storage_url($lab_logo) }}" alt="Lab Logo" class="img-fluid rounded shadow-sm mb-3" style="max-height:100px;">
+                                @else
+                                    <div class="avatar-text avatar-xl mx-auto rounded-circle bg-white shadow-sm mb-3" style="width:80px; height:80px; line-height:80px;">
+                                        <i class="feather-image text-muted fs-1"></i>
+                                    </div>
+                                @endif
+                                
+                                @if($new_logo)
+                                    <div class="mb-3">
+                                        <div class="badge bg-primary px-3 py-2 rounded-pill mb-2">New Logo Preview</div>
+                                        <img src="{{ $new_logo->temporaryUrl() }}" alt="Preview" class="img-fluid rounded shadow-sm" style="max-height:100px;">
+                                    </div>
+                                @endif
+
+                                <label class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold cursor-pointer">
+                                    Change Logo <input type="file" wire:model="new_logo" accept="image/*" hidden>
+                                </label>
+                                <div class="fs-11 text-muted mt-3">Used in Sidebar & Invoices (Max 2MB)</div>
+                            </div>
+
+                            <div class="p-4 rounded-4 bg-light text-center border-dashed border-2">
+                                <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+                                    @if($lab_favicon)
+                                        <img src="{{ secure_storage_url($lab_favicon) }}" alt="Favicon" class="rounded-3 shadow-sm p-1 bg-white" style="height:48px;width:48px;object-fit:contain;">
+                                    @endif
+                                    @if($new_favicon)
+                                        <i class="feather-arrow-right text-muted"></i>
+                                        <img src="{{ $new_favicon->temporaryUrl() }}" alt="Preview" class="rounded-3 shadow-sm p-1 bg-white border border-primary" style="height:48px;width:48px;">
+                                    @endif
+                                </div>
+                                <label class="btn btn-outline-info btn-sm rounded-pill px-4 fw-bold cursor-pointer">
+                                    Update Favicon <input type="file" wire:model="new_favicon" accept="image/*" hidden>
+                                </label>
+                                <div class="fs-11 text-muted mt-3">Browser tab icon (Square, Max 1MB)</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -301,93 +286,115 @@
         @if($activeTab === 'invoice')
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-hash text-primary me-2"></i>Invoice Number Pattern</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="settings-section-header d-flex align-items-center gap-3">
+                            <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                                <i class="feather-file-text"></i>
+                            </div>
+                            <span class="fs-15 fw-bold">Invoice Numbering & Financials</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             @if($invoiceSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> Invoice settings saved!
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Billing rules updated successfully!</span>
                                 </div>
                             @endif
 
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Invoice Prefix <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" wire:model.live.debounce.500ms="invoice_prefix" placeholder="e.g. INV, BILL, LAB">
-                                    <div class="fs-10 text-muted mt-1">Text before the number. Example: INV, BILL, LAB</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Separator</label>
-                                    <select class="form-select" wire:model.live="invoice_separator">
-                                        <option value="-">Dash ( - )</option>
-                                        <option value="/">Slash ( / )</option>
-                                        <option value="">None</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold fs-11">Date Format</label>
-                                    <select class="form-select" wire:model.live="invoice_date_format">
-                                        <option value="ym">YYMM ({{ date('ym') }})</option>
-                                        <option value="ymd">YYMMDD ({{ date('ymd') }})</option>
-                                        <option value="Ymd">YYYYMMDD ({{ date('Ymd') }})</option>
-                                        <option value="Y">YYYY ({{ date('Y') }})</option>
-                                        <option value="none">No Date</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold fs-11">Counter Digits</label>
-                                    <select class="form-select" wire:model.live="invoice_counter_digits">
-                                        <option value="2">2 digits (01)</option>
-                                        <option value="3">3 digits (001)</option>
-                                        <option value="4">4 digits (0001)</option>
-                                        <option value="5">5 digits (00001)</option>
-                                        <option value="6">6 digits (000001)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold fs-11">Counter Reset</label>
-                                    <select class="form-select" wire:model.live="invoice_counter_reset">
-                                        <option value="daily">Daily (resets every day)</option>
-                                        <option value="monthly">Monthly (resets each month)</option>
-                                        <option value="yearly">Yearly (resets each year)</option>
-                                        <option value="never">Never (continuous)</option>
-                                    </select>
+                            <div class="mb-4">
+                                <h6 class="fw-bolder text-dark mb-3">Numbering Pattern</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Invoice Prefix <span class="text-danger">*</span></label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-type"></i></div>
+                                            <input type="text" class="form-control" wire:model.live.debounce.500ms="invoice_prefix" placeholder="e.g. INV, BILL, LAB">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Pattern Separator</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-minus"></i></div>
+                                            <select class="form-control form-select" wire:model.live="invoice_separator">
+                                                <option value="-">Dash ( - )</option>
+                                                <option value="/">Slash ( / )</option>
+                                                <option value="">None ( No Separator )</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Dynamic Date Tag</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-calendar"></i></div>
+                                            <select class="form-control form-select" wire:model.live="invoice_date_format">
+                                                <option value="ym">YYMM ({{ date('ym') }})</option>
+                                                <option value="ymd">YYMMDD ({{ date('ymd') }})</option>
+                                                <option value="Ymd">YYYYMMDD ({{ date('Ymd') }})</option>
+                                                <option value="Y">YYYY ({{ date('Y') }})</option>
+                                                <option value="none">No Date Tag</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Counter Digits</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-hash"></i></div>
+                                            <select class="form-control form-select" wire:model.live="invoice_counter_digits">
+                                                <option value="2">2 digits (01)</option>
+                                                <option value="3">3 digits (001)</option>
+                                                <option value="4">4 digits (0001)</option>
+                                                <option value="5">5 digits (00001)</option>
+                                                <option value="6">6 digits (000001)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Counter Reset</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-refresh-cw"></i></div>
+                                            <select class="form-control form-select" wire:model.live="invoice_counter_reset">
+                                                <option value="daily">Daily Reset</option>
+                                                <option value="monthly">Monthly Reset</option>
+                                                <option value="yearly">Yearly Reset</option>
+                                                <option value="never">Continuous (No Reset)</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="row g-3 mt-1">
-                                <div class="col-12">
-                                    <div class="p-3 rounded-3 border bg-light">
-                                        <h6 class="fw-bold fs-12 mb-3 text-dark"><i class="feather-pie-chart text-primary me-2"></i>Commission & Financials</h6>
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold fs-11">Doctor Commission Basis</label>
-                                                <select class="form-select" wire:model.live="commission_basis_doctor">
-                                                    <option value="gross">Gross Revenue (% of Total Bill)</option>
-                                                    <option value="profit">Net Profit (% of Bill minus B2B)</option>
-                                                </select>
-                                                <div class="fs-10 text-muted mt-1">Determine how the percentage is applied for doctors.</div>
+                            <hr class="my-4">
+
+                            <div class="mb-4">
+                                <h6 class="fw-bolder text-dark mb-3">Financial & Commission Rules</h6>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Doctor Commission Basis</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-user"></i></div>
+                                            <select class="form-control form-select" wire:model.live="commission_basis_doctor">
+                                                <option value="gross">Gross Revenue (% of Total Bill)</option>
+                                                <option value="profit">Net Profit (% of Bill minus B2B Cost)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-dark fs-12 mb-2">Agent Commission Basis</label>
+                                        <div class="settings-input-group">
+                                            <div class="settings-input-icon"><i class="feather-briefcase"></i></div>
+                                            <select class="form-control form-select" wire:model.live="commission_basis_agent">
+                                                <option value="gross">Gross Revenue (% of Total Bill)</option>
+                                                <option value="profit">Net Profit (% of Bill minus B2B Cost)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-light">
+                                            <div class="pe-3">
+                                                <h6 class="fw-bold mb-1 text-dark">Prevent Billing Below B2B Cost</h6>
+                                                <p class="fs-11 text-muted mb-0">Blocks bill creation if discount makes revenue less than B2B cost.</p>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold fs-11">Agent Commission Basis</label>
-                                                <select class="form-select" wire:model.live="commission_basis_agent">
-                                                    <option value="gross">Gross Revenue (% of Total Bill)</option>
-                                                    <option value="profit">Net Profit (% of Bill minus B2B)</option>
-                                                </select>
-                                                <div class="fs-10 text-muted mt-1">Determine how the percentage is applied for agents.</div>
-                                            </div>
-                                            <div class="col-12 mt-3">
-                                                <div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background:rgba(59,113,202,0.05);">
-                                                    <div>
-                                                        <div class="fw-bold fs-12 text-dark"><i class="feather-shield text-primary me-2"></i>Restrict Billing below B2B Price</div>
-                                                        <div class="fs-11 text-muted mt-1">Prevents bill generation if Net Payable is less than total B2B cost.</div>
-                                                    </div>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" wire:model.live="restrict_billing_below_b2b" style="width:2.5em;height:1.25em;">
-                                                    </div>
-                                                </div>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input" type="checkbox" wire:model.live="restrict_billing_below_b2b" style="width:2.5em;height:1.3em;">
                                             </div>
                                         </div>
                                     </div>
@@ -395,11 +402,9 @@
                             </div>
 
                             @can('edit settings')
-                            <hr class="my-3">
-                            <div class="text-end">
-                                <button wire:click="saveInvoiceSettings" class="btn btn-primary fw-bold px-4">
-                                    <span wire:loading.remove wire:target="saveInvoiceSettings"><i class="feather-save me-1"></i>Save Invoice Settings</span>
-                                    <span wire:loading wire:target="saveInvoiceSettings"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                            <div class="mt-4 pt-3 text-start">
+                                <button wire:click="saveInvoiceSettings" class="settings-save-btn">
+                                    <i class="feather-check"></i> Save Billing Rules
                                 </button>
                             </div>
                             @endcan
@@ -409,32 +414,33 @@
 
                 {{-- Live Preview --}}
                 <div class="col-lg-4">
-                    <div class="card border-primary">
-                        <div class="card-header" style="background:rgba(59,113,202,0.08);">
-                            <h6 class="card-title mb-0 fs-13 text-primary"><i class="feather-eye me-2"></i>Live Preview</h6>
+                    <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-sticky" style="top: 100px;">
+                        <div class="card-header bg-dark py-4 text-center border-0">
+                            <h6 class="card-title mb-0 fs-11 text-white text-uppercase ls-1 fw-bold opacity-75">Live Invoice Pattern</h6>
                         </div>
-                        <div class="card-body text-center py-4">
-                            <div class="fs-10 fw-bold text-muted text-uppercase mb-2">Your invoice numbers will look like:</div>
-                            <div class="fs-2 fw-bold text-primary py-3 px-3 rounded-3 border" style="background:rgba(59,113,202,0.05);letter-spacing:2px;">
+                        <div class="card-body text-center py-5 px-4 bg-white">
+                            <div class="display-6 fw-bolder text-primary mb-3 font-monospace" style="letter-spacing:2px;">
                                 {{ $this->invoicePreview }}
                             </div>
-                            <div class="fs-10 text-muted mt-3">
-                                <div class="d-flex justify-content-between border-bottom py-1">
-                                    <span>Prefix</span><span class="fw-bold">{{ $invoice_prefix }}</span>
+                            <p class="text-muted fs-12 mb-4 px-3">This is exactly how your patients will see the bill numbers on their receipts.</p>
+                            
+                            <div class="list-group list-group-flush border rounded-4 overflow-hidden shadow-sm">
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-3 bg-light bg-opacity-50">
+                                    <span class="fs-11 fw-bold text-muted text-uppercase">Prefix</span>
+                                    <span class="badge bg-white text-dark border shadow-sm px-3 py-2 fs-13 fw-bolder">{{ $invoice_prefix }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between border-bottom py-1">
-                                    <span>Separator</span><span class="fw-bold">{{ $invoice_separator ?: 'None' }}</span>
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                    <span class="fs-11 fw-bold text-muted text-uppercase">Date Tag</span>
+                                    <span class="badge bg-white text-dark border shadow-sm px-3 py-2 fs-13 fw-bolder text-uppercase">{{ $invoice_date_format }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between border-bottom py-1">
-                                    <span>Date Format</span><span class="fw-bold">{{ $invoice_date_format }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between border-bottom py-1">
-                                    <span>Counter Digits</span><span class="fw-bold">{{ $invoice_counter_digits }}</span>
-                                </div>
-                                <div class="d-flex justify-content-between py-1">
-                                    <span>Resets</span><span class="fw-bold text-capitalize">{{ $invoice_counter_reset }}</span>
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-3 bg-light bg-opacity-50">
+                                    <span class="fs-11 fw-bold text-muted text-uppercase">Padding</span>
+                                    <span class="badge bg-white text-dark border shadow-sm px-3 py-2 fs-13 fw-bolder">{{ $invoice_counter_digits }} Digits</span>
                                 </div>
                             </div>
+                        </div>
+                        <div class="card-footer bg-light border-0 py-4 text-center">
+                            <p class="fs-11 text-muted mb-0"><i class="feather-info me-1"></i> Pattern changes apply to new bills only.</p>
                         </div>
                     </div>
                 </div>
@@ -445,50 +451,72 @@
         {{-- TAB 3: BILL TEMPLATES --}}
         {{-- ═══════════════════════════════════════════════════════ --}}
         @if($activeTab === 'template')
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title mb-0 fs-13"><i class="feather-layout text-primary me-2"></i>Select Bill Print Template</h6>
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="settings-section-header d-flex align-items-center gap-3">
+                    <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                        <i class="feather-layout"></i>
+                    </div>
+                    <span class="fs-15 fw-bold">Report & Bill Designs</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     @if($templateSaved)
-                        <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                            <i class="feather-check-circle"></i> Template preference saved!
+                        <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                            <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Success! Your print preference has been updated.</span>
                         </div>
                     @endif
 
                     <div class="row g-4">
                         @php
                             $templates = [
-                                'classic' => ['name' => 'Classic', 'icon' => 'feather-file-text', 'color' => '#3b71ca', 'desc' => 'Traditional layout with header, table, and footer. Best for formal medical reports.'],
-                                'pro' => ['name' => 'Professional', 'icon' => 'feather-shield', 'color' => '#1e293b', 'desc' => 'High-end Black & White design with clean borders, QR & Barcodes.'],
-                                'thermal' => ['name' => 'Thermal', 'icon' => 'feather-printer', 'color' => '#6366f1', 'desc' => 'Optimized for 80mm thermal printers. Narrow receipt format.'],
+                                'classic' => [
+                                    'name' => 'Standard Classic', 
+                                    'icon' => 'feather-file-text', 
+                                    'color' => '#0d6efd', 
+                                    'desc' => 'Best for formal medical reports. Includes standard header, detailed test tables, and signatory footer.'
+                                ],
+                                'pro' => [
+                                    'name' => 'Modern Pro', 
+                                    'icon' => 'feather-shield', 
+                                    'color' => '#1e293b', 
+                                    'desc' => 'Premium Black & White aesthetic. Features clean lines, QR code support, and high-density test formatting.'
+                                ],
+                                'thermal' => [
+                                    'name' => 'Fast Thermal', 
+                                    'icon' => 'feather-zap', 
+                                    'color' => '#6366f1', 
+                                    'desc' => 'Optimized for 80mm printers. A compact receipt-style format for quick billing and collections.'
+                                ],
                             ];
                         @endphp
 
                         @foreach($templates as $key => $tpl)
-                            <div class="col-md-3 col-sm-6">
+                            <div class="col-md-4">
                                 <div wire:click="$set('bill_template', '{{ $key }}')"
-                                     class="card h-100 border-2 {{ $bill_template === $key ? 'shadow-lg' : '' }}"
-                                     style="cursor:pointer;transition:all .2s;border-color:{{ $bill_template === $key ? $tpl['color'] : '#e5e7eb' }}!important;">
+                                     class="card h-100 border-2 transition-all hover-lift {{ $bill_template === $key ? 'shadow-lg border-primary' : 'border-light-subtle' }}"
+                                     style="cursor:pointer; border-radius: 20px; overflow: hidden;">
                                     <div class="card-body text-center p-4">
-                                        <div class="avatar-text avatar-xl mx-auto mb-3 rounded-3" style="background:{{ $tpl['color'] }}15;">
+                                        <div class="avatar-text avatar-xl mx-auto mb-4 rounded-circle shadow-sm" style="background:{{ $tpl['color'] }}15; width: 70px; height: 70px; line-height: 70px;">
                                             <i class="{{ $tpl['icon'] }}" style="font-size:32px;color:{{ $tpl['color'] }};"></i>
                                         </div>
-                                        <h6 class="fw-bold mb-1 fs-14">{{ $tpl['name'] }}</h6>
-                                        <p class="fs-11 text-muted mb-2">{{ $tpl['desc'] }}</p>
-                                        <div class="d-flex justify-content-center align-items-center gap-2">
+                                        <h5 class="fw-bolder mb-2 text-dark">{{ $tpl['name'] }}</h5>
+                                        <p class="fs-13 text-muted mb-4 px-2">{{ $tpl['desc'] }}</p>
+                                        
+                                        <div class="mt-auto">
                                             @if($bill_template === $key)
-                                                <span class="badge rounded-pill fw-bold fs-11 px-3 py-2" style="background:{{ $tpl['color'] }};color:#fff;">
-                                                    <i class="feather-check me-1"></i>Active
-                                                </span>
+                                                <div class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm">
+                                                    <i class="feather-check-circle me-1"></i> Active
+                                                </div>
                                             @else
-                                                <span class="badge bg-light text-muted rounded-pill fs-11 px-3 py-1">Select</span>
+                                                <div class="btn btn-light border-0 w-100 py-2 rounded-pill fw-bold text-dark">
+                                                    Select
+                                                </div>
                                             @endif
-                                        </div>
-                                        <div class="mt-3">
-                                            <a href="{{ route('lab.settings.invoice.preview', $key) }}" target="_blank" onclick="event.stopPropagation()" class="btn btn-sm btn-light border w-100 fs-11 fw-bold">
-                                                <i class="feather-eye me-1"></i> Preview Format
-                                            </a>
+                                            
+                                            <div class="mt-3">
+                                                <a href="{{ route('lab.settings.invoice.preview', $key) }}" target="_blank" onclick="event.stopPropagation()" class="text-primary fw-bold fs-12 text-decoration-none">
+                                                    <i class="feather-eye me-1"></i> Preview Live Format
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -497,11 +525,9 @@
                     </div>
 
                     @can('edit settings')
-                    <hr class="my-3">
-                    <div class="text-end">
-                        <button wire:click="saveTemplate" class="btn btn-primary fw-bold px-4">
-                            <span wire:loading.remove wire:target="saveTemplate"><i class="feather-save me-1"></i>Save Template</span>
-                            <span wire:loading wire:target="saveTemplate"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                    <div class="mt-4 pt-3 text-start">
+                        <button wire:click="saveTemplate" class="settings-save-btn">
+                            <i class="feather-check"></i> Save Template Preference
                         </button>
                     </div>
                     @endcan
@@ -513,193 +539,146 @@
         {{-- TAB 4: PDF HEADER / FOOTER --}}
         {{-- ═══════════════════════════════════════════════════════ --}}
         @if($activeTab === 'pdf')
-            <div class="row g-4">
-                {{-- Toggle Switches --}}
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-toggle-left text-primary me-2"></i>Header & Footer Visibility</h6>
-                        </div>
-                        <div class="card-body">
-                            @if($pdfSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> PDF settings saved!
-                                </div>
-                            @endif
-
-                            <div class="p-3 rounded-3 mb-3" style="background:rgba(59,113,202,0.05);">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div>
-                                        <strong class="fs-12">Show Header in PDF</strong>
-                                        <div class="fs-10 text-muted">Lab name, logo, contact details appear at top</div>
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                <div class="settings-section-header d-flex align-items-center gap-3">
+                    <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                        <i class="feather-printer"></i>
+                    </div>
+                    <span class="fs-15 fw-bold">Letterhead & PDF Configuration</span>
+                </div>
+                <div class="card-body p-4">
+                    {{-- Visibility Switches --}}
+                    <div class="row g-4 mb-5">
+                        <div class="col-lg-6">
+                            <div class="p-4 rounded-4 bg-light border-0 shadow-sm h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <div class="pe-3">
+                                        <h6 class="fw-bolder mb-1 text-dark">Default Header Visibility</h6>
+                                        <p class="fs-12 text-muted mb-0">Toggle Lab Name, Logo, and Address details on the PDF top section.</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" wire:model.live="pdf_show_header" style="width:3em;height:1.5em;">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="pdf_show_header" style="width:3.5em;height:1.75em;">
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <strong class="fs-12">Show Footer in PDF</strong>
-                                        <div class="fs-10 text-muted">Thank you message, website, disclaimer at bottom</div>
+                                    <div class="pe-3">
+                                        <h6 class="fw-bolder mb-1 text-dark">Default Footer Visibility</h6>
+                                        <p class="fs-12 text-muted mb-0">Toggle the disclaimer, thank you message, and website at the PDF bottom.</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" wire:model.live="pdf_show_footer" style="width:3em;height:1.5em;">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="pdf_show_footer" style="width:3.5em;height:1.75em;">
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="alert alert-info py-2 fs-11 mb-0">
-                                <i class="feather-info me-1"></i>
-                                <strong>Tip:</strong> Labs using their own letterpad can turn OFF both header & footer. Use the "Without Header" PDF option when printing.
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="alert alert-soft-info border-0 shadow-sm rounded-4 h-100 d-flex align-items-center p-4">
+                                <div class="avatar-text bg-info text-white rounded-circle me-3 flex-shrink-0" style="width:45px; height:45px; line-height:45px;">
+                                    <i class="feather-help-circle fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-info mb-1">Using Own Letterhead?</h6>
+                                    <p class="fs-12 mb-0 opacity-75">If you use pre-printed stationery, turn OFF both Header & Footer. You can also adjust margins below to fit your paper design.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {{-- Custom Header/Footer Images --}}
-                <div class="col-lg-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-image text-primary me-2"></i>Custom Header / Footer Images</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="fs-11 text-muted mb-3">
-                                Upload custom header/footer images (screenshot of your letterpad). These will replace the default lab info section in the PDF.
-                            </div>
-
-                            {{-- Header Image --}}
-                            <div class="mb-3 pb-3 border-bottom">
-                                <label class="form-label fw-bold fs-11">📄 Custom Header Image</label>
-                                @if($pdf_header_image)
-                                    <div class="mb-2 p-2 border rounded text-center" style="background:#f8fafc;">
-                                        <img src="{{ secure_storage_url($pdf_header_image) }}" alt="Header" style="max-height:60px;max-width:100%;object-fit:contain;">
-                                        <div class="mt-1">
-                                            <button wire:click="removeHeaderImage" class="btn btn-sm btn-outline-danger"><i class="feather-trash-2 me-1"></i>Remove</button>
+                    <div class="row g-4">
+                        {{-- Custom Images --}}
+                        <div class="col-lg-12">
+                            <h6 class="fw-bolder text-dark mb-4 ms-1">High-Resolution Branding Images</h6>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="card border border-light-subtle rounded-4 h-100 bg-white">
+                                        <div class="card-body p-4">
+                                            <label class="form-label fw-bolder text-dark fs-13 mb-3"><i class="feather-image text-primary me-2"></i>Custom Letterhead Header</label>
+                                            <div class="p-4 bg-light rounded-4 text-center border-dashed border-2 mb-3">
+                                                @if($pdf_header_image)
+                                                    <img src="{{ secure_storage_url($pdf_header_image) }}" alt="Header" class="img-fluid rounded shadow-sm mb-3" style="max-height:100px;">
+                                                    <div>
+                                                        <button wire:click="removeHeaderImage" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">Remove Image</button>
+                                                    </div>
+                                                @elseif($new_header_image)
+                                                    <img src="{{ $new_header_image->temporaryUrl() }}" alt="Preview" class="img-fluid rounded shadow-sm mb-3" style="max-height:100px;">
+                                                    <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">New Header Ready</div>
+                                                @else
+                                                    <div class="py-4">
+                                                        <i class="feather-upload-cloud text-muted fs-1 mb-2"></i>
+                                                        <p class="text-muted fs-12 mb-0">Upload a 1200x300px image of your letterhead</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <input type="file" wire:model="new_header_image" accept="image/*" class="form-control form-control-lg border-light rounded-3 fs-13">
                                         </div>
                                     </div>
-                                @endif
-                                @if($new_header_image)
-                                    <div class="mb-2 text-center">
-                                        <img src="{{ $new_header_image->temporaryUrl() }}" alt="Preview" class="rounded border" style="max-height:60px;">
-                                        <div class="fs-10 text-success mt-1"><i class="feather-check-circle me-1"></i>New header selected</div>
-                                    </div>
-                                @endif
-                                <input type="file" wire:model="new_header_image" accept="image/*" class="form-control form-control-sm">
-                                @error('new_header_image') <span class="text-danger fs-10">{{ $message }}</span> @enderror
-                            </div>
-
-                            {{-- Footer Image --}}
-                            <div class="mb-3">
-                                <label class="form-label fw-bold fs-11">📋 Custom Footer Image</label>
-                                @if($pdf_footer_image)
-                                    <div class="mb-2 p-2 border rounded text-center" style="background:#f8fafc;">
-                                        <img src="{{ secure_storage_url($pdf_footer_image) }}" alt="Footer" style="max-height:50px;max-width:100%;object-fit:contain;">
-                                        <div class="mt-1">
-                                            <button wire:click="removeFooterImage" class="btn btn-sm btn-outline-danger"><i class="feather-trash-2 me-1"></i>Remove</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border border-light-subtle rounded-4 h-100 bg-white">
+                                        <div class="card-body p-4">
+                                            <label class="form-label fw-bolder text-dark fs-13 mb-3"><i class="feather-image text-primary me-2"></i>Custom Letterhead Footer</label>
+                                            <div class="p-4 bg-light rounded-4 text-center border-dashed border-2 mb-3">
+                                                @if($pdf_footer_image)
+                                                    <img src="{{ secure_storage_url($pdf_footer_image) }}" alt="Footer" class="img-fluid rounded shadow-sm mb-3" style="max-height:80px;">
+                                                    <div>
+                                                        <button wire:click="removeFooterImage" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">Remove Image</button>
+                                                    </div>
+                                                @elseif($new_footer_image)
+                                                    <img src="{{ $new_footer_image->temporaryUrl() }}" alt="Preview" class="img-fluid rounded shadow-sm mb-3" style="max-height:80px;">
+                                                    <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">New Footer Ready</div>
+                                                @else
+                                                    <div class="py-4">
+                                                        <i class="feather-upload-cloud text-muted fs-1 mb-2"></i>
+                                                        <p class="text-muted fs-12 mb-0">Upload a 1200x150px footer image</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <input type="file" wire:model="new_footer_image" accept="image/*" class="form-control form-control-lg border-light rounded-3 fs-13">
                                         </div>
                                     </div>
-                                @endif
-                                @if($new_footer_image)
-                                    <div class="mb-2 text-center">
-                                        <img src="{{ $new_footer_image->temporaryUrl() }}" alt="Preview" class="rounded border" style="max-height:50px;">
-                                        <div class="fs-10 text-success mt-1"><i class="feather-check-circle me-1"></i>New footer selected</div>
-                                    </div>
-                                @endif
-                                <input type="file" wire:model="new_footer_image" accept="image/*" class="form-control form-control-sm">
-                                @error('new_footer_image') <span class="text-danger fs-10">{{ $message }}</span> @enderror
-                                <div class="fs-10 text-muted mt-1">Max 3MB · JPG, PNG</div>
+                                </div>
                             </div>
-
-                    </div>
-
-                    {{-- NEW: Layout & Typography Settings --}}
-                    <div class="card mt-4">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-type text-primary me-2"></i>Layout & Typography</h6>
                         </div>
-                        <div class="card-body">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold fs-11">Font Family</label>
-                                    <select class="form-select form-select-sm" wire:model="pdf_font_family">
-                                        @foreach($this->fontFamilies as $val => $label)
-                                            <option value="{{ $val }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold fs-11">Font Size (px)</label>
-                                    <input type="number" class="form-control form-control-sm" wire:model="pdf_font_size" min="8" max="14">
-                                </div>
-                            </div>
-                            
-                            <hr class="my-3">
-                            <div class="fw-bold fs-11 mb-2 text-muted text-uppercase">Page Spacing (pixels)</div>
-                            
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Top Margin</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" class="form-control" wire:model="pdf_margin_top">
-                                        <span class="input-group-text">px</span>
-                                    </div>
-                                    <div class="fs-10 text-muted mt-1">Space for Letterhead Header</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Bottom Margin</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" class="form-control" wire:model="pdf_margin_bottom">
-                                        <span class="input-group-text">px</span>
-                                    </div>
-                                    <div class="fs-10 text-muted mt-1">Space for Letterhead Footer</div>
-                                </div>
-                            </div>
 
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Header Height</label>
-                                    <input type="number" class="form-control form-control-sm" wire:model="pdf_header_height">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Footer Height</label>
-                                    <input type="number" class="form-control form-control-sm" wire:model="pdf_footer_height">
-                                </div>
-                            </div>
-
-                            @can('edit settings')
-                            <div class="text-end border-top pt-3">
-                                <button wire:click="savePdfSettings" class="btn btn-primary fw-bold px-4">
-                                    <span wire:loading.remove wire:target="savePdfSettings"><i class="feather-save me-1"></i>Save All PDF Settings</span>
-                                    <span wire:loading wire:target="savePdfSettings"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
-                                </button>
-                            </div>
-                            @endcan
-                        </div>
-                    </div>
-                </div>
-
-                {{-- PDF Options Explainer --}}
-                <div class="col-12">
-                    <div class="card border-0" style="background:linear-gradient(135deg,rgba(59,113,202,0.05),rgba(124,58,237,0.05));">
-                        <div class="card-body">
-                            <h6 class="fw-bold fs-13 mb-3"><i class="feather-book-open me-2 text-primary"></i>How PDF Options Work</h6>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-white rounded-3 h-100 border">
-                                        <div class="fw-bold fs-12 mb-1 text-primary"><i class="feather-file-text me-1"></i>PDF with Header</div>
-                                        <div class="fs-11 text-muted">Contains lab name, logo, contact info at top & thank-you at bottom. Use for patients who need a complete invoice.</div>
+                        {{-- Instructions --}}
+                        <div class="col-12 mt-5">
+                            <div class="p-4 rounded-4" style="background:rgba(var(--bs-primary-rgb), 0.03); border: 1px solid rgba(var(--bs-primary-rgb), 0.1);">
+                                <h6 class="fw-bolder text-primary mb-4 d-flex align-items-center">
+                                    <i class="feather-info me-2 fs-5"></i> Understanding Your PDF Export Options
+                                </h6>
+                                <div class="row g-4">
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white p-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="avatar-text bg-soft-success text-success rounded-3 me-3" style="width:35px; height:35px; line-height:35px;">
+                                                    <i class="feather-file-plus"></i>
+                                                </div>
+                                                <h6 class="fw-bolder mb-0 text-dark">Full Branding</h6>
+                                            </div>
+                                            <p class="fs-12 text-muted mb-0">Default option. Includes everything: Logo, Name, Address, and Footer. Best for direct digital sharing via WhatsApp or Email.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-white rounded-3 h-100 border">
-                                        <div class="fw-bold fs-12 mb-1" style="color:#f59e0b;"><i class="feather-minimize me-1"></i>PDF Without Header</div>
-                                        <div class="fs-11 text-muted">Only invoice content — no lab header/footer. Perfect for printing on your own <strong>pre-printed letterpad</strong>.</div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white p-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="avatar-text bg-soft-warning text-warning rounded-3 me-3" style="width:35px; height:35px; line-height:35px;">
+                                                    <i class="feather-file-minus"></i>
+                                                </div>
+                                                <h6 class="fw-bolder mb-0 text-dark">Minimalist (No Header)</h6>
+                                            </div>
+                                            <p class="fs-12 text-muted mb-0">Removes the top branding block. Ideal for <strong>pre-printed letterheads</strong> where your lab info is already on the paper.</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-white rounded-3 h-100 border">
-                                        <div class="fw-bold fs-12 mb-1" style="color:#7c3aed;"><i class="feather-image me-1"></i>Custom Image Header</div>
-                                        <div class="fs-11 text-muted">Upload a <strong>screenshot of your letterpad header</strong> and it will be placed at the top of the PDF instead of default info.</div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 bg-white p-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="avatar-text bg-soft-primary text-primary rounded-3 me-3" style="width:35px; height:35px; line-height:35px;">
+                                                    <i class="feather-image"></i>
+                                                </div>
+                                                <h6 class="fw-bolder mb-0 text-dark">Custom Overlay</h6>
+                                            </div>
+                                            <p class="fs-12 text-muted mb-0">Upload a single high-quality image of your full letterhead. It will be used as a backdrop for all your clinical reports.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -716,52 +695,52 @@
             <div class="row g-4">
                 {{-- Global Settings & Mode --}}
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                            <div>
-                                <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-edit-3 text-primary me-2"></i>Signature Display Strategy</h6>
-                                <p class="fs-12 text-muted mb-0">Choose how signatures should appear on your medical reports.</p>
-                            </div>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="settings-section-header">
+                            <i class="feather-edit-3 me-2"></i> Signature Display Strategy
+                        </div>
+                        <div class="card-body p-4">
                             @if($signaturesSaved)
-                                <div class="badge bg-soft-success text-success border border-success px-3 py-2 animate__animated animate__fadeIn">
-                                    <i class="feather-check-circle me-1"></i>Settings Saved
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Signature settings saved successfully!</span>
                                 </div>
                             @endif
-                        </div>
-                        <div class="card-body">
+
                             <div class="row g-4 align-items-center">
-                                <div class="col-md-6">
+                                <div class="col-md-7">
                                     <div class="d-flex gap-3">
                                         <div wire:click="$set('report_signature_mode', 'global_bottom')" 
-                                             class="flex-fill p-3 rounded-4 border-2 cursor-pointer transition-all {{ $report_signature_mode === 'global_bottom' ? 'border-primary bg-soft-primary' : 'border-light bg-light opacity-75' }}">
+                                             class="flex-fill p-3 rounded-4 border-2 cursor-pointer transition-all {{ $report_signature_mode === 'global_bottom' ? 'border-primary bg-soft-primary' : 'border-light bg-light' }}"
+                                             style="border-style: solid;">
                                             <div class="d-flex align-items-center gap-3">
-                                                <div class="avatar-text avatar-md rounded-circle {{ $report_signature_mode === 'global_bottom' ? 'bg-primary text-white' : 'bg-white text-muted' }}">
+                                                <div class="avatar-text avatar-md rounded-circle {{ $report_signature_mode === 'global_bottom' ? 'bg-primary text-white' : 'bg-white text-muted border' }}">
                                                     <i class="feather-align-center"></i>
                                                 </div>
                                                 <div>
                                                     <div class="fw-bold fs-13 {{ $report_signature_mode === 'global_bottom' ? 'text-primary' : 'text-dark' }}">Global Bottom</div>
-                                                    <div class="fs-10 text-muted">Fixed signatures at end of report</div>
+                                                    <div class="fs-10 text-muted">Fixed at end of report</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div wire:click="$set('report_signature_mode', 'per_department')" 
-                                             class="flex-fill p-3 rounded-4 border-2 cursor-pointer transition-all {{ $report_signature_mode === 'per_department' ? 'border-primary bg-soft-primary' : 'border-light bg-light opacity-75' }}">
+                                             class="flex-fill p-3 rounded-4 border-2 cursor-pointer transition-all {{ $report_signature_mode === 'per_department' ? 'border-primary bg-soft-primary' : 'border-light bg-light' }}"
+                                             style="border-style: solid;">
                                             <div class="d-flex align-items-center gap-3">
-                                                <div class="avatar-text avatar-md rounded-circle {{ $report_signature_mode === 'per_department' ? 'bg-primary text-white' : 'bg-white text-muted' }}">
+                                                <div class="avatar-text avatar-md rounded-circle {{ $report_signature_mode === 'per_department' ? 'bg-primary text-white' : 'bg-white text-muted border' }}">
                                                     <i class="feather-layers"></i>
                                                 </div>
                                                 <div>
                                                     <div class="fw-bold fs-13 {{ $report_signature_mode === 'per_department' ? 'text-primary' : 'text-dark' }}">Per Department</div>
-                                                    <div class="fs-10 text-muted">Signatures after each dept section</div>
+                                                    <div class="fs-10 text-muted">After each section</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 border-start ps-4">
-                                    <div class="alert alert-soft-info border-0 shadow-none mb-0 fs-11 py-2">
+                                <div class="col-md-5">
+                                    <div class="alert alert-soft-info border-0 shadow-none mb-0 fs-11 py-3 px-4 rounded-4">
                                         <i class="feather-info me-2"></i>
-                                        <strong>Option B active:</strong> In "Global Bottom" mode, the fixed signatures set below will be used. In "Per Department" mode, each department's unique signatures will be used.
+                                        <strong>Pro Tip:</strong> Global mode uses the 3 fixed signatures below. Department mode uses signatures defined in each department's own settings.
                                     </div>
                                 </div>
                             </div>
@@ -771,14 +750,16 @@
 
                 {{-- Global Signatures (For Bottom Mode) --}}
                 <div class="col-12">
-                    <h6 class="fw-bold text-dark mt-2 mb-3"><i class="feather-globe text-primary me-2"></i>Global Signatures (Fixed Bottom)</h6>
-                    <div class="row g-3">
+                    <div class="settings-section-header bg-dark mb-4">
+                        <i class="feather-globe me-2"></i> Global Signatories (Fixed Bottom)
+                    </div>
+                    <div class="row g-4">
                         {{-- Slot 1 --}}
                         <div class="col-md-4">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
                                     <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 1</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 80px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_signature_image)
                                             <img src="{{ $new_signature_image->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($signature_image)
@@ -789,20 +770,20 @@
                                         <input type="file" wire:model="new_signature_image" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
                                     </div>
                                     <div class="mb-3">
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-13" wire:model="authorized_signatory_name" placeholder="Name">
+                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="authorized_signatory_name" placeholder="Full Name">
                                     </div>
                                     <div>
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-11 text-muted" wire:model="authorized_signatory_designation" placeholder="Designation">
+                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="authorized_signatory_designation" placeholder="Medical Designation">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         {{-- Slot 2 --}}
                         <div class="col-md-4">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
                                     <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 2</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 80px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_global_sig_2)
                                             <img src="{{ $new_global_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($global_sig_2_path)
@@ -813,20 +794,20 @@
                                         <input type="file" wire:model="new_global_sig_2" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
                                     </div>
                                     <div class="mb-3">
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-13" wire:model="global_sig_2_name" placeholder="Name">
+                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="global_sig_2_name" placeholder="Full Name">
                                     </div>
                                     <div>
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-11 text-muted" wire:model="global_sig_2_desig" placeholder="Designation">
+                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="global_sig_2_desig" placeholder="Medical Designation">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         {{-- Slot 3 --}}
                         <div class="col-md-4">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
                                     <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 3</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 80px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_global_sig_3)
                                             <img src="{{ $new_global_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($global_sig_3_path)
@@ -837,96 +818,109 @@
                                         <input type="file" wire:model="new_global_sig_3" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
                                     </div>
                                     <div class="mb-3">
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-13" wire:model="global_sig_3_name" placeholder="Name">
-                                    </div>
-                                    <div>
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-11 text-muted" wire:model="global_sig_3_desig" placeholder="Designation">
-                                    </div>
-                                </div>
-                            </div>
+                                     {{-- Department Signatures --}}
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="settings-section-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle">
+                            <i class="feather-layers"></i>
+                        </div>
+                        <span class="fs-15 fw-bold">Department-Specific Signatures</span>
+                    </div>
+                    <div style="width: 280px;">
+                        <div class="settings-input-group border-0 bg-white bg-opacity-20">
+                            <div class="settings-input-icon bg-transparent border-0 text-white opacity-75" style="width: 40px;"><i class="feather-search fs-12"></i></div>
+                            <select class="form-control form-select border-0 bg-transparent text-white fw-bold fs-12 cursor-pointer ps-0" wire:model.live="selected_dept_id">
+                                <option value="" class="text-dark">Select Department...</option>
+                                @foreach(\App\Models\Department::forCompany(auth()->user()->company_id)->get() as $dept)
+                                    <option value="{{ $dept->id }}" class="text-dark">{{ $dept->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                 </div>
-
-                {{-- Department Signatures --}}
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-3">
-                                <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-layers text-primary me-2"></i>Department-Specific Signatures</h6>
-                                <div style="width: 250px;">
-                                    <select class="form-select border-0 bg-light fw-bold fs-12 text-primary" wire:model.live="selected_dept_id">
-                                        <option value="">Choose Department...</option>
-                                        @foreach(\App\Models\Department::forCompany(auth()->user()->company_id)->get() as $dept)
-                                            <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                <div class="card-body p-4">
+                    @if(!$selected_dept_id)
+                        <div class="text-center py-5">
+                            <div class="avatar-text avatar-xl bg-light text-muted mx-auto mb-4 rounded-circle shadow-sm" style="width: 80px; height: 80px; line-height: 80px;">
+                                <i class="feather-search" style="font-size: 2.5rem; opacity: 0.3;"></i>
                             </div>
+                            <h4 class="fw-bold text-dark mb-2">No Department Selected</h4>
+                            <p class="text-muted fs-14 mb-0 mx-auto" style="max-width: 400px;">Choose a clinical department from the dropdown above to manage its specific reporting signatures.</p>
                         </div>
-                        <div class="card-body p-4">
-                            @if(!$selected_dept_id)
-                                <div class="text-center py-5">
-                                    <div class="avatar-text avatar-xl bg-soft-primary text-primary mx-auto mb-3">
-                                        <i class="feather-arrow-up"></i>
-                                    </div>
-                                    <h6 class="fw-bold">Select a Department</h6>
-                                    <p class="fs-12 text-muted">Choose a department above to manage its specific signatures for "Per Department" mode.</p>
-                                </div>
-                            @else
+                    @else
                                 <div class="row g-4">
-                                    {{-- Dept Slot 1 --}}
+                                    {{-- Slot 1 --}}
                                     <div class="col-md-4">
-                                        <div class="p-4 border rounded-4 text-center bg-white shadow-sm">
-                                            <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 1</div>
-                                            <div class="position-relative mb-4 mx-auto" style="width: 130px; height: 70px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                                @if($new_dept_sig_1)
-                                                    <img src="{{ $new_dept_sig_1->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
-                                                @elseif($dept_sig_1_path)
-                                                    <img src="{{ secure_storage_url($dept_sig_1_path) }}" class="w-100 h-100 object-fit-contain">
-                                                @else
-                                                    <i class="feather-plus text-muted"></i>
-                                                @endif
-                                                <input type="file" wire:model="new_dept_sig_1" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
+                                            <div class="card-body p-4 text-center">
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 1</div>
+                                                <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                    @if($new_dept_sig_1)
+                                                        <img src="{{ $new_dept_sig_1->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
+                                                    @elseif($dept_sig_1_path)
+                                                        <img src="{{ secure_storage_url($dept_sig_1_path) }}" class="w-100 h-100 object-fit-contain">
+                                                    @else
+                                                        <i class="feather-upload-cloud fs-4 text-muted"></i>
+                                                    @endif
+                                                    <input type="file" wire:model="new_dept_sig_1" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="dept_sig_1_name" placeholder="Full Name">
+                                                </div>
+                                                <div>
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_1_desig" placeholder="Designation">
+                                                </div>
                                             </div>
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-12 mb-2" wire:model="dept_sig_1_name" placeholder="Name">
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-10 text-muted" wire:model="dept_sig_1_desig" placeholder="Designation">
                                         </div>
                                     </div>
-                                    {{-- Dept Slot 2 --}}
+                                    {{-- Slot 2 --}}
                                     <div class="col-md-4">
-                                        <div class="p-4 border rounded-4 text-center bg-white shadow-sm">
-                                            <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 2</div>
-                                            <div class="position-relative mb-4 mx-auto" style="width: 130px; height: 70px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                                @if($new_dept_sig_2)
-                                                    <img src="{{ $new_dept_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
-                                                @elseif($dept_sig_2_path)
-                                                    <img src="{{ secure_storage_url($dept_sig_2_path) }}" class="w-100 h-100 object-fit-contain">
-                                                @else
-                                                    <i class="feather-plus text-muted"></i>
-                                                @endif
-                                                <input type="file" wire:model="new_dept_sig_2" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
+                                            <div class="card-body p-4 text-center">
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 2</div>
+                                                <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                    @if($new_dept_sig_2)
+                                                        <img src="{{ $new_dept_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
+                                                    @elseif($dept_sig_2_path)
+                                                        <img src="{{ secure_storage_url($dept_sig_2_path) }}" class="w-100 h-100 object-fit-contain">
+                                                    @else
+                                                        <i class="feather-upload-cloud fs-4 text-muted"></i>
+                                                    @endif
+                                                    <input type="file" wire:model="new_dept_sig_2" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="dept_sig_2_name" placeholder="Full Name">
+                                                </div>
+                                                <div>
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_2_desig" placeholder="Designation">
+                                                </div>
                                             </div>
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-12 mb-2" wire:model="dept_sig_2_name" placeholder="Name">
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-10 text-muted" wire:model="dept_sig_2_desig" placeholder="Designation">
                                         </div>
                                     </div>
-                                    {{-- Dept Slot 3 --}}
+                                    {{-- Slot 3 --}}
                                     <div class="col-md-4">
-                                        <div class="p-4 border rounded-4 text-center bg-white shadow-sm">
-                                            <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 3</div>
-                                            <div class="position-relative mb-4 mx-auto" style="width: 130px; height: 70px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                                @if($new_dept_sig_3)
-                                                    <img src="{{ $new_dept_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
-                                                @elseif($dept_sig_3_path)
-                                                    <img src="{{ secure_storage_url($dept_sig_3_path) }}" class="w-100 h-100 object-fit-contain">
-                                                @else
-                                                    <i class="feather-plus text-muted"></i>
-                                                @endif
-                                                <input type="file" wire:model="new_dept_sig_3" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
+                                            <div class="card-body p-4 text-center">
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 3</div>
+                                                <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                    @if($new_dept_sig_3)
+                                                        <img src="{{ $new_dept_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
+                                                    @elseif($dept_sig_3_path)
+                                                        <img src="{{ secure_storage_url($dept_sig_3_path) }}" class="w-100 h-100 object-fit-contain">
+                                                    @else
+                                                        <i class="feather-upload-cloud fs-4 text-muted"></i>
+                                                    @endif
+                                                    <input type="file" wire:model="new_dept_sig_3" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="dept_sig_3_name" placeholder="Full Name">
+                                                </div>
+                                                <div>
+                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_3_desig" placeholder="Designation">
+                                                </div>
                                             </div>
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-12 mb-2" wire:model="dept_sig_3_name" placeholder="Name">
-                                            <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-10 text-muted" wire:model="dept_sig_3_desig" placeholder="Designation">
                                         </div>
                                     </div>
                                 </div>
@@ -936,28 +930,26 @@
                 </div>
 
                 {{-- Action Bar --}}
-                <div class="col-12 mt-2">
+                <div class="col-12 mt-4">
                     <div class="card bg-dark border-0 shadow-lg rounded-4 overflow-hidden">
-                        <div class="card-body p-4 d-flex align-items-center justify-content-between">
-                            <div class="text-white">
-                                <h6 class="fw-bold mb-1"><i class="feather-shield me-2 text-primary"></i>Finalize Signatures</h6>
-                                <p class="fs-11 text-white-50 mb-0">Changes will be reflected in all new and re-printed reports instantly.</p>
+                        <div class="card-body p-4 p-md-5 d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="avatar-text avatar-lg bg-primary bg-opacity-20 text-primary rounded-circle shadow-sm d-none d-sm-flex" style="width: 60px; height: 60px; line-height: 60px;">
+                                    <i class="feather-shield fs-3"></i>
+                                </div>
+                                <div class="text-center text-md-start">
+                                    <h5 class="fw-bold text-white mb-2">Finalize Signature Configuration</h5>
+                                    <p class="fs-13 text-white-50 mb-0">Changes will be reflected in all new and re-printed clinical reports instantly.</p>
+                                </div>
                             </div>
-                            <button wire:click="saveSignatures" class="btn btn-primary btn-lg shadow-sm px-5 fw-bold transition-all hover-lift">
-                                <span wire:loading.remove wire:target="saveSignatures"><i class="feather-save me-2"></i>Publish All Changes</span>
+                            <button wire:click="saveSignatures" class="settings-save-btn m-0 shadow-lg py-3 px-5 fs-15 border-0" style="min-width: 300px;">
+                                <span wire:loading.remove wire:target="saveSignatures"><i class="feather-check-circle me-2"></i>Publish All Changes</span>
                                 <span wire:loading wire:target="saveSignatures"><span class="spinner-border spinner-border-sm me-2"></span>Publishing...</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <style>
-                .bg-soft-primary { background-color: rgba(59, 113, 202, 0.08) !important; }
-                .cursor-pointer { cursor: pointer; }
-                .transition-all { transition: all 0.2s ease-in-out; }
-                .hover-lift:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
-            </style>
         @endif
 
         {{-- ═══════════════════════════════════════════════════════ --}}
@@ -966,53 +958,63 @@
         @if($activeTab === 'barcode')
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="card-title mb-0 fs-13"><i class="feather-maximize text-primary me-2"></i>Barcode Label Pattern</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="settings-section-header d-flex align-items-center gap-3">
+                            <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                                <i class="feather-maximize"></i>
+                            </div>
+                            <span class="fs-15 fw-bold">Barcode Label Pattern</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             @if($barcodeSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-3 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> Barcode settings saved!
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Barcode settings saved!</span>
                                 </div>
                             @endif
 
-                            <div class="row g-3">
+                            <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Barcode Prefix <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" wire:model.live.debounce.500ms="barcode_prefix" placeholder="e.g. BC, LAB, UID">
-                                    <div class="fs-10 text-muted mt-1">Text at the start of barcode. Default: LAB</div>
+                                    <label class="form-label fw-bold text-dark fs-12 mb-2">Barcode Prefix <span class="text-danger">*</span></label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-maximize"></i></div>
+                                        <input type="text" class="form-control" wire:model.live.debounce.500ms="barcode_prefix" placeholder="e.g. BC, LAB, UID">
+                                    </div>
+                                    <div class="fs-11 text-muted mt-2">Text at the start of barcode. Default: LAB</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Date Format</label>
-                                    <select class="form-select" wire:model.live="barcode_date_format">
-                                        <option value="ym">YYMM ({{ date('ym') }})</option>
-                                        <option value="ymd">YYMMDD ({{ date('ymd') }})</option>
-                                        <option value="Ymd">YYYYMMDD ({{ date('Ymd') }})</option>
-                                        <option value="Y">YYYY ({{ date('Y') }})</option>
-                                        <option value="none">No Date</option>
-                                    </select>
-                                    <div class="fs-10 text-muted mt-1">Included after prefix</div>
+                                    <label class="form-label fw-bold text-dark fs-12 mb-2">Date Format</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-calendar"></i></div>
+                                        <select class="form-control form-select" wire:model.live="barcode_date_format">
+                                            <option value="ym">YYMM ({{ date('ym') }})</option>
+                                            <option value="ymd">YYMMDD ({{ date('ymd') }})</option>
+                                            <option value="Ymd">YYYYMMDD ({{ date('Ymd') }})</option>
+                                            <option value="Y">YYYY ({{ date('Y') }})</option>
+                                            <option value="none">No Date</option>
+                                        </select>
+                                    </div>
+                                    <div class="fs-11 text-muted mt-2">Included after prefix</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold fs-11">Counter Digits</label>
-                                    <select class="form-select" wire:model.live="barcode_counter_digits">
-                                        <option value="4">4 digits (0001)</option>
-                                        <option value="5">5 digits (00001)</option>
-                                        <option value="6">6 digits (000001)</option>
-                                        <option value="8">8 digits (00000001)</option>
-                                        <option value="10">10 digits (0000000001)</option>
-                                    </select>
-                                    <div class="fs-10 text-muted mt-1">Length of the unique serial number</div>
+                                    <label class="form-label fw-bold text-dark fs-12 mb-2">Counter Digits</label>
+                                    <div class="settings-input-group">
+                                        <div class="settings-input-icon"><i class="feather-hash"></i></div>
+                                        <select class="form-control form-select" wire:model.live="barcode_counter_digits">
+                                            <option value="4">4 digits (0001)</option>
+                                            <option value="5">5 digits (00001)</option>
+                                            <option value="6">6 digits (000001)</option>
+                                            <option value="8">8 digits (00000001)</option>
+                                            <option value="10">10 digits (0000000001)</option>
+                                        </select>
+                                    </div>
+                                    <div class="fs-11 text-muted mt-2">Length of the unique serial number</div>
                                 </div>
                             </div>
 
                             @can('edit settings')
-                            <hr class="my-3">
-                            <div class="text-end">
-                                <button wire:click="saveBarcodeSettings" class="btn btn-primary fw-bold px-4">
-                                    <span wire:loading.remove wire:target="saveBarcodeSettings"><i class="feather-save me-1"></i>Save Barcode Settings</span>
-                                    <span wire:loading wire:target="saveBarcodeSettings"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                            <div class="mt-4 pt-3 text-start">
+                                <button wire:click="saveBarcodeSettings" class="settings-save-btn">
+                                    <i class="feather-check"></i> Save Barcode Settings
                                 </button>
                             </div>
                             @endcan
@@ -1022,18 +1024,18 @@
 
                 {{-- Live Preview --}}
                 <div class="col-lg-4">
-                    <div class="card border-primary h-100">
-                        <div class="card-header" style="background:rgba(59,113,202,0.08);">
-                            <h6 class="card-title mb-0 fs-13 text-primary"><i class="feather-eye me-2"></i>Barcode Preview</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
+                        <div class="settings-section-header bg-dark">
+                            <i class="feather-eye me-2"></i> Barcode Preview
                         </div>
                         <div class="card-body text-center py-5 d-flex flex-column justify-content-center">
                             <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Sample Barcode ID:</div>
-                            <div class="fs-3 fw-bold text-dark py-3 px-3 rounded-3 border bg-light font-monospace" style="letter-spacing:1px;">
+                            <div class="display-6 fw-bold text-dark py-3 px-3 rounded-3 border bg-light font-monospace" style="letter-spacing:1px;">
                                 {{ $this->barcodePreview }}
                             </div>
                             <div class="mt-4">
-                                <div class="fs-10 text-muted px-3 text-start">
-                                    <p><i class="feather-info me-1"></i> This ID is unique for every invoice and is printed on all sample stickers associated with the bill.</p>
+                                <div class="fs-11 text-muted px-3 text-start">
+                                    <p class="mb-0"><i class="feather-info me-1"></i> This ID is unique for every invoice and is printed on all sample stickers associated with the bill.</p>
                                 </div>
                             </div>
                         </div>
@@ -1042,112 +1044,119 @@
             </div>
         @endif
 
-        {{-- ═══════════════════════════════════════════════════════ --}}
-        {{-- TAB 6: STAFF & ROLES --}}
-        {{-- ═══════════════════════════════════════════════════════ --}}
         @if($activeTab === 'staff')
-            @livewire('lab.staff-role-manager')
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="settings-section-header d-flex align-items-center gap-3">
+                    <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                        <i class="feather-users"></i>
+                    </div>
+                    <span class="fs-15 fw-bold">Staff & Role Permissions</span>
+                </div>
+                <div class="card-body p-0">
+                    @livewire('lab.staff-role-manager')
+                </div>
+            </div>
         @endif
 
-        {{-- ═══════════════════════════════════════════════════════ --}}
-        {{-- TAB 7: BRANCH CONTROLS --}}
-        {{-- ═══════════════════════════════════════════════════════ --}}
         @if($activeTab === 'branch')
             <div class="row g-4">
                 <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-header bg-white py-3">
-                            <h6 class="card-title mb-0 fs-14 fw-bold text-dark"><i class="feather-git-merge text-primary me-2"></i>Global Data Sharing Policies</h6>
-                            <p class="fs-12 text-muted mb-0 mt-1">Configure what global company data your sub-branches are allowed to interact with.</p>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="settings-section-header d-flex align-items-center gap-3">
+                            <div class="avatar-text avatar-sm bg-white bg-opacity-25 text-white rounded-circle shadow-sm">
+                                <i class="feather-git-merge"></i>
+                            </div>
+                            <span class="fs-15 fw-bold">Global Data Sharing Policies</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-4">
                             @if($branchControlsSaved)
-                                <div class="alert alert-success py-2 fs-12 mb-4 d-flex align-items-center gap-2">
-                                    <i class="feather-check-circle"></i> Branch sharing policy saved successfully!
+                                <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                                    <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Branch sharing policy saved successfully!</span>
                                 </div>
                             @endif
 
                             <div class="list-group list-group-flush border-0">
                                 {{-- Share Patients --}}
-                                <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark fs-13"><i class="feather-users me-2 text-primary"></i>Share Patient Registry</div>
-                                        <div class="fs-11 text-muted mt-1" style="max-width: 80%;">If ON, sub-branches can search and bill any patient registered in the main database. If OFF, each branch can only see patients they registered themselves.</div>
+                                <div class="list-group-item px-0 py-4 border-light d-flex justify-content-between align-items-center">
+                                    <div class="pe-3">
+                                        <div class="fw-bold text-dark fs-14 mb-1"><i class="feather-users me-2 text-primary"></i>Share Patient Registry</div>
+                                        <div class="fs-12 text-muted">If ON, sub-branches can search and bill any patient registered in the main database.</div>
                                     </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_patients" style="width: 2.5em; height: 1.3em;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_patients" style="width: 3em; height: 1.5em;">
                                     </div>
                                 </div>
 
                                 {{-- Share Doctors --}}
-                                <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark fs-13"><i class="feather-user-plus me-2 text-info"></i>Share Referral Doctors</div>
-                                        <div class="fs-11 text-muted mt-1" style="max-width: 80%;">If ON, sub-branches can select referral doctors from the global company list. If OFF, branches must add their own local doctors.</div>
+                                <div class="list-group-item px-0 py-4 border-light d-flex justify-content-between align-items-center">
+                                    <div class="pe-3">
+                                        <div class="fw-bold text-dark fs-14 mb-1"><i class="feather-user-plus me-2 text-info"></i>Share Referral Doctors</div>
+                                        <div class="fs-12 text-muted">If ON, sub-branches can select referral doctors from the global company list.</div>
                                     </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_doctors" style="width: 2.5em; height: 1.3em;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_doctors" style="width: 3em; height: 1.5em;">
                                     </div>
                                 </div>
 
                                 {{-- Share Agents --}}
-                                <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark fs-13"><i class="feather-briefcase me-2 text-warning"></i>Share Referral Agents</div>
-                                        <div class="fs-11 text-muted mt-1" style="max-width: 80%;">If ON, sub-branches can use global agents. If OFF, agents are strictly siloed to the branch that created them.</div>
+                                <div class="list-group-item px-0 py-4 border-light d-flex justify-content-between align-items-center">
+                                    <div class="pe-3">
+                                        <div class="fw-bold text-dark fs-14 mb-1"><i class="feather-briefcase me-2 text-warning"></i>Share Referral Agents</div>
+                                        <div class="fs-12 text-muted">If ON, sub-branches can use global agents. If OFF, agents are strictly siloed.</div>
                                     </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_agents" style="width: 2.5em; height: 1.3em;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_agents" style="width: 3em; height: 1.5em;">
                                     </div>
                                 </div>
 
                                 {{-- Share Lab Tests --}}
-                                <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark fs-13"><i class="feather-activity me-2 text-danger"></i>Share Lab Test Catalog</div>
-                                        <div class="fs-11 text-muted mt-1" style="max-width: 80%;">If ON, sub-branches use the company's master lab test templates and pricing. Recommended to keep ON for consistency.</div>
+                                <div class="list-group-item px-0 py-4 border-light d-flex justify-content-between align-items-center border-bottom-0">
+                                    <div class="pe-3">
+                                        <div class="fw-bold text-dark fs-14 mb-1"><i class="feather-activity me-2 text-danger"></i>Share Lab Test Catalog</div>
+                                        <div class="fs-12 text-muted">If ON, sub-branches use the company's master lab test templates and pricing.</div>
                                     </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_tests" style="width: 2.5em; height: 1.3em;">
-                                    </div>
-                                </div>
-
-                                {{-- Restrict Branch Admins --}}
-                                <div class="list-group-item px-0 py-3 border-light d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark fs-13"><i class="feather-lock me-2 text-dark"></i>Lock Branch Admins to Assigned Branch</div>
-                                        <div class="fs-11 text-muted mt-1" style="max-width: 80%;">If ON, branch-level admins can ONLY create and edit bills for their assigned branch. If OFF, they can switch branches freely.</div>
-                                    </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="restrict_branch_access" style="width: 2.5em; height: 1.3em;">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.defer="branch_share_tests" style="width: 3em; height: 1.5em;">
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-footer bg-light border-top py-3 text-end">
-                            <button wire:click="saveBranchControls" class="btn btn-primary px-4 fw-bold shadow-sm">
-                                <span wire:loading.remove wire:target="saveBranchControls"><i class="feather-save me-2"></i>Save Access Policies</span>
-                                <span wire:loading wire:target="saveBranchControls"><span class="spinner-border spinner-border-sm me-2"></span>Saving Policies...</span>
-                            </button>
+
+                            @can('edit settings')
+                            <div class="mt-4 pt-3 text-start">
+                                <button wire:click="saveBranchControls" class="settings-save-btn">
+                                    <i class="feather-check"></i> Save Data Policies
+                                </button>
+                            </div>
+                            @endcan
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-lg-4">
-                    <div class="card border-0 bg-primary-subtle shadow-sm rounded-4 h-100">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
+                        <div class="settings-section-header bg-dark">
+                            <i class="feather-shield me-2"></i> Security Info
+                        </div>
                         <div class="card-body p-4 text-center d-flex flex-column justify-content-center align-items-center">
-                            <div class="bg-white p-3 rounded-circle shadow-sm mb-3">
-                                <i class="feather-shield text-primary" style="font-size: 2rem;"></i>
+                            <div class="avatar-text avatar-xl bg-primary text-white rounded-circle shadow-sm mb-4">
+                                <i class="feather-lock"></i>
                             </div>
-                            <h5 class="fw-bold text-dark mb-2">Data Siloing</h5>
-                            <p class="fs-12 text-muted mb-4">
-                                Turning off sharing toggles will strictly isolate the sub-branch records. <br><br>
-                                E.g. If Patient Sharing is OFF, a patient created by Branch A will be completely invisible to Branch B when searching during billing.
+                            <h5 class="fw-bold text-dark mb-3">Data Siloing</h5>
+                            <p class="fs-13 text-muted px-2">
+                                Turning off sharing toggles will strictly isolate the sub-branch records.
                             </p>
+                            <div class="alert alert-soft-warning border-0 rounded-4 mt-3 text-start">
+                                <i class="feather-alert-triangle me-2"></i> <span class="fs-11 fw-bold">Warning:</span>
+                                <p class="fs-11 mb-0 mt-1 opacity-75">Existing data will not be deleted, but will become invisible to other branches instantly.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         @endif
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

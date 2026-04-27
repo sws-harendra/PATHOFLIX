@@ -110,7 +110,7 @@
         @include('layouts.partials.footer')
     </main>
 
-    @include('layouts.partials.customizer')
+    {{-- @include('layouts.partials.customizer') --}}
 
     {{-- Vendor scripts: Using data-navigate-once for stable delegation in SPA mode --}}
     <script src="{{ asset('assets/vendors/js/vendors.min.js') }}" data-navigate-once></script>

@@ -1,3 +1,48 @@
+/* ============================================================ */
+/* GLOBAL TABLE OVERHAUL: High Visibility Patho-Theme           */
+/* ============================================================ */
+.table:not(.table-sm) thead th {
+    background-color: #0d6efd !important; /* High-Contrast Blue */
+    color: #ffffff !important;
+    padding: 22px 15px !important;
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    border: 1px solid #0056b3 !important;
+    text-transform: uppercase;
+    vertical-align: middle;
+    letter-spacing: 1px;
+}
+
+.table:not(.table-sm) tbody td {
+    padding: 20px 15px !important;
+    border: 1px solid #dee2e6 !important;
+    font-size: 20px !important; /* EXTRA LARGE FOR VISIBILITY */
+    font-weight: 700 !important;
+    vertical-align: middle;
+    color: #0f172a !important;
+}
+
+/* Dark mode compatibility with high contrast */
+html.app-skin-dark .table:not(.table-sm) tbody td {
+    color: #f8fafc !important;
+    background-color: #1a1a2e !important;
+    border-color: #334155 !important;
+}
+
+html.app-skin-dark .table:not(.table-sm) thead th {
+    background-color: #1d4ed8 !important;
+    border-color: #1e40af !important;
+}
+
+/* Sub-text and utility classes within tables - scaled up */
+.fs-table-main { font-size: 20px !important; font-weight: 700 !important; }
+.fs-table-sub { font-size: 16px !important; font-weight: 600 !important; }
+.table .badge { font-size: 14px !important; padding: 8px 12px !important; font-weight: 800 !important; }
+.table .text-muted { color: #64748b !important; font-size: 15px !important; }
+html.app-skin-dark .table .text-muted { color: #94a3b8 !important; }
+
+/* ============================================================ */
+
 /* ========= CUSTOM THEME OVERRIDES ========= */
 html {
     font-size: var(--ui-font-scale, 100%) !important;
@@ -12,7 +57,57 @@ html {
     font-size: calc(11px * (var(--ui-font-scale, 100) / 100)) !important;
 }
 
-.fs-12 {
+.fs-12 { font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important; }
+.fs-13 { font-size: calc(13px * (var(--ui-font-scale, 100) / 100)) !important; }
+.fs-14 { font-size: calc(14px * (var(--ui-font-scale, 100) / 100)) !important; }
+.fs-15 { font-size: calc(15px * (var(--ui-font-scale, 100) / 100)) !important; }
+.fs-18 { font-size: calc(18px * (var(--ui-font-scale, 100) / 100)) !important; }
+
+/* Premium UI Elements */
+.hover-lift {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.backdrop-blur {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.custom-range-white::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.custom-range-white::-webkit-slider-thumb {
+    background: #ffffff;
+    border: 2px solid #0d6efd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.alert-soft-info {
+    background-color: rgba(13, 202, 240, 0.08);
+    color: #0dcaf0;
+    border: 1px solid rgba(13, 202, 240, 0.1);
+}
+
+.ls-1 { letter-spacing: 1px; }
+
+.btn-white {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    color: #0d6efd;
+}
+.btn-white:hover {
+    background-color: #f8fafc;
+    color: #0a58ca;
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
     font-size: calc(12px * (var(--ui-font-scale, 100) / 100)) !important;
 }
 
@@ -556,3 +651,117 @@ html.app-skin-dark .text-dark {
 .dropdown-menu {
     z-index: 1060 !important;
 }
+
+/* ============================================================ */
+/* SETTINGS OVERHAUL: Reference Design System                   */
+/* ============================================================ */
+.settings-main-header {
+    background: #0052cc !important;
+    color: #ffffff !important;
+    padding: 15px 25px !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    border-radius: 0 !important; /* Flat top for the main container header */
+    margin-bottom: 0 !important;
+}
+
+.settings-section-header {
+    background: #0052cc !important;
+    color: #ffffff !important;
+    padding: 12px 20px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    border-radius: 5px 5px 0 0 !important;
+}
+
+.settings-input-group {
+    display: flex;
+    align-items: stretch;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.settings-input-group:focus-within {
+    border-color: #0052cc;
+    box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.1);
+}
+
+.settings-input-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 1.1rem;
+    border-right: 1px solid #e2e8f0;
+}
+
+.settings-input-group .form-control {
+    border: none !important;
+    background: transparent !important;
+    padding: 10px 15px !important;
+    flex-grow: 1;
+    font-size: 14px;
+    outline: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+}
+
+.settings-save-btn {
+    background: #0052cc !important;
+    color: #fff !important;
+    padding: 10px 25px !important;
+    border-radius: 6px !important;
+    font-weight: 700 !important;
+    border: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0, 82, 204, 0.2) !important;
+    transition: all 0.2s ease;
+}
+
+.settings-save-btn:hover {
+    background: #0045b3 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(0, 82, 204, 0.3) !important;
+    color: #fff !important;
+}
+
+.settings-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-radius: 0;
+    border-left: 4px solid transparent;
+}
+
+.settings-sidebar-link:hover {
+    background: #f1f5f9;
+    color: #0052cc;
+}
+
+.settings-sidebar-link.active {
+    background: #0052cc !important;
+    color: #ffffff !important;
+    border-left-color: #002e73;
+}
+
+.settings-sidebar-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* ============================================================ */
