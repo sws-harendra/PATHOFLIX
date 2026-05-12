@@ -161,9 +161,16 @@ class LabTestEditor extends Component
 
             $labTestService->saveTest($data, $this->test_id);
 
-            session()->flash('message', $this->test_id ? 'Test updated successfully.' : 'New test created.');
+            $msg = $this->test_id ? 'Test updated successfully.' : 'New test created.';
+            $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
+            session()->flash('message', $msg);
             return redirect()->route('lab.tests');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            $this->dispatch('notify', ['type' => 'error', 'message' => $firstError]);
+            throw $e;
         } catch (\Exception $e) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Error saving test: ' . $e->getMessage()]);
             session()->flash('error', 'Error saving test: ' . $e->getMessage());
         }
     }

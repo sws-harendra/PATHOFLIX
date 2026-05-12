@@ -67,9 +67,13 @@ class LabTestManager extends Component
         $this->isImportModalOpen = false;
 
         if ($errors > 0) {
-            session()->flash('message', "Imported $count tests. $errors tests failed (maybe already exists).");
+            $msg = "Imported $count tests. $errors tests failed (maybe already exists).";
+            $this->dispatch('notify', ['type' => 'warning', 'message' => $msg]);
+            session()->flash('message', $msg);
         } else {
-            session()->flash('message', "Successfully imported $count tests.");
+            $msg = "Successfully imported $count tests.";
+            $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
+            session()->flash('message', $msg);
         }
         
         $this->resetPage();
@@ -98,10 +102,12 @@ class LabTestManager extends Component
             $newTest = $labTestService->importFromGlobal($globalTestId, auth()->user()->company_id);
             $this->isImportModalOpen = false;
             
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Global test imported successfully.']);
             session()->flash('message', 'Global test imported successfully. Please set your pricing and verify parameters.');
             return redirect()->route('lab.tests.edit', $newTest->id);
             
         } catch (\Exception $e) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Error importing test: ' . $e->getMessage()]);
             session()->flash('error', 'Error importing test: ' . $e->getMessage());
         }
     }
@@ -111,6 +117,7 @@ class LabTestManager extends Component
         $this->authorize('delete lab_tests');
         $labTestService = new LabTestService();
         $labTestService->deleteTest($id);
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Lab test deleted successfully.']);
         session()->flash('message', 'Lab test deleted successfully.');
     }
 

@@ -14,6 +14,7 @@ class ResultEntryManager extends Component
     public $invoice;
     public $testReport;
     public $comments;
+    public $report_date;
     
     public $results = [];
     public $highlights = [];
@@ -31,6 +32,9 @@ class ResultEntryManager extends Component
         
         $this->testReport = $this->invoice->testReport;
         $this->comments = $this->testReport ? $this->testReport->comments : '';
+        $this->report_date = $this->testReport && $this->testReport->approved_at 
+            ? $this->testReport->approved_at->format('Y-m-d\TH:i') 
+            : ($this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i'));
         
         $this->initializeResultsData();
     }
@@ -303,6 +307,13 @@ class ResultEntryManager extends Component
             }
         }
 
+        // Always update expected_report_time on invoice to keep draft/approval dates consistent
+        if ($this->report_date) {
+            $this->invoice->update(['expected_report_time' => $this->report_date]);
+        }
+
+        $apprDate = $this->report_date ?: now();
+
         if (!$this->testReport) {
             $this->testReport = TestReport::create([
                 'company_id' => $this->invoice->company_id,
@@ -311,14 +322,14 @@ class ResultEntryManager extends Component
                 'status' => $status,
                 'comments' => $this->comments,
                 'approved_by' => $status === 'Approved' ? auth()->id() : null,
-                'approved_at' => $status === 'Approved' ? now() : null,
+                'approved_at' => $status === 'Approved' ? $apprDate : null,
             ]);
         } else {
             $this->testReport->update([
                 'status' => $status,
                 'comments' => $this->comments,
                 'approved_by' => $status === 'Approved' ? auth()->id() : $this->testReport->approved_by,
-                'approved_at' => $status === 'Approved' ? now() : $this->testReport->approved_at,
+                'approved_at' => $status === 'Approved' ? $apprDate : $this->testReport->approved_at,
             ]);
         }
 
@@ -379,6 +390,7 @@ class ResultEntryManager extends Component
 
         if ($status === 'Approved') {
             $this->invoice->update(['sample_status' => 'Ready']);
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Report Approved Successfully and ready for printing.']);
             session()->flash('success', 'Report Approved Successfully and ready for printing.');
 
             // Pre-generate PDF for R2 offloading
@@ -391,6 +403,7 @@ class ResultEntryManager extends Component
 
             return redirect()->route('lab.reports');
         } else {
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Draft Saved Successfully.']);
             session()->flash('success', 'Draft Saved Successfully.');
         }
     }
@@ -405,6 +418,7 @@ class ResultEntryManager extends Component
         // Refresh invoice to get updated status
         $this->invoice->load('items');
         
+        $this->dispatch('notify', ['type' => 'success', 'message' => "Test status updated to {$newStatus}."]);
         session()->flash('success', "Test status updated to {$newStatus}.");
     }
 

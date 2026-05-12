@@ -534,7 +534,7 @@
                         {{ $profile->gender ?? '--' }}</td>
                     <td class="lbl">Collection Date</td>
                     <td class="val">:
-                        {{ $invoice->sample_collected_at ? $invoice->sample_collected_at->format('d/m/Y h:i A') : $invoice->created_at->format('d/m/Y h:i A') }}
+                        {{ $invoice->sample_received_at ? $invoice->sample_received_at->format('d/m/Y h:i A') : ($invoice->sample_collected_at ? $invoice->sample_collected_at->format('d/m/Y h:i A') : $invoice->created_at->format('d/m/Y h:i A')) }}
                     </td>
                 </tr>
                 <tr>
@@ -542,7 +542,7 @@
                     <td class="val">: {{ $invoice->doctor ? $invoice->doctor->name : 'SELF' }}</td>
                     <td class="lbl">Report Date</td>
                     <td class="val">:
-                        {{ $report->approved_at ? $report->approved_at->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A') }}
+                        {{ $report->approved_at ? $report->approved_at->format('d/m/Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A')) }}
                     </td>
                 </tr>
                 <tr>

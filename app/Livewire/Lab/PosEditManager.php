@@ -37,7 +37,7 @@ class PosEditManager extends Component
     public $voucher_discount_amt = 0;
 
     public $manual_discount_type = 'flat';
-    public $manual_discount_input = 0;
+    public $manual_discount_input = '';
     public $manual_discount_amt = 0;
 
     public $total_discount = 0;
@@ -54,7 +54,7 @@ class PosEditManager extends Component
     public $activeSearchField = null; // null, 'patient', 'doctor', 'agent', 'test'
     public $overpaymentError = false;
     public $paymentModesList = [], $cachedCenters = [], $cachedBranches = [], $cachedMemberships = [];
-    public $new_name, $new_phone, $new_age, $new_gender = 'Male';
+    public $new_title = 'Mr.', $new_name, $new_phone, $new_age, $new_age_type = 'Years', $new_gender = 'Male';
     public $new_doc_name, $new_doc_phone, $new_doc_commission = 0;
     public $new_agent_name, $new_agent_phone, $new_agent_agency, $new_agent_commission = 0;
     public $isMembershipModalOpen = false, $selectedMembershipId = null;
@@ -89,6 +89,7 @@ class PosEditManager extends Component
             $this->patient_email = $patient->email;
             
             if ($patient->patientProfile) {
+                $this->patient_title = $patient->patientProfile->title ?? 'Mr.';
                 $this->patient_age = $patient->patientProfile->age;
                 $this->patient_age_unit = $patient->patientProfile->age_type ?? 'Years';
                 $this->patient_gender = $patient->patientProfile->gender;
@@ -139,7 +140,7 @@ class PosEditManager extends Component
         $this->branch_id = $invoice->branch_id;
         $this->collection_type = $invoice->collection_type;
         $this->sample_received_at = $this->invoice->sample_received_at ? $this->invoice->sample_received_at->format('Y-m-d\TH:i') : null;
-        $this->expected_report_at = $this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d\TH:i') : date('Y-m-d\TH:i', strtotime('+24 hours'));
+        $this->expected_report_at = $this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d\TH:i') : date('Y-m-d\TH:i', strtotime('+2 hours'));
         
         $this->bill_no = $invoice->invoice_number;
         $this->barcode_no = $invoice->barcode;
@@ -273,6 +274,7 @@ class PosEditManager extends Component
         $this->patient_email = $user->email;
         
         if ($user->patientProfile) {
+            $this->patient_title = $user->patientProfile->title ?? 'Mr.';
             $this->patient_age = $user->patientProfile->age;
             $this->patient_age_unit = $user->patientProfile->age_type ?? 'Years';
             $this->patient_gender = $user->patientProfile->gender;
@@ -532,7 +534,7 @@ class PosEditManager extends Component
         $currentCollected = collect($this->payments)->sum(fn($p) => (float)($p['amount'] ?? 0));
         $remaining = max(0, $this->net_payable - $currentCollected);
 
-        $this->payments[] = ['id' => null, 'mode_id' => '', 'amount' => $remaining > 0 ? $remaining : 0, 'transaction_id' => ''];
+        $this->payments[] = ['id' => null, 'mode_id' => '', 'amount' => $remaining > 0 ? $remaining : '', 'transaction_id' => ''];
         $this->calculateTotals();
     }
     public function removePaymentRow($index)
@@ -549,16 +551,26 @@ class PosEditManager extends Component
     {
         $this->authorize('create patients');
         $this->modalError = '';
-        $this->validate(['new_name' => 'required|string|max:255', 'new_phone' => 'nullable|numeric|digits:10|unique:users,phone', 'new_age' => 'required|numeric|min:0']);
+        $this->validate([
+            'new_title' => 'nullable|string|max:20',
+            'new_name' => 'required|string|max:255',
+            'new_phone' => 'nullable|numeric|digits:10|unique:users,phone',
+            'new_age' => 'nullable|numeric|min:0|max:150',
+        ]);
 
         DB::beginTransaction();
         try {
             $companyId = auth()->user()->company_id;
+            
+            // fallback for password if phone is missing
+            $fallbackEmail = null;
+            $defaultPass = $this->new_phone ?? '12345678';
+
             $user = User::create([
                 'name' => $this->new_name,
-                'phone' => $this->new_phone ?: 'P' . time(),
-                'email' => null,
-                'password' => '12345678',
+                'phone' => $this->new_phone,
+                'email' => $fallbackEmail,
+                'password' => $defaultPass,
                 'is_active' => true,
                 'company_id' => $companyId,
                 'branch_id' => $this->branch_id,
@@ -581,14 +593,20 @@ class PosEditManager extends Component
                 'company_id' => $companyId,
                 'user_id' => $user->id,
                 'patient_id_string' => $patientIdString,
+                'title' => $this->new_title,
                 'age' => $this->new_age,
+                'age_type' => $this->new_age_type,
                 'gender' => $this->new_gender,
             ]);
             $user->assignRole('patient');
             DB::commit();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Patient saved successfully!']);
             $this->selectPatient($user->id);
             $this->isPatientModalOpen = false;
             $this->reset(['new_name', 'new_phone', 'new_age']);
+            $this->new_gender = 'Male';
+            $this->new_title = 'Mr.';
+            $this->new_age_type = 'Years';
         } catch (\Exception $e) {
             DB::rollBack();
             $this->modalError = $e->getMessage();
@@ -616,6 +634,7 @@ class PosEditManager extends Component
             DoctorProfile::create(['company_id' => $companyId, 'user_id' => $user->id, 'commission_percentage' => $this->new_doc_commission ?: 0]);
             $user->assignRole('doctor');
             DB::commit();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Doctor saved successfully!']);
             $this->selectDoctor($user->id);
             $this->isDoctorModalOpen = false;
             $this->reset(['new_doc_name', 'new_doc_phone', 'new_doc_commission']);
@@ -645,6 +664,7 @@ class PosEditManager extends Component
             AgentProfile::create(['company_id' => $companyId, 'user_id' => $user->id, 'agency_name' => $this->new_agent_agency, 'commission_percentage' => $this->new_agent_commission ?: 0]);
             $user->assignRole('agent');
             DB::commit();
+            $this->dispatch('notify', ['type' => 'success', 'message' => 'Agent saved successfully!']);
             $this->selectAgent($user->id);
             $this->isAgentModalOpen = false;
             $this->reset(['new_agent_name', 'new_agent_phone', 'new_agent_agency', 'new_agent_commission']);
@@ -673,6 +693,7 @@ class PosEditManager extends Component
         $this->paymentModesList = PaymentMode::where('company_id', $companyId)->where('is_active', true)->get();
         $this->new_payment_mode_name = '';
         $this->isPaymentModeModalOpen = false;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Payment mode added successfully!']);
     }
 
     // ==========================================
@@ -682,15 +703,18 @@ class PosEditManager extends Component
     {
         $this->authorize('edit pos');
         if (!$this->selectedPatient) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Select a patient.']);
             session()->flash('error', 'Select a patient.');
             return;
         }
         if (empty($this->cart)) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Add at least one test.']);
             session()->flash('error', 'Add at least one test.');
             return;
         }
 
         if ($this->overpaymentError) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Total payment cannot exceed Net Payable amount.']);
             session()->flash('error', 'Total payment cannot exceed Net Payable amount.');
             return;
         }
@@ -702,6 +726,7 @@ class PosEditManager extends Component
             if ($amt > 0) {
                 $hasPayment = true;
                 if (empty($pay['mode_id'])) {
+                    $this->dispatch('notify', ['type' => 'error', 'message' => "Please select a Payment Mode for Payment row #" . ($index + 1)]);
                     session()->flash('error', "Please select a Payment Mode for Payment row #" . ($index + 1));
                     return;
                 }
@@ -710,6 +735,7 @@ class PosEditManager extends Component
 
         // If the bill is marked as fully paid but no payment mode was selected
         if ($this->due_amount <= 0 && !$hasPayment && $this->net_payable > 0) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => "Please add at least one payment method for a fully paid bill."]);
             session()->flash('error', "Please add at least one payment method for a fully paid bill.");
             return;
         }
@@ -766,6 +792,26 @@ class PosEditManager extends Component
                 if ($restrictBilling && $this->net_payable < $totalB2bAmount) {
                     session()->flash('error', 'Action Blocked: Net Payable (₹' . number_format($this->net_payable, 2) . ') cannot be less than the total B2B cost (₹' . number_format($totalB2bAmount, 2) . '). Please reduce discount or adjust tests.');
                     return;
+                }
+            }
+
+            // Update patient details if modified in POS form
+            if (!empty($this->selectedPatient['id'])) {
+                $pUser = User::find($this->selectedPatient['id']);
+                if ($pUser) {
+                    $pUser->update([
+                        'name' => $this->patient_name,
+                        'phone' => $this->patient_phone,
+                        'email' => $this->patient_email,
+                    ]);
+                    if ($pUser->patientProfile) {
+                        $pUser->patientProfile->update([
+                            'title' => $this->patient_title,
+                            'age' => $this->patient_age,
+                            'age_type' => $this->patient_age_unit,
+                            'gender' => $this->patient_gender,
+                        ]);
+                    }
                 }
             }
 
@@ -869,9 +915,14 @@ class PosEditManager extends Component
 
             session()->flash('message', '✅ Invoice updated successfully!');
             return redirect()->route('lab.pos.summary', $invoice->id);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $firstError = collect($e->errors())->flatten()->first();
+            $this->dispatch('notify', ['type' => 'error', 'message' => $firstError]);
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Update Bill Error: ' . $e->getMessage());
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'Failed to update invoice: ' . $e->getMessage()]);
             $this->addError('general', 'Failed to update invoice: ' . $e->getMessage());
         }
     }

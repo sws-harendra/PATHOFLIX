@@ -158,8 +158,22 @@
                             
                             <div class="col-md-6">
                                 <label class="form-label fs-12 fw-bold text-muted text-uppercase">Full Name *</label>
-                                <input type="text" class="form-control fw-medium text-dark" wire:model="name" placeholder="e.g. Rahul Kumar">
-                                @error('name') <span class="text-danger fs-11 fw-bold">{{ $message }}</span> @enderror
+                                <div class="input-group">
+                                    <select class="form-select bg-light fw-medium text-dark" wire:model="title" style="max-width: 100px;">
+                                        <option value="Mr.">Mr.</option>
+                                        <option value="Mrs.">Mrs.</option>
+                                        <option value="Miss">Miss</option>
+                                        <option value="Master">Master</option>
+                                        <option value="Baby">Baby</option>
+                                        <option value="B/O">B/O</option>
+                                        <option value="Dr.">Dr.</option>
+                                        <option value="Prof.">Prof.</option>
+                                        <option value="Smt.">Smt.</option>
+                                        <option value="Sri">Sri</option>
+                                    </select>
+                                    <input type="text" class="form-control fw-medium text-dark" wire:model="name" placeholder="e.g. Rahul Kumar">
+                                </div>
+                                @error('name') <span class="text-danger fs-11 fw-bold d-block mt-1">{{ $message }}</span> @enderror
                             </div>
                             
                             <div class="col-md-6">
@@ -171,7 +185,7 @@
                             <div class="col-12 mt-4"><h6 class="fw-bold text-primary mb-0 border-bottom pb-2">Demographics & Medical</h6></div>
 
                             <div class="col-md-4">
-                                <label class="form-label fs-12 fw-bold text-muted text-uppercase">Age *</label>
+                                <label class="form-label fs-12 fw-bold text-muted text-uppercase">Age</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" wire:model="age" placeholder="Age">
                                     <select class="form-select bg-light" wire:model="age_type" style="max-width: 90px;">
@@ -179,8 +193,8 @@
                                         <option value="Months">Mos</option>
                                         <option value="Days">Dys</option>
                                     </select>
+                                    @error('age') <span class="text-danger fs-11 fw-bold d-block w-100 mt-1">{{ $message }}</span> @enderror
                                 </div>
-                                @error('age') <span class="text-danger fs-11 fw-bold d-block">{{ $message }}</span> @enderror
                             </div>
 
                             <div class="col-md-4">
