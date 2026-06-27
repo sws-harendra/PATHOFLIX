@@ -343,6 +343,7 @@
                             <label class="form-label">Name</label>
                             <div class="d-flex">
                                 <select class="form-select-pos rounded-0 rounded-start bg-light px-1 text-center" style="max-width: 75px; border-right:0;" wire:model="patient_title">
+                                    <option value="">-</option>
                                     <option value="Mr.">Mr.</option>
                                     <option value="Mrs.">Mrs.</option>
                                     <option value="Miss">Miss</option>
@@ -362,6 +363,7 @@
                             <div class="d-flex">
                                 <input type="number" class="form-control-pos rounded-0 rounded-start" style="border-right:0;" wire:model="patient_age">
                                 <select class="form-select-pos rounded-0 rounded-end" style="max-width: 100px;" wire:model="patient_age_unit">
+                                    <option value="">-</option>
                                     <option>Years</option>
                                     <option>Months</option>
                                     <option>Days</option>
@@ -381,6 +383,7 @@
                         <div class="col-md-3">
                             <label class="form-label">Gender</label>
                             <select class="form-select-pos" wire:model="patient_gender">
+                                <option value="">-</option>
                                 <option>Male</option>
                                 <option>Female</option>
                                 <option>Other</option>
@@ -388,30 +391,48 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Referred by</label>
-                            <div class="d-flex gap-2">
-                                <select class="form-select-pos" wire:model="selectedDoctor.id">
-                                    <option value="">Select Doctor</option>
-                                    @foreach(\App\Models\User::role('doctor')->get() as $doc)
-                                        <option value="{{ $doc->id }}">{{ $doc->name }}</option>
+                            <div class="position-relative" x-data="{ open: false }" @click.away="open = false">
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control-pos flex-grow-1" 
+                                        wire:model.live.debounce.300ms="doctorSearch"
+                                        @focus="open = true; $wire.set('activeSearchField', 'doctor')"
+                                        placeholder="Search Doctor">
+                                    <button wire:click="$set('isDoctorModalOpen', true)" class="btn-create flex-shrink-0">
+                                        Create ?
+                                    </button>
+                                </div>
+                                <div x-show="open" class="search-dropdown position-absolute w-100 mt-1" style="z-index: 10;">
+                                    <div wire:click="clearDoctor(); open = false; $wire.set('doctorSearch', '')" class="list-group-item text-muted">Clear Selection</div>
+                                    @foreach(\App\Models\User::role('doctor')->where('company_id', auth()->user()->company_id)->where('name', 'ilike', "%{$doctorSearch}%")->get() as $doc)
+                                        <div wire:click="selectDoctor({{ $doc->id }}); open = false" class="list-group-item">
+                                            <div class="fw-bold">{{ $doc->name }}</div>
+                                            <div class="text-muted fs-12">{{ $doc->phone }}</div>
+                                        </div>
                                     @endforeach
-                                </select>
-                                <button wire:click="$set('isDoctorModalOpen', true)" class="btn-create flex-shrink-0">
-                                    Create ?
-                                </button>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Select Agent</label>
-                            <div class="d-flex gap-2">
-                                <select class="form-select-pos" wire:model="selectedAgent.id">
-                                    <option value="">Select Agent</option>
-                                    @foreach(\App\Models\User::role('agent')->get() as $agt)
-                                        <option value="{{ $agt->id }}">{{ $agt->name }}</option>
+                            <div class="position-relative" x-data="{ open: false }" @click.away="open = false">
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control-pos flex-grow-1" 
+                                        wire:model.live.debounce.300ms="agentSearch"
+                                        @focus="open = true; $wire.set('activeSearchField', 'agent')"
+                                        placeholder="Search Agent">
+                                    <button wire:click="$set('isAgentModalOpen', true)" class="btn-create flex-shrink-0">
+                                        Create ?
+                                    </button>
+                                </div>
+                                <div x-show="open" class="search-dropdown position-absolute w-100 mt-1" style="z-index: 10;">
+                                    <div wire:click="clearAgent(); open = false; $wire.set('agentSearch', '')" class="list-group-item text-muted">Clear Selection</div>
+                                    @foreach(\App\Models\User::role('agent')->where('company_id', auth()->user()->company_id)->where('name', 'ilike', "%{$agentSearch}%")->get() as $agt)
+                                        <div wire:click="selectAgent({{ $agt->id }}); open = false" class="list-group-item">
+                                            <div class="fw-bold">{{ $agt->name }}</div>
+                                            <div class="text-muted fs-12">{{ $agt->phone }}</div>
+                                        </div>
                                     @endforeach
-                                </select>
-                                <button wire:click="$set('isAgentModalOpen', true)" class="btn-create flex-shrink-0">
-                                    Create ?
-                                </button>
+                                </div>
                             </div>
                         </div>
 
@@ -607,18 +628,18 @@
                             @endif
                             <div class="receipt-row">
                                 <span class="receipt-label">Membership Discount</span>
-                                <div class="d-flex align-items-center bg-light border rounded px-3 py-2" style="width: 220px;">
-                                    <span class="fw-bold text-success me-auto">- {{ number_format($membership_discount_amt, 2) }}</span>
+                                <div class="d-flex align-items-center bg-light border rounded px-3 py-2" style="width: 280px; height: 50px;">
+                                    <span class="fw-bold fs-18 text-success me-auto">- {{ number_format($membership_discount_amt, 2) }}</span>
                                     <span class="small text-muted fw-bold">INR</span>
                                 </div>
                             </div>
                             <div class="receipt-row border-bottom-0 pb-0">
                                 <span class="receipt-label">Additional Discount</span>
-                                <div class="d-flex gap-0" style="width: 220px;">
-                                    <input type="number" class="form-control form-control-sm rounded-0 rounded-start" 
-                                        style="height: 38px;" wire:model.live="manual_discount_input">
-                                    <select class="form-select form-select-sm rounded-0 rounded-end bg-light" 
-                                        style="width: 70px; height: 38px; border-left:0;" wire:model.live="manual_discount_type">
+                                <div class="d-flex gap-0" style="width: 280px;">
+                                    <input type="number" class="form-control-pos rounded-0 rounded-start border-end-0 fw-bold fs-18 text-end" 
+                                        style="height: 50px;" wire:model.live.debounce.300ms="manual_discount_input" placeholder="0">
+                                    <select class="form-select-pos rounded-0 rounded-end bg-light fw-bold text-center px-1" 
+                                        style="width: 90px; height: 50px;" wire:model.live="manual_discount_type">
                                         <option value="flat">INR</option>
                                         <option value="percent">%</option>
                                     </select>

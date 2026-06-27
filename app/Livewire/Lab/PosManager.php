@@ -14,7 +14,7 @@ class PosManager extends Component
     // 1. SELECTIONS & SEARCH
     // ==========================================
     public $patientSearch = '', $selectedPatient = [], $patientProfileData = null;
-    public $patient_title = 'Mr.', $patient_name = '', $patient_age = '', $patient_age_unit = 'Years', $patient_phone = '', $patient_email = '', $patient_gender = 'Male', $patient_address = '';
+    public $patient_title = '', $patient_name = '', $patient_age = '', $patient_age_unit = '', $patient_phone = '', $patient_email = '', $patient_gender = '', $patient_address = '';
     public $doctorSearch = '', $selectedDoctor = [], $doctorProfileData = null;
     public $agentSearch = '', $selectedAgent = [], $agentProfileData = null;
     public $bill_no = '', $barcode_no = '';
@@ -183,10 +183,10 @@ class PosManager extends Component
         $this->patient_phone = $user->phone;
         $this->patient_email = $user->email;
         if ($user->patientProfile) {
-            $this->patient_title = $user->patientProfile->title ?? 'Mr.';
+            $this->patient_title = $user->patientProfile->title ?? '';
             $this->patient_age = $user->patientProfile->age;
-            $this->patient_age_unit = $user->patientProfile->age_type ?: 'Years';
-            $this->patient_gender = $user->patientProfile->gender ?: 'Male';
+            $this->patient_age_unit = $user->patientProfile->age_type ?: '';
+            $this->patient_gender = $user->patientProfile->gender ?: '';
             $this->patient_address = $user->patientProfile->address;
         }
 
@@ -200,7 +200,7 @@ class PosManager extends Component
         $user = User::with(['doctorProfile'])->find($userId);
         $this->selectedDoctor = $user->toArray();
         $this->doctorProfileData = $user->doctorProfile ? $user->doctorProfile->toArray() : null;
-        $this->doctorSearch = '';
+        $this->doctorSearch = $user->name;
         $this->activeSearchField = null;
     }
 
@@ -209,7 +209,7 @@ class PosManager extends Component
         $user = User::with(['agentProfile'])->find($userId);
         $this->selectedAgent = $user->toArray();
         $this->agentProfileData = $user->agentProfile ? $user->agentProfile->toArray() : null;
-        $this->agentSearch = '';
+        $this->agentSearch = $user->name;
         $this->activeSearchField = null;
     }
 
@@ -536,7 +536,10 @@ class PosManager extends Component
         $currentCollected = collect($this->payments)->sum(fn($p) => (float)($p['amount'] ?? 0));
         $remaining = max(0, $this->net_payable - $currentCollected);
         
-        $this->payments[] = ['mode_id' => '', 'amount' => $remaining > 0 ? $remaining : '', 'transaction_id' => ''];
+        $cashMode = auth()->check() ? PaymentMode::where('company_id', auth()->user()->company_id)->where('name', 'Cash')->first() : null;
+        $defaultMode = $cashMode ? $cashMode->id : '';
+
+        $this->payments[] = ['mode_id' => $defaultMode, 'amount' => $remaining > 0 ? $remaining : '', 'transaction_id' => ''];
         $this->calculateTotals();
     }
     public function removePaymentRow($index)
@@ -1096,7 +1099,7 @@ class PosManager extends Component
             $s = $this->testSearch;
             $tQuery->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
         }
-        $tests = $tQuery->orderBy('id', 'desc')->take(20)->get();
+        $tests = $tQuery->orderBy('id', 'desc')->get();
 
         // Reactive Dropdowns (Cached with precise keys)
         $paymentModes = \Illuminate\Support\Facades\Cache::remember("payment_modes_{$companyId}", 3600, function() use ($companyId) {

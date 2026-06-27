@@ -171,6 +171,176 @@
                                             </td>
                                         </tr>
 
+                                        @if($params->first()['is_culture'] ?? false)
+                                             {{-- CULTURE TEST UI --}}
+                                             @php $cKey = $params->first()['key']; @endphp
+                                             <tr>
+                                                 <td colspan="5" class="bg-light pb-4 border-bottom">
+                                                     <div class="card border border-info shadow-sm">
+                                                         <div class="card-header bg-soft-info py-2">
+                                                             <h6 class="mb-0 text-info fs-12 fw-bold"><i class="feather-microscope me-2"></i>Microbiology Culture Report</h6>
+                                                         </div>
+                                                         <div class="card-body p-3">
+                                                             <div class="row g-3">
+                                                                 <div class="col-md-2">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Specimen</label>
+                                                                     <input list="specimen-list" type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.specimen" placeholder="e.g. Urine">
+                                                                 </div>
+                                                                 <div class="col-md-2">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Result (Growth)</label>
+                                                                     <select class="form-select form-select-sm" wire:model.live="cultureData.{{ $cKey }}.growth_status">
+                                                                         <option value="">Select...</option>
+                                                                         <option value="Growth">Growth</option>
+                                                                         <option value="No Growth">No Growth</option>
+                                                                         <option value="Sterile">Sterile</option>
+                                                                     </select>
+                                                                 </div>
+                                                                 <div class="col-md-3">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Incubation</label>
+                                                                     <input type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.incubation_period" placeholder="e.g. 48 hours at 37°C">
+                                                                 </div>
+                                                                 @if(!in_array($cultureData[$cKey]['growth_status'] ?? '', ['No Growth', 'Sterile']))
+                                                                 <div class="col-md-3">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Organism Isolated</label>
+                                                                     <input list="organism-list" type="text" class="form-control form-control-sm border-info" wire:model.live="cultureData.{{ $cKey }}.organism_name" placeholder="e.g. E. coli">
+                                                                 </div>
+                                                                 <div class="col-md-2">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Colony Count</label>
+                                                                     <input list="colony-list" type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.colony_count" placeholder="e.g. 10^5 CFU/ml">
+                                                                 </div>
+                                                                 @endif
+                                                                 <div class="col-12">
+                                                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Remarks / Note</label>
+                                                                     <input type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.remarks" placeholder="Additional culture notes...">
+                                                                 </div>
+                                                             </div>
+
+                                                             <datalist id="specimen-list">
+                                                                 <option value="Urine"></option>
+                                                                 <option value="Blood"></option>
+                                                                 <option value="Sputum"></option>
+                                                                 <option value="Pus"></option>
+                                                                 <option value="Ear Swab"></option>
+                                                                 <option value="Throat Swab"></option>
+                                                                 <option value="Wound Swab"></option>
+                                                                 <option value="CSF"></option>
+                                                                 <option value="Stool"></option>
+                                                                 <option value="Fluid"></option>
+                                                             </datalist>
+                                                             <datalist id="organism-list">
+                                                                 <option value="Escherichia coli"></option>
+                                                                 <option value="Klebsiella pneumoniae"></option>
+                                                                 <option value="Pseudomonas aeruginosa"></option>
+                                                                 <option value="Staphylococcus aureus"></option>
+                                                                 <option value="Enterococcus faecalis"></option>
+                                                                 <option value="Proteus mirabilis"></option>
+                                                                 <option value="Acinetobacter baumannii"></option>
+                                                                 <option value="Candida albicans"></option>
+                                                                 <option value="Salmonella typhi"></option>
+                                                             </datalist>
+                                                             <datalist id="colony-list">
+                                                                 <option value="> 10^5 CFU/ml"></option>
+                                                                 <option value="10^4 - 10^5 CFU/ml"></option>
+                                                                 <option value="< 10^4 CFU/ml"></option>
+                                                                 <option value="Scanty Growth"></option>
+                                                                 <option value="Moderate Growth"></option>
+                                                                 <option value="Heavy Growth"></option>
+                                                             </datalist>
+                                                             <datalist id="antibiotic-list">
+                                                                 <option value="Amikacin"></option>
+                                                                 <option value="Amoxicillin"></option>
+                                                                 <option value="Amoxicillin-Clavulanic acid"></option>
+                                                                 <option value="Ampicillin"></option>
+                                                                 <option value="Azithromycin"></option>
+                                                                 <option value="Cefazolin"></option>
+                                                                 <option value="Cefepime"></option>
+                                                                 <option value="Cefotaxime"></option>
+                                                                 <option value="Cefoxitin"></option>
+                                                                 <option value="Ceftazidime"></option>
+                                                                 <option value="Ceftriaxone"></option>
+                                                                 <option value="Cefuroxime"></option>
+                                                                 <option value="Cephalexin"></option>
+                                                                 <option value="Chloramphenicol"></option>
+                                                                 <option value="Ciprofloxacin"></option>
+                                                                 <option value="Clindamycin"></option>
+                                                                 <option value="Colistin"></option>
+                                                                 <option value="Doxycycline"></option>
+                                                                 <option value="Erythromycin"></option>
+                                                                 <option value="Fosfomycin"></option>
+                                                                 <option value="Gentamicin"></option>
+                                                                 <option value="Imipenem"></option>
+                                                                 <option value="Levofloxacin"></option>
+                                                                 <option value="Linezolid"></option>
+                                                                 <option value="Meropenem"></option>
+                                                                 <option value="Minocycline"></option>
+                                                                 <option value="Moxifloxacin"></option>
+                                                                 <option value="Nalidixic acid"></option>
+                                                                 <option value="Netilmicin"></option>
+                                                                 <option value="Nitrofurantoin"></option>
+                                                                 <option value="Norfloxacin"></option>
+                                                                 <option value="Ofloxacin"></option>
+                                                                 <option value="Penicillin"></option>
+                                                                 <option value="Piperacillin-Tazobactam"></option>
+                                                                 <option value="Polymyxin B"></option>
+                                                                 <option value="Teicoplanin"></option>
+                                                                 <option value="Tetracycline"></option>
+                                                                 <option value="Ticarcillin-Clavulanic acid"></option>
+                                                                 <option value="Tobramycin"></option>
+                                                                 <option value="Trimethoprim-Sulfamethoxazole"></option>
+                                                                 <option value="Vancomycin"></option>
+                                                             </datalist>
+
+                                                             {{-- Antibiotics Table --}}
+                                                             @if(!in_array($cultureData[$cKey]['growth_status'] ?? '', ['No Growth', 'Sterile']))
+                                                             <div class="mt-4 border rounded-3 overflow-hidden">
+                                                                 <div class="d-flex justify-content-between align-items-center bg-light p-2 border-bottom">
+                                                                     <div class="fs-12 fw-bold text-dark"><i class="feather-activity text-success me-2"></i>Antibiotic Sensitivity</div>
+                                                                     <button type="button" wire:click="addCultureAntibiotic('{{ $cKey }}')" class="btn btn-sm btn-primary py-1 px-2 fs-11">
+                                                                         <i class="feather-plus me-1"></i>Add Antibiotic
+                                                                     </button>
+                                                                 </div>
+                                                                 <div class="p-2">
+                                                                     @if(empty($cultureAntibiotics[$cKey]))
+                                                                         <div class="text-center text-muted fs-11 py-2">No antibiotics added yet.</div>
+                                                                     @else
+                                                                         <table class="table table-sm table-borderless align-middle mb-0">
+                                                                             <thead>
+                                                                                 <tr class="fs-11 text-muted text-uppercase">
+                                                                                     <th style="width: 45%;">Antibiotic Name</th>
+                                                                                     <th style="width: 30%;">Sensitivity</th>
+                                                                                     <th style="width: 20%;">MIC (Optional)</th>
+                                                                                     <th style="width: 5%;"></th>
+                                                                                 </tr>
+                                                                             </thead>
+                                                                             <tbody>
+                                                                                 @foreach($cultureAntibiotics[$cKey] ?? [] as $idx => $ab)
+                                                                                     <tr wire:key="ab-{{ $cKey }}-{{ $idx }}">
+                                                                                         <td><input list="antibiotic-list" type="text" class="form-control form-control-sm" wire:model="cultureAntibiotics.{{ $cKey }}.{{ $idx }}.antibiotic_name" placeholder="Name"></td>
+                                                                                         <td>
+                                                                                             <select class="form-select form-select-sm" wire:model="cultureAntibiotics.{{ $cKey }}.{{ $idx }}.sensitivity">
+                                                                                                 <option value="">Select...</option>
+                                                                                                 <option value="Sensitive">Sensitive (S)</option>
+                                                                                                 <option value="Intermediate">Intermediate (I)</option>
+                                                                                                 <option value="Resistant">Resistant (R)</option>
+                                                                                             </select>
+                                                                                         </td>
+                                                                                         <td><input type="text" class="form-control form-control-sm" wire:model="cultureAntibiotics.{{ $cKey }}.{{ $idx }}.mic_value" placeholder="MIC"></td>
+                                                                                         <td class="text-end">
+                                                                                             <button type="button" class="btn btn-sm btn-icon btn-soft-danger border-0 py-1" wire:click="removeCultureAntibiotic('{{ $cKey }}', {{ $idx }})"><i class="feather-trash-2"></i></button>
+                                                                                         </td>
+                                                                                     </tr>
+                                                                                 @endforeach
+                                                                             </tbody>
+                                                                         </table>
+                                                                     @endif
+                                                                 </div>
+                                                             </div>
+                                                             @endif
+                                                         </div>
+                                                     </div>
+                                                 </td>
+                                             </tr>
+                                        @else
                                         @foreach($params as $p)
                                              @php
                                                  $paramKey = $p['key'];
@@ -228,6 +398,7 @@
                                                  </td>
                                              </tr>
                                          @endforeach
+                                         @endif
 
                                         {{-- Granular Remark Editor (Inside Test Loop) --}}
                                         <tr wire:key="remark-{{ $itemId }}-{{ $labTestId }}">

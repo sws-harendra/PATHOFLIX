@@ -11,15 +11,15 @@
         $headerImgSrc = $settings['pdf_header_image'] ?? null;
         $footerImgSrc = $settings['pdf_footer_image'] ?? null;
 
-        $sigImgSrc = $settings['global_sig_1_path']
+        $sigImgSrc = !empty($settings['global_sig_1_path'])
             ? $settings['global_sig_1_path']
-            : (file_exists(public_path('assets/images/signature.jpg'))
-                ? public_path('assets/images/signature.jpg')
-                : null);
+            : null;
 
         // ── Margins from Settings ──
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
         $marginBottom = ($settings['pdf_margin_bottom'] ?? 255) . 'px';
+        $marginLeft   = ($settings['pdf_margin_left'] ?? 25) . 'px';
+        $marginRight  = ($settings['pdf_margin_right'] ?? 25) . 'px';
         $headerHeight = ($settings['pdf_header_height'] ?? 200) . 'px';
         $footerHeight = ($settings['pdf_footer_height'] ?? 180) . 'px';
         
@@ -41,7 +41,7 @@
             color: #1a1a1a;
             background: #fff;
             line-height: 1.45;
-            margin: {{ $marginTop }} 25px {{ $marginBottom }} 25px;
+            margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
 
         /* ══════════════════════════════════════════════
@@ -75,10 +75,10 @@
         .patient-box {
             position: absolute;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: {{ $marginLeft }};
+            right: {{ $marginRight }};
             border: 1px solid #1a1a1a !important;
-            margin: 0 25px 0;
+            margin: 0;
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
@@ -202,8 +202,9 @@
         .sig-container {
             position: absolute;
             bottom: 185px; /* Positioned just above the footer banner */
-            left: 0;
-            width: 100%;
+            left: {{ $marginLeft }};
+            right: {{ $marginRight }};
+            margin: 0;
         }
 
         .multi-sig-table {
@@ -486,21 +487,27 @@
 
 <body>
 
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
+        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
+    @endif
+
     {{-- ══════════════════ WATERMARK ══════════════════ --}}
-    @if(isset($company->logo) && $company->logo)
-        <div class="watermark">
-            <img src="{{ storage_base64($company->logo) }}">
-        </div>
-    @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
-        <div class="watermark">
-            <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
-        </div>
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') !== 'letterhead')
+        @if(isset($company->logo) && $company->logo)
+            <div class="watermark">
+                <img src="{{ storage_base64($company->logo) }}">
+            </div>
+        @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
+            <div class="watermark">
+                <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
+            </div>
+        @endif
     @endif
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
         <div class="header-logo-container">
-            @if($headerImgSrc && $showHeader)
+            @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
         </div>
@@ -565,14 +572,16 @@
             @elseif(($sigMode === 'global_bottom' || $sigMode === '') && empty($settings['global_sig_2_name']) && empty($settings['global_sig_3_name']))
                 <table class="sig-table">
                     <tr>
-                        <td class="sig-checked">CHECKED BY</td>
+                        <td class="sig-checked"></td>
                         <td class="sig-doctor">
                             @if($sigImgSrc)
                                 <img class="sign-img" src="{{ $sigImgSrc }}"><br>
                             @endif
-                            <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
-                            @if($settings['global_sig_1_desig'])
-                                <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                            @if(!empty($settings['global_sig_1_name']))
+                                <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
+                                @if(!empty($settings['global_sig_1_desig']))
+                                    <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                                @endif
                             @endif
                         </td>
                     </tr>
@@ -582,31 +591,39 @@
                 <table class="multi-sig-table">
                     <tr>
                         <td style="text-align:left; padding-left:35px; font-weight:700; font-size:11px;">
-                            CHECKED BY
+                            
                         </td>
-                        @if($settings['global_sig_2_name'])
+                        @if(!empty($settings['global_sig_2_name']))
                             <td>
-                                @if($settings['global_sig_2_path'])
+                                @if(!empty($settings['global_sig_2_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_2_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_2_name'] }}</span>
-                                <span class="doc-desig">{{ $settings['global_sig_2_desig'] }}</span>
+                                @if(!empty($settings['global_sig_2_desig']))
+                                    <span class="doc-desig">{{ $settings['global_sig_2_desig'] }}</span>
+                                @endif
                             </td>
                         @endif
                         <td>
                             @if($sigImgSrc)
                                 <img class="sign-img" src="{{ $sigImgSrc }}"><br>
                             @endif
-                            <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
-                            <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                            @if(!empty($settings['global_sig_1_name']))
+                                <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
+                                @if(!empty($settings['global_sig_1_desig']))
+                                    <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                                @endif
+                            @endif
                         </td>
-                        @if($settings['global_sig_3_path'])
+                        @if(!empty($settings['global_sig_3_name']))
                             <td>
-                                @if($settings['global_sig_3_path'])
+                                @if(!empty($settings['global_sig_3_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_3_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_3_name'] }}</span>
-                                <span class="doc-desig">{{ $settings['global_sig_3_desig'] }}</span>
+                                @if(!empty($settings['global_sig_3_desig']))
+                                    <span class="doc-desig">{{ $settings['global_sig_3_desig'] }}</span>
+                                @endif
                             </td>
                         @endif
                     </tr>
@@ -651,6 +668,74 @@
 
 
 
+            @if($testData['cultureResult'])
+                @php $cr = $testData['cultureResult']; @endphp
+                {{-- ── Culture Results Layout ── --}}
+                <table class="result-table" style="margin-bottom:15px; width:100%;">
+                    <tbody>
+                        <tr>
+                            <td style="width:25%; font-weight:700; border-bottom: none !important;">Specimen</td>
+                            <td style="width:75%; border-bottom: none !important;">: {{ $cr->specimen }}</td>
+                        </tr>
+                        @if($cr->growth_status)
+                        <tr>
+                            <td style="font-weight:700; border-bottom: none !important;">Result</td>
+                            <td style="font-weight:700; border-bottom: none !important;">: {{ $cr->growth_status }}</td>
+                        </tr>
+                        @endif
+                        @if($cr->incubation_period)
+                        <tr>
+                            <td style="font-weight:700; border-bottom: none !important;">Incubation Period</td>
+                            <td style="border-bottom: none !important;">: {{ $cr->incubation_period }}</td>
+                        </tr>
+                        @endif
+                        <tr>
+                            <td style="font-weight:700; border-bottom: none !important;">Organism Isolated</td>
+                            <td style="font-weight:700; color:#b00; border-bottom: none !important;">: {{ $cr->organism_name }}</td>
+                        </tr>
+                        @if($cr->colony_count)
+                        <tr>
+                            <td style="font-weight:700; border-bottom: none !important;">Colony Count</td>
+                            <td style="border-bottom: none !important;">: {{ $cr->colony_count }}</td>
+                        </tr>
+                        @endif
+                        @if($cr->remarks)
+                        <tr>
+                            <td style="font-weight:700; border-bottom: none !important;">Remarks</td>
+                            <td style="border-bottom: none !important;">: {{ $cr->remarks }}</td>
+                        </tr>
+                        @endif
+                    </tbody>
+                </table>
+
+                @if($cr->antibiotics && $cr->antibiotics->count() > 0)
+                    <div style="font-weight:700; font-size:11px; margin-bottom:5px; text-decoration:underline;">ANTIBIOTIC SUSCEPTIBILITY</div>
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40%">Antibiotic Name</th>
+                                <th style="width:30%">Sensitivity</th>
+                                <th style="width:30%">MIC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($cr->antibiotics as $ab)
+                                <tr>
+                                    <td>{{ $ab->antibiotic_name }}</td>
+                                    @php
+                                        $sens = strtoupper(substr($ab->sensitivity ?? '', 0, 1));
+                                        $sColor = $sens === 'S' ? '#007700' : ($sens === 'R' ? '#cc0000' : '#888');
+                                    @endphp
+                                    <td style="color: {{ $sColor }}; font-weight:700;">
+                                        {{ $ab->sensitivity }}
+                                    </td>
+                                    <td>{{ $ab->mic_value }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            @else
             {{-- ── Results Table ── --}}
             <table class="result-table">
                 <thead>
@@ -751,9 +836,10 @@
                     @endforeach
                 </tbody>
             </table>
+            @endif
 
             {{-- ── Method (per-result level, if different from test master) ── --}}
-            @if($results->first()->method && $results->first()->method !== $labTest->method)
+            @if($results && $results->count() > 0 && $results->first()->method && $results->first()->method !== $labTest->method)
                 <p style="font-size:9px; color:#555; font-style:italic; margin-bottom:5px;">
                     <strong>Method:</strong> {{ $results->first()->method }}
                 </p>

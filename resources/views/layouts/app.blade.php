@@ -581,20 +581,9 @@
                 }
             });
 
-            // ── 5. Livewire Event Listeners & Global Delegation (Strict Once) ──
-            if (!window.pathologyListenersAdded) {
-                document.addEventListener('livewire:init', function () {
-                    if (window.pathologyListenersAdded) return;
-
-
-
-                    // Listeners start here
-                    window.pathologyListenersAdded = true;
-
-                    Livewire.on('notify', function (data) {
-                        var info = Array.isArray(data) ? data[0] : data;
-
-                        const toast = document.createElement('div');
+            // ── 5. Toast System ──
+            window.showToast = function(info) {
+                const toast = document.createElement('div');
                         toast.style.position = 'fixed';
                         toast.style.top = '30px';
                         toast.style.right = '30px';
@@ -644,6 +633,17 @@
                                 setTimeout(() => toast.remove(), 500);
                             }
                         }, 5000);
+                    };
+
+            // ── 6. Livewire Event Listeners & Global Delegation (Strict Once) ──
+            if (!window.pathologyListenersAdded) {
+                document.addEventListener('livewire:init', function () {
+                    if (window.pathologyListenersAdded) return;
+                    window.pathologyListenersAdded = true;
+
+                    Livewire.on('notify', function (data) {
+                        var info = Array.isArray(data) ? data[0] : data;
+                        window.showToast(info);
                     });
 
                     Livewire.on('print-window', function () {
@@ -672,6 +672,22 @@
                     jQuery('.nxl-hasmenu.active').addClass('nxl-trigger').find('.nxl-submenu').show();
                 }
             }, 100);
+
+            @if(session()->has('success'))
+            setTimeout(function() {
+                if (typeof window.showToast === 'function') {
+                    window.showToast({ type: 'success', message: @json(session('success')) });
+                }
+            }, 100);
+            @endif
+
+            @if(session()->has('error'))
+            setTimeout(function() {
+                if (typeof window.showToast === 'function') {
+                    window.showToast({ type: 'error', message: @json(session('error')) });
+                }
+            }, 100);
+            @endif
         })();
     </script>
 </body>

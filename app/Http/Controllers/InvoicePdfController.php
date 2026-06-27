@@ -88,6 +88,7 @@ class InvoicePdfController extends Controller
         
         $headerImage = Configuration::getFor('pdf_header_image', null, $companyId);
         $footerImage = Configuration::getFor('pdf_footer_image', null, $companyId);
+        $letterheadImage = Configuration::getFor('pdf_letterhead_image', null, $companyId);
 
         $view = 'pdf.invoice-' . $template;
         if (!view()->exists($view)) {
@@ -95,6 +96,8 @@ class InvoicePdfController extends Controller
         }
 
         $pdfSettings = [
+            'pdf_background_mode'    => Configuration::getFor('pdf_background_mode', 'header_footer', $companyId),
+            'pdf_letterhead_image'   => storage_base64($letterheadImage),
             'pdf_font_size'          => Configuration::getFor('pdf_font_size', null, $companyId) ?: 13,
             'pdf_font_family'        => Configuration::getFor('pdf_font_family', null, $companyId) ?: 'Helvetica',
             'pdf_margin_top'         => Configuration::getFor('pdf_margin_top', null, $companyId) ?: 310,

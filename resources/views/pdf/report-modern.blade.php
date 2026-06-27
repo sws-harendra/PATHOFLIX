@@ -239,6 +239,17 @@
     </style>
 </head>
 <body>
+    @php
+        $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
+        $marginBottom = ($settings['pdf_margin_bottom'] ?? 255) . 'px';
+    @endphp
+
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
+        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000;">
+            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
+        </div>
+    @endif
+
     {{-- Watermark --}}
     @if(isset($company->logo) && $company->logo)
         <div class="watermark">
@@ -251,7 +262,7 @@
     @endif
 
     {{-- HEADER --}}
-    @if($settings['pdf_show_header'])
+    @if($settings['pdf_show_header'] && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
         <header>
             @if($settings['pdf_header_image'])
                 <img src="{{ $settings['pdf_header_image'] }}" class="custom-header-img" alt="Header">
@@ -271,7 +282,7 @@
     @endif
 
     {{-- FOOTER --}}
-    @if($settings['pdf_show_footer'])
+    @if($settings['pdf_show_footer'] && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
         <footer>
             @if($settings['pdf_footer_image'])
                 <img src="{{ $settings['pdf_footer_image'] }}" class="custom-footer-img" alt="Footer">
@@ -341,6 +352,75 @@
                             @endif
                         </td>
                     </tr>
+                    @if($testData['cultureResult'])
+                        @php $cr = $testData['cultureResult']; @endphp
+                        <tr>
+                            <td colspan="4" style="padding: 10px 15px;">
+                                <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                                    <tr>
+                                        <td style="width:25%; font-weight:bold; border: none; padding: 3px 0;">Specimen</td>
+                                        <td style="width:75%; border: none; padding: 3px 0;">: {{ $cr->specimen }}</td>
+                                    </tr>
+                                    @if($cr->growth_status)
+                                    <tr>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">Result</td>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">: {{ $cr->growth_status }}</td>
+                                    </tr>
+                                    @endif
+                                    @if($cr->incubation_period)
+                                    <tr>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">Incubation Period</td>
+                                        <td style="border: none; padding: 3px 0;">: {{ $cr->incubation_period }}</td>
+                                    </tr>
+                                    @endif
+                                    <tr>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">Organism Isolated</td>
+                                        <td style="font-weight:bold; color:#b00; border: none; padding: 3px 0;">: {{ $cr->organism_name }}</td>
+                                    </tr>
+                                    @if($cr->colony_count)
+                                    <tr>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">Colony Count</td>
+                                        <td style="border: none; padding: 3px 0;">: {{ $cr->colony_count }}</td>
+                                    </tr>
+                                    @endif
+                                    @if($cr->remarks)
+                                    <tr>
+                                        <td style="font-weight:bold; border: none; padding: 3px 0;">Remarks</td>
+                                        <td style="border: none; padding: 3px 0;">: {{ $cr->remarks }}</td>
+                                    </tr>
+                                    @endif
+                                </table>
+
+                                @if($cr->antibiotics && $cr->antibiotics->count() > 0)
+                                    <div style="font-weight:bold; font-size:11px; margin-bottom:5px; text-decoration:underline;">ANTIBIOTIC SUSCEPTIBILITY</div>
+                                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="background:#f3f4f6; padding:5px; border:1px solid #ddd;">Antibiotic Name</th>
+                                                <th style="background:#f3f4f6; padding:5px; border:1px solid #ddd;">Sensitivity</th>
+                                                <th style="background:#f3f4f6; padding:5px; border:1px solid #ddd;">MIC</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($cr->antibiotics as $ab)
+                                                <tr>
+                                                    <td style="padding:5px; border:1px solid #ddd;">{{ $ab->antibiotic_name }}</td>
+                                                    @php
+                                                        $sens = strtoupper(substr($ab->sensitivity ?? '', 0, 1));
+                                                        $sColor = $sens === 'S' ? '#007700' : ($sens === 'R' ? '#cc0000' : '#888');
+                                                    @endphp
+                                                    <td style="padding:5px; border:1px solid #ddd; color: {{ $sColor }}; font-weight:bold;">
+                                                        {{ $ab->sensitivity }}
+                                                    </td>
+                                                    <td style="padding:5px; border:1px solid #ddd;">{{ $ab->mic_value }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
+                            </td>
+                        </tr>
+                    @else
                     @foreach($results as $r)
                         <tr>
                             <td style="padding-left: 15px;">
@@ -365,6 +445,7 @@
                             <td><span style="white-space: pre-line;">{{ $r->reference_range }}</span></td>
                         </tr>
                     @endforeach
+                    @endif
                     @if($labTest->description)
                         <tr>
                             <td colspan="4" style="padding-left: 15px; padding-top: 5px; padding-bottom: 5px; font-size: 10px; color: #555;">

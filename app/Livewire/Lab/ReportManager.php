@@ -81,7 +81,7 @@ class ReportManager extends Component
         }
 
         // Printing proceeds regardless of image presence to allow for physical letterhead space
-        $testIds = implode(',', $this->selectedTests);
+        $testIds = is_array($this->selectedTests) ? implode(',', $this->selectedTests) : $this->selectedTests;
         $url = route('lab.reports.print', ['id' => $invoiceId, 'template' => 'new'])
              . '?tests=' . $testIds
              . '&header=' . ($withHeader ? '1' : '0');
@@ -216,15 +216,11 @@ class ReportManager extends Component
 
     public function printReport($invoiceId, $withHeader)
     {
-        if ($withHeader) {
-            $header = \App\Models\Configuration::getFor('pdf_header_image');
-            if (!$header) {
-                $this->dispatch('notify', ['type' => 'error', 'message' => 'Please upload your Letterhead (Header) in Settings before printing with header.']);
-                return;
-            }
-        }
+        // Printing proceeds regardless of image presence to allow for physical letterhead space
         
         $url = route('lab.reports.print', [$invoiceId, 'new']) . '?header=' . ($withHeader ? '1' : '0');
         $this->dispatch('open-new-tab', ['url' => $url]);
     }
+
+
 }

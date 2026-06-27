@@ -97,13 +97,19 @@ if (!function_exists('getIndianCurrency')) {
 </head>
 <body>
 
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
+        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000;">
+            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
+        </div>
+    @endif
+
     @if($company->logo)
         <div class="watermark"><img src="{{ storage_base64($company->logo) }}"></div>
     @endif
 
     <header>
         <div style="height: {{ $headerHeight }}; width: 100%; overflow: hidden; margin-bottom: 12px; padding: 0;">
-            @if($showHeader && $headerImgSrc)
+            @if($showHeader && $headerImgSrc && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
         </div>
@@ -141,7 +147,7 @@ if (!function_exists('getIndianCurrency')) {
         </div>
     </header>
 
-    @if($showFooter)
+    @if($showFooter && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
         <footer>
             <div style="height: {{ $footerHeight }}; width: 100%; overflow: hidden; padding: 0;">
                 @if($footerImgSrc)

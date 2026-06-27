@@ -67,14 +67,19 @@ class SettingsManager extends Component
     public $pdf_show_footer = true;
     public $pdf_header_image;       // stored path
     public $pdf_footer_image;       // stored path
+    public $pdf_letterhead_image;   // stored path
+    public $pdf_background_mode = 'header_footer'; // 'header_footer' or 'letterhead'
     public $new_header_image;       // upload
     public $new_footer_image;       // upload
+    public $new_letterhead_image;   // upload
     
     // PDF Typography & Layout
     public $pdf_font_size = 13;
     public $pdf_font_family = 'Helvetica';
     public $pdf_margin_top = 310;
     public $pdf_margin_bottom = 255;
+    public $pdf_margin_left = 25;
+    public $pdf_margin_right = 25;
     public $pdf_header_height = 200;
     public $pdf_footer_height = 180;
 
@@ -143,14 +148,18 @@ class SettingsManager extends Component
         // PDF header/footer
         $this->pdf_show_header = Configuration::getFor('pdf_show_header', '1') === '1';
         $this->pdf_show_footer = Configuration::getFor('pdf_show_footer', '1') === '1';
+        $this->pdf_background_mode = Configuration::getFor('pdf_background_mode', 'header_footer');
         $this->pdf_header_image = Configuration::getFor('pdf_header_image', null);
         $this->pdf_footer_image = Configuration::getFor('pdf_footer_image', null);
+        $this->pdf_letterhead_image = Configuration::getFor('pdf_letterhead_image', null);
 
         // PDF Typography & Layout
         $this->pdf_font_size = (int) Configuration::getFor('pdf_font_size', 13);
         $this->pdf_font_family = Configuration::getFor('pdf_font_family', 'Helvetica');
         $this->pdf_margin_top = (int) Configuration::getFor('pdf_margin_top', 310);
         $this->pdf_margin_bottom = (int) Configuration::getFor('pdf_margin_bottom', 255);
+        $this->pdf_margin_left = (int) Configuration::getFor('pdf_margin_left', 25);
+        $this->pdf_margin_right = (int) Configuration::getFor('pdf_margin_right', 25);
         $this->pdf_header_height = (int) Configuration::getFor('pdf_header_height', 200);
         $this->pdf_footer_height = (int) Configuration::getFor('pdf_footer_height', 180);
         
@@ -241,6 +250,7 @@ class SettingsManager extends Component
         $this->new_favicon = null;
         
         session()->flash('ui_updated', 'Settings updated successfully!');
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Profile updated successfully!']);
         $this->profileSaved = true;
     }
 
@@ -268,6 +278,7 @@ class SettingsManager extends Component
         Configuration::setFor('commission_basis_agent', $this->commission_basis_agent);
 
         $this->invoiceSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Billing rules saved successfully!']);
     }
 
     // ==========================================
@@ -285,6 +296,7 @@ class SettingsManager extends Component
         Configuration::setFor('patient_id_digits', $this->patient_id_digits);
 
         $this->patientSettingsSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Patient rules saved successfully!']);
     }
 
     // ==========================================
@@ -304,6 +316,7 @@ class SettingsManager extends Component
         Configuration::setFor('barcode_counter_digits', $this->barcode_counter_digits);
 
         $this->barcodeSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Barcode settings saved successfully!']);
     }
 
     // ==========================================
@@ -323,6 +336,7 @@ class SettingsManager extends Component
 
         Configuration::setFor('bill_template', $this->bill_template);
         $this->templateSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Print preference saved successfully!']);
     }
 
     // ==========================================
@@ -358,6 +372,12 @@ class SettingsManager extends Component
             $this->pdf_footer_image = $this->new_footer_image->store('invoice-footers');
             $this->new_footer_image = null;
         }
+        
+        // Upload letterhead image
+        if (is_object($this->new_letterhead_image) && method_exists($this->new_letterhead_image, 'store')) {
+            $this->pdf_letterhead_image = $this->new_letterhead_image->store('invoice-letterheads');
+            $this->new_letterhead_image = null;
+        }
 
         // Upload signature image
         if (is_object($this->new_signature_image) && method_exists($this->new_signature_image, 'store')) {
@@ -366,14 +386,18 @@ class SettingsManager extends Component
         }
 
         Configuration::setFor('pdf_show_footer', $this->pdf_show_footer ? '1' : '0');
+        Configuration::setFor('pdf_background_mode', $this->pdf_background_mode);
         Configuration::setFor('pdf_header_image', $this->pdf_header_image);
         Configuration::setFor('pdf_footer_image', $this->pdf_footer_image);
+        Configuration::setFor('pdf_letterhead_image', $this->pdf_letterhead_image);
         
         // Layout & Typography
         Configuration::setFor('pdf_font_size', $this->pdf_font_size);
         Configuration::setFor('pdf_font_family', $this->pdf_font_family);
         Configuration::setFor('pdf_margin_top', $this->pdf_margin_top);
         Configuration::setFor('pdf_margin_bottom', $this->pdf_margin_bottom);
+        Configuration::setFor('pdf_margin_left', $this->pdf_margin_left);
+        Configuration::setFor('pdf_margin_right', $this->pdf_margin_right);
         Configuration::setFor('pdf_header_height', $this->pdf_header_height);
         Configuration::setFor('pdf_footer_height', $this->pdf_footer_height);
         
@@ -382,6 +406,7 @@ class SettingsManager extends Component
         Configuration::setFor('signature_image', $this->signature_image);
 
         $this->pdfSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Letterhead settings saved successfully!']);
     }
 
     // ==========================================
@@ -475,6 +500,7 @@ class SettingsManager extends Component
         }
 
         $this->signaturesSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Signature settings saved successfully!']);
     }
 
     // ==========================================
@@ -491,6 +517,18 @@ class SettingsManager extends Component
         Configuration::setFor('restrict_branch_access', $this->restrict_branch_access ? '1' : '0');
 
         $this->branchControlsSaved = true;
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'Branch settings saved successfully!']);
+    }
+
+    public function removeHeaderFooter()
+    {
+        $this->pdf_header_image = null;
+        Configuration::setFor('pdf_header_image', null);
+        $this->pdf_footer_image = null;
+        Configuration::setFor('pdf_footer_image', null);
+        $this->pdf_letterhead_image = null;
+        Configuration::setFor('pdf_letterhead_image', null);
+        session()->flash('success', 'Header, Footer & Letterhead removed successfully.');
     }
 
     public function removeHeaderImage()
@@ -503,6 +541,14 @@ class SettingsManager extends Component
     {
         $this->pdf_footer_image = null;
         Configuration::setFor('pdf_footer_image', null);
+        session()->flash('success', 'Footer Image removed successfully.');
+    }
+
+    public function removeLetterheadImage()
+    {
+        $this->pdf_letterhead_image = null;
+        Configuration::setFor('pdf_letterhead_image', null);
+        session()->flash('success', 'Letterhead Image removed successfully.');
     }
 
     /**

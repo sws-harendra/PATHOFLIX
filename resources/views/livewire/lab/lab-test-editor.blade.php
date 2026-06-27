@@ -93,6 +93,7 @@
                             <hr class="my-4 opacity-50">
 
                             <!-- Parameters Section -->
+                            @if(!$is_culture)
                             <div class="mb-3 d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="fw-bold text-dark mb-0">Report Parameters</h6>
@@ -221,6 +222,11 @@
                                     </div>
                                 @endif
                             </div>
+                            @else
+                            <div class="alert alert-info border-0 shadow-sm rounded-4">
+                                <i class="feather-info me-2"></i> This is a Culture & Sensitivity test. Standard parameters are disabled. A specific Microbiology UI will be shown during result entry.
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -257,6 +263,12 @@
                             <div class="form-check form-switch mb-4">
                                 <input class="form-check-input" type="checkbox" wire:model="is_active" id="test-active">
                                 <label class="form-check-label fw-bold text-dark" for="test-active">Active in Catalog</label>
+                            </div>
+
+                            <div class="form-check form-switch mb-4 border p-3 rounded-3 bg-light border-info">
+                                <input class="form-check-input" type="checkbox" wire:model.live="is_culture" id="test-culture">
+                                <label class="form-check-label fw-bold text-dark" for="test-culture">Is Culture & Sensitivity Test?</label>
+                                <div class="fs-11 text-muted mt-1">If checked, standard parameters will be ignored during result entry, and a dedicated Culture UI will be shown.</div>
                             </div>
 
                             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 mb-2">

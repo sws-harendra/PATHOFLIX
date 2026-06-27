@@ -547,6 +547,12 @@
                     <span class="fs-15 fw-bold">Letterhead & PDF Configuration</span>
                 </div>
                 <div class="card-body p-4">
+                    @if($pdfSaved)
+                        <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center gap-3">
+                            <i class="feather-check-circle fs-4"></i> <span class="fw-bold">Letterhead settings saved successfully!</span>
+                        </div>
+                    @endif
+
                     {{-- Visibility Switches --}}
                     <div class="row g-4 mb-5">
                         <div class="col-lg-6">
@@ -572,13 +578,18 @@
                             </div>
                         </div>
                         <div class="col-lg-6">
-                            <div class="alert alert-soft-info border-0 shadow-sm rounded-4 h-100 d-flex align-items-center p-4">
-                                <div class="avatar-text bg-info text-white rounded-circle me-3 flex-shrink-0" style="width:45px; height:45px; line-height:45px;">
-                                    <i class="feather-help-circle fs-5"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold text-info mb-1">Using Own Letterhead?</h6>
-                                    <p class="fs-12 mb-0 opacity-75">If you use pre-printed stationery, turn OFF both Header & Footer. You can also adjust margins below to fit your paper design.</p>
+                            <div class="p-4 rounded-4 bg-light border-0 shadow-sm h-100">
+                                <h6 class="fw-bolder mb-3 text-dark">PDF Background Mode</h6>
+                                <p class="fs-12 text-muted mb-3">Choose how you want to upload your stationery.</p>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check custom-radio">
+                                        <input class="form-check-input" type="radio" wire:model.live="pdf_background_mode" name="bg_mode" id="bg_hf" value="header_footer">
+                                        <label class="form-check-label fw-bold" for="bg_hf">Separate Header & Footer</label>
+                                    </div>
+                                    <div class="form-check custom-radio">
+                                        <input class="form-check-input" type="radio" wire:model.live="pdf_background_mode" name="bg_mode" id="bg_lh" value="letterhead">
+                                        <label class="form-check-label fw-bold" for="bg_lh">Full Page Letterhead</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -588,6 +599,8 @@
                         {{-- Custom Images --}}
                         <div class="col-lg-12">
                             <h6 class="fw-bolder text-dark mb-4 ms-1">High-Resolution Branding Images</h6>
+                            
+                            @if($pdf_background_mode === 'header_footer')
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <div class="card border border-light-subtle rounded-4 h-100 bg-white">
@@ -637,8 +650,76 @@
                                         </div>
                                     </div>
                                 </div>
+                                </div>
+                            </div>
+                            @elseif($pdf_background_mode === 'letterhead')
+                            <div class="row g-4">
+                                <div class="col-md-12">
+                                    <div class="card border border-light-subtle rounded-4 h-100 bg-white">
+                                        <div class="card-body p-4">
+                                            <label class="form-label fw-bolder text-dark fs-13 mb-3"><i class="feather-image text-primary me-2"></i>Full Page Letterhead (A4 Background)</label>
+                                            <div class="p-4 bg-light rounded-4 text-center border-dashed border-2 mb-3">
+                                                @if($pdf_letterhead_image)
+                                                    <img src="{{ secure_storage_url($pdf_letterhead_image) }}" alt="Letterhead" class="img-fluid rounded shadow-sm mb-3" style="max-height:200px;">
+                                                    <div>
+                                                        <button wire:click="removeLetterheadImage" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">Remove Image</button>
+                                                    </div>
+                                                @elseif($new_letterhead_image)
+                                                    <img src="{{ $new_letterhead_image->temporaryUrl() }}" alt="Preview" class="img-fluid rounded shadow-sm mb-3" style="max-height:200px;">
+                                                    <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">New Letterhead Ready</div>
+                                                @else
+                                                    <div class="py-4">
+                                                        <i class="feather-upload-cloud text-muted fs-1 mb-2"></i>
+                                                        <p class="text-muted fs-12 mb-0">Upload a full A4 image (approx 794x1122px or 2480x3508px for high res) as your background letterhead</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <input type="file" wire:model="new_letterhead_image" accept="image/*" class="form-control form-control-lg border-light rounded-3 fs-13">
+                                            <small class="text-muted mt-2 d-block">Note: If you use a full letterhead, the report text will be printed in the center. Adjust the Top & Bottom Margins below to prevent overlapping with your pre-printed header and footer graphics.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- Layout & Margins --}}
+                            <div class="row g-4 mt-2">
+                                <div class="col-12">
+                                    <div class="card border border-light-subtle rounded-4 bg-white shadow-sm">
+                                        <div class="card-body p-4">
+                                            <h6 class="fw-bolder mb-3"><i class="feather-layout text-primary me-2"></i>Page Margins (in pixels)</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-3">
+                                                    <label class="form-label fs-13 text-muted">Top Margin</label>
+                                                    <input type="number" wire:model="pdf_margin_top" class="form-control" placeholder="e.g. 310">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label fs-13 text-muted">Bottom Margin</label>
+                                                    <input type="number" wire:model="pdf_margin_bottom" class="form-control" placeholder="e.g. 255">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label fs-13 text-muted">Left Margin</label>
+                                                    <input type="number" wire:model="pdf_margin_left" class="form-control" placeholder="e.g. 25">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label fs-13 text-muted">Right Margin</label>
+                                                    <input type="number" wire:model="pdf_margin_right" class="form-control" placeholder="e.g. 25">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted mt-3 d-block"><i class="feather-info me-1"></i> Adjust these margins to prevent your report text from overlapping with your uploaded letterhead/header/footer designs.</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        @can('edit settings')
+                        <div class="mt-4 mb-4 pt-3 border-top text-start">
+                            <button wire:click="savePdfSettings" class="settings-save-btn">
+                                <i class="feather-check"></i> Save Letterhead Settings
+                            </button>
+                        </div>
+                        @endcan
 
                         {{-- Instructions --}}
                         <div class="col-12 mt-5">
