@@ -103,6 +103,7 @@ class PosEditManager extends Component
             if ($doc) {
                 $this->selectedDoctor = $doc->toArray();
                 $this->doctorProfileData = $doc->doctorProfile ? $doc->doctorProfile->toArray() : null;
+                $this->doctorSearch = $doc->name;
             }
         }
 
@@ -112,6 +113,7 @@ class PosEditManager extends Component
             if ($agent) {
                 $this->selectedAgent = $agent->toArray();
                 $this->agentProfileData = $agent->agentProfile ? $agent->agentProfile->toArray() : null;
+                $this->agentSearch = $agent->name;
             }
         }
 
@@ -303,7 +305,7 @@ class PosEditManager extends Component
         $user = User::with(['doctorProfile'])->find($userId);
         $this->selectedDoctor = $user->toArray();
         $this->doctorProfileData = $user->doctorProfile ? $user->doctorProfile->toArray() : null;
-        $this->doctorSearch = '';
+        $this->doctorSearch = $user->name;
         $this->activeSearchField = null;
     }
 
@@ -312,7 +314,7 @@ class PosEditManager extends Component
         $user = User::with(['agentProfile'])->find($userId);
         $this->selectedAgent = $user->toArray();
         $this->agentProfileData = $user->agentProfile ? $user->agentProfile->toArray() : null;
-        $this->agentSearch = '';
+        $this->agentSearch = $user->name;
         $this->activeSearchField = null;
     }
 
@@ -1002,7 +1004,7 @@ class PosEditManager extends Component
             $s = $this->testSearch;
             $tQuery->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
         }
-        $tests = $tQuery->orderBy('id', 'desc')->take(20)->get();
+        $tests = $tQuery->orderBy('id', 'desc')->get();
 
         // Reactive Dropdowns (Cached with precise keys)
         $paymentModes = \Illuminate\Support\Facades\Cache::remember("payment_modes_{$companyId}", 3600, function() use ($companyId) {

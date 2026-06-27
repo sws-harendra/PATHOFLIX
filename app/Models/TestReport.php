@@ -43,4 +43,9 @@ class TestReport extends Model
     {
         return $this->hasMany(ReportResult::class);
     }
+
+    public function cultureResults()
+    {
+        return $this->hasMany(CultureResult::class);
+    }
 }

@@ -7,7 +7,7 @@ use App\Models\{
     Plan, Company, Branch, CollectionCenter, PaymentMode,
     GlobalTest, LabTest, Membership, Voucher, Configuration,
     User, PatientProfile, DoctorProfile, AgentProfile,
-    Invoice, InvoiceItem, Payment, TestReport, ReportResult
+    Invoice, InvoiceItem, Payment, TestReport, ReportResult, CultureResult, CultureAntibiotic
 };
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -254,6 +254,8 @@ class DemoSeeder extends Seeder
 
         $createdLabTests = [];
         foreach (GlobalTest::all() as $gt) {
+            $isCulture = (stripos($gt->name, 'culture') !== false);
+            
             $labTest = LabTest::updateOrCreate(['company_id' => $company->id, 'test_code' => $gt->test_code], [
                 'global_test_id' => $gt->id,
                 'name' => $gt->name,
@@ -268,6 +270,7 @@ class DemoSeeder extends Seeder
                 'method' => $gt->method,
                 'is_active' => true,
                 'is_package' => false,
+                'is_culture' => $isCulture,
             ]);
             $createdLabTests[$gt->test_code] = $labTest;
         }
@@ -567,21 +570,49 @@ class DemoSeeder extends Seeder
                         ]
                     );
 
-                    // Create results based on test parameters
-                    $params = is_string($test->parameters) ? json_decode($test->parameters, true) : $test->parameters;
-                    if (is_array($params)) {
-                        foreach ($params as $param) {
-                            ReportResult::create([
-                                'test_report_id' => $testReport->id,
-                                'invoice_item_id' => $item->id,
-                                'lab_test_id' => $test->id,
-                                'parameter_name' => $param['name'] ?? 'Result',
-                                'short_code' => $param['short_code'] ?? null,
-                                'result_value' => $param['input_type'] === 'numeric' ? (string)rand(10, 100) : 'Normal',
-                                'unit' => $param['unit'] ?? '',
-                                'reference_range' => $param['general_range'] ?? '',
-                                'status' => 'Normal',
+                    if ($test->is_culture) {
+                        $culture = CultureResult::create([
+                            'test_report_id' => $testReport->id,
+                            'invoice_item_id' => $item->id,
+                            'lab_test_id' => $test->id,
+                            'specimen' => $test->sample_type ?? 'Urine',
+                            'incubation_period' => '48 hours at 37°C',
+                            'organism_name' => rand(0,1) ? 'E. coli' : 'Sterile',
+                            'colony_count' => rand(0,1) ? '10^5 CFU/ml' : null,
+                            'remarks' => 'Seeded by DemoSeeder',
+                        ]);
+                        
+                        if ($culture->organism_name !== 'Sterile') {
+                            CultureAntibiotic::create([
+                                'culture_result_id' => $culture->id,
+                                'antibiotic_name' => 'Amoxicillin',
+                                'sensitivity' => 'Resistant',
+                                'mic_value' => '>= 32'
                             ]);
+                            CultureAntibiotic::create([
+                                'culture_result_id' => $culture->id,
+                                'antibiotic_name' => 'Ciprofloxacin',
+                                'sensitivity' => 'Sensitive',
+                                'mic_value' => '<= 1'
+                            ]);
+                        }
+                    } else {
+                        // Create results based on test parameters
+                        $params = is_string($test->parameters) ? json_decode($test->parameters, true) : $test->parameters;
+                        if (is_array($params)) {
+                            foreach ($params as $param) {
+                                ReportResult::create([
+                                    'test_report_id' => $testReport->id,
+                                    'invoice_item_id' => $item->id,
+                                    'lab_test_id' => $test->id,
+                                    'parameter_name' => $param['name'] ?? 'Result',
+                                    'short_code' => $param['short_code'] ?? null,
+                                    'result_value' => $param['input_type'] === 'numeric' ? (string)rand(10, 100) : 'Normal',
+                                    'unit' => $param['unit'] ?? '',
+                                    'reference_range' => $param['general_range'] ?? '',
+                                    'status' => 'Normal',
+                                ]);
+                            }
                         }
                     }
                 }

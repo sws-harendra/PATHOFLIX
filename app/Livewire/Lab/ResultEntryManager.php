@@ -22,12 +22,16 @@ class ResultEntryManager extends Component
     public $parametersList = [];
     public $selectedTests = []; // For selective printing from here
     public $testComments = []; // Comments per invoice item (test)
+    
+    public $cultureData = [];
+    public $cultureAntibiotics = [];
+    public $cultureTestsList = [];
 
     public function mount($id)
     {
         $this->authorize('view reports');
         $this->invoice = Invoice::where('company_id', auth()->user()->company_id)
-            ->with(['patient.patientProfile', 'items.labTest', 'testReport.results'])
+            ->with(['patient.patientProfile', 'items.labTest', 'testReport.results', 'testReport.cultureResults.antibiotics'])
             ->findOrFail($id);
         
         $this->testReport = $this->invoice->testReport;
@@ -79,6 +83,14 @@ class ResultEntryManager extends Component
             }
         }
 
+        $existingCultureResultsMap = [];
+        if ($this->testReport && $this->testReport->cultureResults) {
+            foreach ($this->testReport->cultureResults as $cr) {
+                $key = ($cr->invoice_item_id ?? '0') . '_' . $cr->lab_test_id;
+                $existingCultureResultsMap[$key] = $cr;
+            }
+        }
+
         foreach ($this->invoice->items as $item) {
             // Determine if report_comments is JSON (new granular format) or plain text (legacy)
             $rawComments = $item->report_comments ?? '';
@@ -103,6 +115,65 @@ class ResultEntryManager extends Component
                 } else {
                     // Legacy fallback: show the same comment for all tests in the item if it's not JSON
                     $this->testComments[$commentKey] = $rawComments;
+                }
+
+                if ($test->is_culture) {
+                    $key = $item->id . '_' . $test->id;
+                    $this->cultureTestsList[$key] = [
+                        'key' => $key,
+                        'lab_test_id' => $test->id,
+                        'invoice_item_id' => $item->id,
+                        'department' => $test->department,
+                        'test_name' => $test->name,
+                        'is_culture' => true,
+                    ];
+                    
+                    if (isset($existingCultureResultsMap[$key])) {
+                        $cr = $existingCultureResultsMap[$key];
+                        $this->cultureData[$key] = [
+                            'specimen' => $cr->specimen,
+                            'growth_status' => $cr->growth_status,
+                            'incubation_period' => $cr->incubation_period,
+                            'organism_name' => $cr->organism_name,
+                            'colony_count' => $cr->colony_count,
+                            'remarks' => $cr->remarks,
+                        ];
+                        $this->cultureAntibiotics[$key] = [];
+                        foreach ($cr->antibiotics as $ab) {
+                            $this->cultureAntibiotics[$key][] = [
+                                'antibiotic_name' => $ab->antibiotic_name,
+                                'sensitivity' => $ab->sensitivity,
+                                'mic_value' => $ab->mic_value,
+                            ];
+                        }
+                    } else {
+                        $this->cultureData[$key] = [
+                            'specimen' => $test->sample_type ?? '',
+                            'growth_status' => '',
+                            'incubation_period' => '',
+                            'organism_name' => '',
+                            'colony_count' => '',
+                            'remarks' => '',
+                        ];
+                        
+                        // Default common antibiotics
+                        $defaultAntibiotics = [
+                            'Amikacin', 'Amoxicillin-Clavulanic acid', 'Ampicillin', 'Cefepime', 
+                            'Cefotaxime', 'Ceftazidime', 'Ceftriaxone', 'Ciprofloxacin', 
+                            'Gentamicin', 'Imipenem', 'Levofloxacin', 'Linezolid', 
+                            'Meropenem', 'Nitrofurantoin', 'Piperacillin-Tazobactam', 'Trimethoprim-Sulfamethoxazole', 'Vancomycin'
+                        ];
+                        
+                        $this->cultureAntibiotics[$key] = [];
+                        foreach ($defaultAntibiotics as $abName) {
+                            $this->cultureAntibiotics[$key][] = [
+                                'antibiotic_name' => $abName,
+                                'sensitivity' => '',
+                                'mic_value' => '',
+                            ];
+                        }
+                    }
+                    continue; // Skip normal parameters
                 }
 
                 if ($test->parameters) {
@@ -184,6 +255,75 @@ class ResultEntryManager extends Component
     {
         $this->autoCalculateFormulas();
         $this->autoEvaluateRanges();
+        $this->checkAndMarkTestCompleted();
+    }
+
+    public function updatedCultureData($value, $key)
+    {
+        $this->checkAndMarkTestCompleted();
+    }
+
+    public function updatedCultureAntibiotics($value, $key)
+    {
+        $this->checkAndMarkTestCompleted();
+    }
+
+    private function checkAndMarkTestCompleted()
+    {
+        $itemParams = [];
+        foreach ($this->parametersList as $k => $p) {
+            $itemId = $p['invoice_item_id'];
+            $itemParams[$itemId][] = $k;
+        }
+
+        // Add culture tests to items tracking
+        foreach ($this->cultureTestsList as $k => $p) {
+            $itemId = $p['invoice_item_id'];
+            $itemParams[$itemId][] = 'CULTURE_' . $k;
+        }
+
+        $itemsUpdated = false;
+        foreach ($itemParams as $itemId => $keys) {
+            $allFilled = true;
+            foreach ($keys as $k) {
+                if (str_starts_with($k, 'CULTURE_')) {
+                    $cultureKey = substr($k, 8);
+                    $cData = $this->cultureData[$cultureKey] ?? [];
+                    $growth = $cData['growth_status'] ?? '';
+                    
+                    if (empty(trim($cData['specimen'] ?? '')) || empty(trim($growth))) {
+                        $allFilled = false;
+                        break;
+                    }
+                    
+                    if (!in_array($growth, ['No Growth', 'Sterile']) && empty(trim($cData['organism_name'] ?? ''))) {
+                        $allFilled = false;
+                        break;
+                    }
+                } else {
+                    $val = $this->results[$k] ?? '';
+                    if (trim((string)$val) === '') {
+                        $allFilled = false;
+                        break;
+                    }
+                }
+            }
+
+            $item = $this->invoice->items->where('id', $itemId)->first();
+            if ($item) {
+                if ($allFilled && $item->status !== 'Completed') {
+                    $item->update(['status' => 'Completed']);
+                    $itemsUpdated = true;
+                } elseif (!$allFilled && $item->status === 'Completed') {
+                    $item->update(['status' => 'Pending']);
+                    $itemsUpdated = true;
+                }
+            }
+        }
+        
+        if ($itemsUpdated) {
+            $this->invoice->load('items');
+        }
     }
 
     private function autoCalculateFormulas()
@@ -287,6 +427,11 @@ class ResultEntryManager extends Component
     {
         $this->authorize('edit reports');
 
+        $this->checkAndMarkTestCompleted();
+
+        $targetStatus = $status;
+        $canApprove = true;
+
         // Validation: Block approval if any results are missing
         if ($status === 'Approved') {
             $missingParams = [];
@@ -297,13 +442,36 @@ class ResultEntryManager extends Component
                 }
             }
 
+            foreach ($this->cultureTestsList as $key => $details) {
+                $cData = $this->cultureData[$key] ?? [];
+                $growth = $cData['growth_status'] ?? '';
+                if (empty(trim($cData['specimen'] ?? '')) || empty(trim($growth))) {
+                    $missingParams[] = $details['test_name'] . " (Culture Data Missing)";
+                } elseif (!in_array($growth, ['No Growth', 'Sterile']) && empty(trim($cData['organism_name'] ?? ''))) {
+                    $missingParams[] = $details['test_name'] . " (Organism Name Missing)";
+                }
+            }
+
+            $incompleteTests = $this->invoice->items->filter(function($item) {
+                return $item->status !== 'Completed';
+            });
+
             if (!empty($missingParams)) {
+                $canApprove = false;
                 $msg = "Cannot approve report. The following results are missing: " . implode(', ', array_slice($missingParams, 0, 3));
                 if (count($missingParams) > 3) $msg .= " and " . (count($missingParams) - 3) . " more.";
                 
                 $this->dispatch('notify', ['type' => 'error', 'message' => $msg]);
                 session()->flash('error', $msg);
-                return;
+            } elseif ($incompleteTests->count() > 0) {
+                $canApprove = false;
+                $msg = "Cannot approve report. All tests must be marked as Completed first.";
+                $this->dispatch('notify', ['type' => 'error', 'message' => $msg]);
+                session()->flash('error', $msg);
+            }
+
+            if (!$canApprove) {
+                $targetStatus = 'Draft'; // Downgrade to Draft so it still saves the progress
             }
         }
 
@@ -319,17 +487,17 @@ class ResultEntryManager extends Component
                 'company_id' => $this->invoice->company_id,
                 'invoice_id' => $this->invoice->id,
                 'patient_id' => $this->invoice->patient_id,
-                'status' => $status,
+                'status' => $targetStatus,
                 'comments' => $this->comments,
-                'approved_by' => $status === 'Approved' ? auth()->id() : null,
-                'approved_at' => $status === 'Approved' ? $apprDate : null,
+                'approved_by' => $targetStatus === 'Approved' ? auth()->id() : null,
+                'approved_at' => $targetStatus === 'Approved' ? $apprDate : null,
             ]);
         } else {
             $this->testReport->update([
-                'status' => $status,
+                'status' => $targetStatus,
                 'comments' => $this->comments,
-                'approved_by' => $status === 'Approved' ? auth()->id() : $this->testReport->approved_by,
-                'approved_at' => $status === 'Approved' ? $apprDate : $this->testReport->approved_at,
+                'approved_by' => $targetStatus === 'Approved' ? auth()->id() : $this->testReport->approved_by,
+                'approved_at' => $targetStatus === 'Approved' ? $apprDate : $this->testReport->approved_at,
             ]);
         }
 
@@ -363,6 +531,41 @@ class ResultEntryManager extends Component
             );
         }
 
+        // Save Culture Results
+        foreach ($this->cultureTestsList as $key => $details) {
+            $cData = $this->cultureData[$key] ?? [];
+            
+            $cultureResult = \App\Models\CultureResult::updateOrCreate(
+                [
+                    'test_report_id' => $this->testReport->id,
+                    'invoice_item_id' => $details['invoice_item_id'],
+                    'lab_test_id' => $details['lab_test_id'],
+                ],
+                [
+                    'specimen' => $cData['specimen'] ?? null,
+                    'growth_status' => $cData['growth_status'] ?? null,
+                    'incubation_period' => $cData['incubation_period'] ?? null,
+                    'organism_name' => $cData['organism_name'] ?? null,
+                    'colony_count' => $cData['colony_count'] ?? null,
+                    'remarks' => $cData['remarks'] ?? null,
+                ]
+            );
+
+            // Sync Antibiotics
+            $cultureResult->antibiotics()->delete(); // Clear old
+            $abs = $this->cultureAntibiotics[$key] ?? [];
+            foreach ($abs as $ab) {
+                // Only save antibiotic if a sensitivity was selected OR if they provided an MIC value
+                if (!empty(trim($ab['antibiotic_name'] ?? '')) && (!empty(trim($ab['sensitivity'] ?? '')) || !empty(trim($ab['mic_value'] ?? '')))) {
+                    $cultureResult->antibiotics()->create([
+                        'antibiotic_name' => $ab['antibiotic_name'],
+                        'sensitivity' => $ab['sensitivity'] ?? null,
+                        'mic_value' => $ab['mic_value'] ?? null,
+                    ]);
+                }
+            }
+        }
+
         // Save Test Level Comments (Granular for packages)
         foreach ($this->invoice->items as $item) {
             $itemComments = [];
@@ -388,7 +591,12 @@ class ResultEntryManager extends Component
             }
         }
 
-        if ($status === 'Approved') {
+        if ($status === 'Approved' && !$canApprove) {
+            // Data is saved as Draft, but approval failed (error message already flashed).
+            return;
+        }
+
+        if ($targetStatus === 'Approved') {
             $this->invoice->update(['sample_status' => 'Ready']);
             $this->dispatch('notify', ['type' => 'success', 'message' => 'Report Approved Successfully and ready for printing.']);
             session()->flash('success', 'Report Approved Successfully and ready for printing.');
@@ -439,10 +647,23 @@ class ResultEntryManager extends Component
         $this->dispatch('open-new-tab', ['url' => $url]);
     }
 
+    public function addCultureAntibiotic($key)
+    {
+        $this->cultureAntibiotics[$key][] = ['antibiotic_name' => '', 'sensitivity' => '', 'mic_value' => ''];
+    }
+
+    public function removeCultureAntibiotic($key, $index)
+    {
+        unset($this->cultureAntibiotics[$key][$index]);
+        $this->cultureAntibiotics[$key] = array_values($this->cultureAntibiotics[$key]);
+    }
+
     public function render()
     {
+        $allItems = collect($this->parametersList)->merge(collect($this->cultureTestsList));
+
         // Group parameters by Department -> Invoice Item (Bill Line) -> Lab Test (Actual Test Name)
-        $groupedParams = collect($this->parametersList)->groupBy('department')->map(function ($items) {
+        $groupedParams = $allItems->groupBy('department')->map(function ($items) {
             return collect($items)->groupBy('invoice_item_id')->map(function ($testGroup) {
                 return collect($testGroup)->groupBy('lab_test_id');
             });

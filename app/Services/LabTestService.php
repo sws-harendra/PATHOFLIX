@@ -60,6 +60,7 @@ class LabTestService
                 'tat_hours' => $data['tat_hours'] ?? 24,
                 'parameters' => $data['parameters'] ?? [],
                 'is_active' => $data['is_active'] ?? true,
+                'is_culture' => $data['is_culture'] ?? false,
             ]
             );
         }
@@ -97,6 +98,8 @@ class LabTestService
             ];
         }, $globalParams);
 
+        $isCulture = (stripos($global->name, 'culture') !== false);
+
         // Create the test
         return LabTest::create([
             'company_id' => $companyId,
@@ -111,6 +114,7 @@ class LabTestService
             'mrp' => $global->mrp ?? 0,
             'b2b_price' => 0,
             'is_active' => true,
+            'is_culture' => $isCulture,
         ]);
     }
 

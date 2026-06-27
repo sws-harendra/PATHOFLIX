@@ -109,9 +109,12 @@ class ReportPdfController extends Controller
 
         $headerImage = Configuration::getFor('pdf_header_image', null, $companyId);
         $footerImage = Configuration::getFor('pdf_footer_image', null, $companyId);
+        $letterheadImage = Configuration::getFor('pdf_letterhead_image', null, $companyId);
 
         // ── Configuration settings ──────────────────────────────────────────
         $settings = [
+            'pdf_background_mode' => Configuration::getFor('pdf_background_mode', 'header_footer', $companyId),
+            'pdf_letterhead_image' => storage_base64($letterheadImage),
             'pdf_header_image' => storage_base64($headerImage),
             'pdf_footer_image' => storage_base64($footerImage),
             'report_signature_mode' => Configuration::getFor('report_signature_mode', null, $companyId) ?: 'global_bottom',
@@ -133,6 +136,8 @@ class ReportPdfController extends Controller
             // ALWAYS reserve space for physical letterhead (1 inch = ~96px minimum, but user wants settings-driven)
             'pdf_margin_top' => Configuration::getFor('pdf_margin_top', null, $companyId) ?: 320,
             'pdf_margin_bottom' => Configuration::getFor('pdf_margin_bottom', null, $companyId) ?: 280,
+            'pdf_margin_left' => Configuration::getFor('pdf_margin_left', null, $companyId) ?: 25,
+            'pdf_margin_right' => Configuration::getFor('pdf_margin_right', null, $companyId) ?: 25,
 
             'pdf_header_height' => Configuration::getFor('pdf_header_height', null, $companyId) ?: 200,
             'pdf_footer_height' => Configuration::getFor('pdf_footer_height', null, $companyId) ?: 180,
@@ -169,48 +174,77 @@ class ReportPdfController extends Controller
 
         // ── Group Results ───────────────────────────────────────────────────
         $results = $report->results;
+        $cultureResults = $report->cultureResults->load('labTest', 'antibiotics');
+        
         if ($request->has('tests')) {
             $testIds = explode(',', $request->tests);
             $results = $results->whereIn('invoice_item_id', $testIds);
+            $cultureResults = $cultureResults->whereIn('invoice_item_id', $testIds);
         }
 
-        $groupedResults = $results->groupBy(function ($result) {
-            return $result->labTest->department_id ?? 0;
+        $allTests = collect();
+
+        foreach ($results as $r) {
+            $key = $r->invoice_item_id . '_' . $r->lab_test_id;
+            if (!$allTests->has($key)) {
+                $allTests->put($key, [
+                    'invoice_item_id' => $r->invoice_item_id,
+                    'lab_test_id' => $r->lab_test_id,
+                    'labTest' => $r->labTest,
+                    'results' => collect(),
+                    'cultureResult' => null
+                ]);
+            }
+            $allTests[$key]['results']->push($r);
+        }
+
+        foreach ($cultureResults as $cr) {
+            $key = $cr->invoice_item_id . '_' . $cr->lab_test_id;
+            if (!$allTests->has($key)) {
+                $allTests->put($key, [
+                    'invoice_item_id' => $cr->invoice_item_id,
+                    'lab_test_id' => $cr->lab_test_id,
+                    'labTest' => $cr->labTest,
+                    'results' => collect(),
+                    'cultureResult' => $cr
+                ]);
+            } else {
+                $item = $allTests[$key];
+                $item['cultureResult'] = $cr;
+                $allTests->put($key, $item);
+            }
+        }
+
+        $groupedResults = $allTests->groupBy(function ($testData) {
+            return $testData['labTest']->department_id ?? 0;
         })->map(function ($deptGroup) use ($report) {
             return [
-                'department' => $deptGroup->first()->labTest->dept ?? null,
-                'tests' => $deptGroup->groupBy(function ($r) {
-                    return $r->invoice_item_id . '_' . $r->lab_test_id;
-                })->map(function ($testGroup) use ($report) {
-                    $first = $testGroup->first();
-                    $itemId = $first->invoice_item_id;
-                    $testId = $first->lab_test_id;
+                'department' => $deptGroup->first()['labTest']->dept ?? null,
+                'tests' => $deptGroup->mapWithKeys(function ($testData) use ($report) {
+                    $itemId = $testData['invoice_item_id'];
+                    $testId = $testData['lab_test_id'];
+                    $key = $itemId . '_' . $testId;
 
-                    // Find the invoice item to get comments
                     $item = $report->invoice->items->where('id', $itemId)->first();
                     $remark = '';
                     if ($item) {
                         $raw = $item->report_comments;
                         $decoded = json_decode($raw, true);
                         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                            // New granular format (JSON keyed by test_id)
                             $remark = $decoded[$testId] ?? '';
                         } else {
-                            // Legacy format (String). 
-                            // If it's a package, we don't know which test it belongs to, 
-                            // but usually it was intended for the whole item, so we show it for all 
-                            // or maybe just the last one? Showing for all is safer for not losing data.
                             $remark = $raw;
                         }
                     }
 
-                    return [
-                        'name' => $first->labTest->name,
-                        'labTest' => $first->labTest,
-                        'results' => $testGroup,
+                    return [$key => [
+                        'name' => $testData['labTest']->name,
+                        'labTest' => $testData['labTest'],
+                        'results' => $testData['results'],
+                        'cultureResult' => $testData['cultureResult'],
                         'remark' => $remark,
-                    ];
-                }),
+                    ]];
+                })
             ];
         });
 
