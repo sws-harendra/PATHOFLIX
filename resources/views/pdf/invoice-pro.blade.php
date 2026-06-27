@@ -34,6 +34,8 @@ if (!function_exists('getIndianCurrency')) {
         
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
         $marginBottom = ($settings['pdf_margin_bottom'] ?? 255) . 'px';
+        $marginLeft   = ($settings['pdf_margin_left'] ?? 25) . 'px';
+        $marginRight  = ($settings['pdf_margin_right'] ?? 25) . 'px';
         $headerHeight = ($settings['pdf_header_height'] ?? 200) . 'px';
         $footerHeight = ($settings['pdf_footer_height'] ?? 180) . 'px';
         $fontSize     = ($settings['pdf_font_size'] ?? 13) . 'px';
@@ -42,18 +44,18 @@ if (!function_exists('getIndianCurrency')) {
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: {{ $fontFamily }}; font-size: {{ $fontSize }}; color: #000; margin: {{ $marginTop }} 25px {{ $marginBottom }} 25px; line-height: 1.4; position: relative; padding-top: 10px; }
+        body { font-family: {{ $fontFamily }}; font-size: {{ $fontSize }}; color: #000; margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }}; line-height: 1.4; position: relative; padding: 10px 45px 0 45px; }
 
         /* Watermark */
         .watermark { position: absolute; top: 35%; left: 50%; width: 450px; margin-left: -225px; opacity: 0.06; z-index: -100; text-align: center; }
         .watermark img { width: 100%; filter: grayscale(100%); }
 
         /* Fixed Header */
-        header { position: fixed; top: 0; left: 0; right: 0; height: {{ (int)$headerHeight + 20 }}px; overflow: visible; width: 100%; }
+        header { position: fixed; top: 0; left: 0; right: 0; height: {{ $marginTop }}; overflow: hidden; width: 100%; }
         .header-banner { width: 100% !important; min-width: 100% !important; display: block; }
         
         /* Patient Info (Standardized Grid) */
-        .patient-box { border: 1.5px solid #1e293b !important; margin: 4px 25px 0; padding: 10px; border-radius: 2px; background: #fff; }
+        .patient-box { border: 1.5px solid #1e293b !important; margin: 0 {{ $marginRight }} 0 {{ $marginLeft }}; padding: 10px; border-radius: 2px; background: #fff; position: absolute; bottom: 5px; left: 45px; right: 45px; }
         .patient-table { width: 100%; border-collapse: collapse; }
         .patient-table td { padding: 1px 2px; vertical-align: top; font-size: 10.5px; }
         .patient-table .lbl { font-weight: 700; color: #4b5563; width: 14%; }
@@ -98,17 +100,15 @@ if (!function_exists('getIndianCurrency')) {
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000;">
-            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
-        </div>
+        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
     @endif
 
-    @if($company->logo)
+    @if(($settings['pdf_show_watermark'] ?? '0') == '1' && !empty($company->logo))
         <div class="watermark"><img src="{{ storage_base64($company->logo) }}"></div>
     @endif
 
     <header>
-        <div style="height: {{ $headerHeight }}; width: 100%; overflow: hidden; margin-bottom: 12px; padding: 0;">
+        <div style="height: {{ $headerHeight }}; width: 100%; display: block; overflow: hidden; text-align: center; padding: 0;">
             @if($showHeader && $headerImgSrc && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif

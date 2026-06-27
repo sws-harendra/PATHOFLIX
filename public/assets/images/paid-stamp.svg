@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- Background transparent -->
+  <rect width="200" height="200" fill="transparent"/>
+
+  <!-- Outer double circles -->
+  <!-- We want the text to break the circle. So we can use paths instead of full circles. -->
+  <path d="M 12,100 A 88,88 0 0,1 188,100" fill="none" stroke="#16a34a" stroke-width="2" />
+  <path d="M 12,100 A 88,88 0 0,0 188,100" fill="none" stroke="#16a34a" stroke-width="2" />
+  <path d="M 18,100 A 82,82 0 0,1 182,100" fill="none" stroke="#16a34a" stroke-width="4" />
+  <path d="M 18,100 A 82,82 0 0,0 182,100" fill="none" stroke="#16a34a" stroke-width="4" />
+  
+  <!-- Inner circles (only top and bottom arcs) -->
+  <path d="M 60,70 A 50,50 0 0,1 140,70" fill="none" stroke="#16a34a" stroke-width="2" />
+  <path d="M 60,130 A 50,50 0 0,0 140,130" fill="none" stroke="#16a34a" stroke-width="2" />
+
+  <!-- Stars top -->
+  <g fill="#16a34a">
+    <!-- Star 1 -->
+    <path d="M 40,55 l 3,8 9,0 -7,5 2,8 -7,-5 -7,5 3,-8 -7,-5 9,0 z" transform="rotate(-40 40 55)"/>
+    <!-- Star 2 -->
+    <path d="M 65,30 l 4,9 10,0 -8,6 3,10 -8,-6 -8,6 3,-10 -8,-6 10,0 z" transform="rotate(-20 65 30)"/>
+    <!-- Star 3 -->
+    <path d="M 100,15 l 4,10 11,0 -9,6 3,10 -9,-7 -9,7 4,-10 -9,-6 11,0 z" />
+    <!-- Star 4 -->
+    <path d="M 135,30 l 4,9 10,0 -8,6 3,10 -8,-6 -8,6 3,-10 -8,-6 10,0 z" transform="rotate(20 135 30)"/>
+    <!-- Star 5 -->
+    <path d="M 160,55 l 3,8 9,0 -7,5 2,8 -7,-5 -7,5 3,-8 -7,-5 9,0 z" transform="rotate(40 160 55)"/>
+  </g>
+  
+  <!-- Stars bottom -->
+  <g fill="#16a34a">
+    <path d="M 40,145 l 3,8 9,0 -7,5 2,8 -7,-5 -7,5 3,-8 -7,-5 9,0 z" transform="rotate(40 40 145)"/>
+    <path d="M 65,170 l 4,9 10,0 -8,6 3,10 -8,-6 -8,6 3,-10 -8,-6 10,0 z" transform="rotate(20 65 170)"/>
+    <path d="M 100,185 l 4,10 11,0 -9,6 3,10 -9,-7 -9,7 4,-10 -9,-6 11,0 z" />
+    <path d="M 135,170 l 4,9 10,0 -8,6 3,10 -8,-6 -8,6 3,-10 -8,-6 10,0 z" transform="rotate(-20 135 170)"/>
+    <path d="M 160,145 l 3,8 9,0 -7,5 2,8 -7,-5 -7,5 3,-8 -7,-5 9,0 z" transform="rotate(-40 160 145)"/>
+  </g>
+  
+  <!-- White rect to cut out the side circle lines for text -->
+  <rect x="0" y="82" width="200" height="36" fill="white"/>
+  
+  <!-- Text -->
+  <text x="100" y="112" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="900" fill="#16a34a" text-anchor="middle" letter-spacing="1">PAID IN FULL</text>
+</svg>

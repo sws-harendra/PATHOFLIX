@@ -13,6 +13,8 @@
         // ── Margins from Settings ──
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
         $marginBottom = ($settings['pdf_margin_bottom'] ?? 255) . 'px';
+        $marginLeft   = ($settings['pdf_margin_left'] ?? 25) . 'px';
+        $marginRight  = ($settings['pdf_margin_right'] ?? 25) . 'px';
         $headerHeight = ($settings['pdf_header_height'] ?? 200) . 'px';
         $footerHeight = ($settings['pdf_footer_height'] ?? 180) . 'px';
         
@@ -30,8 +32,8 @@
             color: #1a1a1a;
             background: #fff;
             line-height: 1.45;
-            margin: {{ $marginTop }} 25px {{ $marginBottom }} 25px;
-            padding-top: 10px; /* Extra safety gap */
+            margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
+            padding: 10px 45px 0 45px; /* Extra padding to shrink bill content width */
         }
 
         /* ══════════════════════════════════════════════
@@ -42,8 +44,8 @@
             top: 0;
             left: 0;
             right: 0;
-            height: {{ (int)$headerHeight + 20 }}px;
-            overflow: visible;
+            height: {{ $marginTop }};
+            overflow: hidden;
             width: 100%;
         }
 
@@ -56,10 +58,14 @@
         /* ── PATIENT INFO BOX (Fixed in Header) ── */
         .patient-box {
             border: 1px solid #1a1a1a !important;
-            margin: 4px 25px 0;
+            margin: 0 {{ $marginRight }} 0 {{ $marginLeft }};
             padding: 8px 10px;
+            background: #fff;
+            position: absolute;
+            bottom: 5px;
+            left: 45px;
+            right: 45px;
             font-size: 10.5px;
-            display: block;
             border-radius: 2px;
         }
 
@@ -177,15 +183,30 @@
 
         .status-badge {
             float: left;
-            border: 2px solid #16a34a;
+            width: 100px;
+            height: 100px;
+            border: 4px double #16a34a;
+            border-radius: 50%;
             color: #16a34a;
-            padding: 5px 15px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 900;
+            text-align: center;
             text-transform: uppercase;
-            opacity: 0.3;
-            transform: rotate(-4deg);
-            margin-top: 20px;
+            transform: rotate(-15deg);
+            opacity: 0.6;
+            margin-top: 10px;
+            padding-top: 30px;
+            box-sizing: border-box;
+            line-height: 1.2;
+        }
+
+        .status-stamp {
+            float: left;
+            width: 130px;
+            height: 130px;
+            margin-top: 5px;
+            transform: rotate(-15deg);
+            opacity: 0.85;
         }
 
         .totals-table {
@@ -223,14 +244,12 @@
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000;">
-            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
-        </div>
+        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
     @endif
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
-        <div style="height: {{ $headerHeight }}; width: 100%; overflow: hidden; margin-bottom: 12px; padding: 0;">
+        <div style="height: {{ $headerHeight }}; width: 100%; display: block; overflow: hidden; text-align: center; padding: 0;">
             @if($showHeader && $headerImgSrc && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
@@ -313,8 +332,8 @@
 
     <div class="summary-wrapper clearfix">
         <div class="status-box">
-             @if($invoice->payment_status === 'Paid')
-                <div class="status-badge">FULLY PAID</div>
+             @if($invoice->due_amount == 0 && $invoice->paid_amount > 0)
+                <img src="{{ public_path('assets/images/paid-stamp.svg') }}" class="status-stamp" alt="PAID IN FULL">
             @elseif($invoice->payment_status === 'Partial')
                 <div class="status-badge" style="border-color:#d97706; color:#d97706;">PARTIAL</div>
             @else
