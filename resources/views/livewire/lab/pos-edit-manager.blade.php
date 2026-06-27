@@ -91,6 +91,7 @@
             align-items: center;
             gap: 12px;
             font-size: 13.5px;
+            cursor: pointer;
         }
         .test-item:hover { background: #fcfcfc; }
 
@@ -340,7 +341,21 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Name</label>
-                            <input type="text" class="form-control-pos" wire:model="patient_name" placeholder="Full Name">
+                            <div class="d-flex">
+                                <select class="form-select-pos rounded-0 rounded-start bg-light px-1 text-center" style="max-width: 75px; border-right:0;" wire:model="patient_title">
+                                    <option value="Mr.">Mr.</option>
+                                    <option value="Mrs.">Mrs.</option>
+                                    <option value="Miss">Miss</option>
+                                    <option value="Master">Master</option>
+                                    <option value="Baby">Baby</option>
+                                    <option value="B/O">B/O</option>
+                                    <option value="Dr.">Dr.</option>
+                                    <option value="Prof.">Prof.</option>
+                                    <option value="Smt.">Smt.</option>
+                                    <option value="Sri">Sri</option>
+                                </select>
+                                <input type="text" class="form-control-pos rounded-0 rounded-end" wire:model="patient_name" placeholder="Full Name">
+                            </div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Age</label>
@@ -468,8 +483,8 @@
                             <div class="test-list border rounded">
                                 @foreach($tests as $test)
                                     @if(!$test->is_package)
-                                    <div class="test-item">
-                                        <input type="checkbox" style="width:18px; height:18px;" wire:click="addTestToCart({{ $test->id }})" 
+                                    <div class="test-item" wire:click="addTestToCart({{ $test->id }})">
+                                        <input type="checkbox" style="width:18px; height:18px; pointer-events: none;" 
                                             {{ collect($cart)->contains('id', $test->id) ? 'checked' : '' }}>
                                         <div class="flex-grow-1 fw-600">{{ $test->name }}</div>
                                         <div class="text-success fw-bold">₹ {{ number_format($test->mrp, 2) }}</div>
@@ -503,9 +518,9 @@
                             <span><i class="feather-shopping-cart me-2"></i>Selected Test</span>
                             <span class="badge bg-white text-dark">{{ count($cart) }} Items</span>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body p-0" style="max-height: 380px; overflow-y: auto;">
                             <table class="table table-pos mb-0">
-                                <thead>
+                                <thead class="position-sticky top-0" style="z-index: 5;">
                                     <tr>
                                         <th>Test Name</th>
                                         <th style="width: 120px;">Price</th>
@@ -618,7 +633,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center text-success fs-14 mt-2">
                                     <span>Total Paid</span>
-                                    <span>{{ number_format(collect($payments)->sum('amount'), 2) }} <small class="fs-12">INR</small></span>
+                                    <span>{{ number_format(collect($payments)->sum(fn($p) => (float)($p['amount'] ?? 0)), 2) }} <small class="fs-12">INR</small></span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center text-danger fs-15 mt-1 pt-2 border-top">
                                     <span class="fw-bold">Due Amount</span>

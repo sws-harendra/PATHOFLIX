@@ -290,13 +290,13 @@
             <td class="lbl">Patient Name</td>
             <td class="val" style="font-size:14px;">{{ $patient->name }} <small style="font-weight:normal;opacity:0.7;">({{ $patient->formatted_id }})</small></td>
             <td class="lbl">Registered</td>
-            <td class="val">{{ $invoice->created_at->format('d M, Y h:i A') }}</td>
+            <td class="val">{{ $invoice->sample_received_at ? $invoice->sample_received_at->format('d M, Y h:i A') : $invoice->created_at->format('d M, Y h:i A') }}</td>
         </tr>
         <tr>
             <td class="lbl">Age / Gender</td>
             <td class="val">{{ $profile->age ?? '--' }} {{ $profile->age_type ?? 'Y' }} / {{ $profile->gender ?? '--' }}</td>
             <td class="lbl">Reported</td>
-            <td class="val">{{ $report->approved_at ? $report->approved_at->format('d M, Y h:i A') : 'Pending' }}</td>
+            <td class="val">{{ $report->approved_at ? $report->approved_at->format('d M, Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d M, Y h:i A') : 'Pending') }}</td>
         </tr>
         <tr>
             <td class="lbl">Referred By</td>

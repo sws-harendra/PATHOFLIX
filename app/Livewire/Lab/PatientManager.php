@@ -26,6 +26,7 @@ class PatientManager extends Component
     public $user_id = null; // We track the User ID for editing
     
     // User Table Fields
+    public $title = 'Mr.';
     public $name;
     public $phone;
     public $email;
@@ -74,6 +75,7 @@ class PatientManager extends Component
         $this->email = $user->email;
         
         if ($user->patientProfile) {
+            $this->title = $user->patientProfile->title ?? 'Mr.';
             $this->age = $user->patientProfile->age;
             $this->age_type = $user->patientProfile->age_type;
             $this->gender = $user->patientProfile->gender;
@@ -91,6 +93,7 @@ class PatientManager extends Component
     {
         // FIX: Using Rule::unique()->ignore() handles null IDs securely for Postgres
         $this->validate([
+            'title' => 'nullable|string|max:20',
             'name' => 'required|string|max:255',
             'phone' => [
                 'nullable',
@@ -103,7 +106,7 @@ class PatientManager extends Component
                 'email',
                 Rule::unique('users', 'email')->ignore($this->user_id),
             ],
-            'age' => 'required|numeric|min:1|max:150',
+            'age' => 'nullable|numeric|min:0|max:150',
             'gender' => 'required|in:Male,Female,Other',
             'blood_group' => 'nullable|string|max:5',
         ]);
@@ -128,6 +131,7 @@ class PatientManager extends Component
                 ]);
 
                 PatientProfile::where('user_id', $this->user_id)->update([
+                    'title' => $this->title,
                     'age' => $this->age,
                     'age_type' => $this->age_type,
                     'gender' => $this->gender,
@@ -176,6 +180,7 @@ class PatientManager extends Component
                     'company_id' => $companyId,
                     'user_id' => $user->id,
                     'patient_id_string' => $patientIdString,
+                    'title' => $this->title,
                     'age' => $this->age,
                     'age_type' => $this->age_type,
                     'gender' => $this->gender,
@@ -214,7 +219,8 @@ class PatientManager extends Component
      */
     public function resetFields()
     {
-        $this->reset(['user_id', 'name', 'phone', 'email', 'age', 'blood_group', 'address']);
+        $this->reset(['user_id', 'title', 'name', 'phone', 'email', 'age', 'blood_group', 'address']);
+        $this->title = 'Mr.';
         $this->age_type = 'Years';
         $this->gender = 'Male';
         $this->resetValidation();

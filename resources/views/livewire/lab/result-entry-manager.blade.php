@@ -207,8 +207,7 @@
                                                              <span class="input-group-text bg-soft-primary"><i class="feather-cpu" style="font-size: 10px;"></i></span>
                                                          @else
                                                              <input type="text" class="form-control {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
-                                                                    wire:model.live.debounce.500ms="results.{{ $paramKey }}" 
-                                                                    placeholder="-">
+                                                                    wire:model.live.debounce.500ms="results.{{ $paramKey }}">
                                                          @endif
 
                                                          @if($isHigh && isset($flags[$paramKey]) && !in_array($p['input_type'] ?? '', ['selection', 'calculated']))
@@ -278,16 +277,22 @@
             </div>
             
             <div class="card-footer bg-light p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        @if($testReport && $testReport->status === 'Approved')
-                            <div class="text-success fw-bold"><i class="feather-check-circle me-1"></i>Report is Approved and Locked.</div>
-                        @else
-                            <div class="text-muted fs-11">Type values to auto-save to temporary state. Hit buttons to finalize.</div>
-                        @endif
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <label class="form-label fs-11 fw-bold text-muted mb-1">Report Date & Time</label>
+                            <input type="datetime-local" class="form-control form-control-sm border-primary border-opacity-25 fw-bold text-primary" wire:model="report_date" style="max-width: 210px;">
+                        </div>
+                        <div>
+                            @if($testReport && $testReport->status === 'Approved')
+                                <div class="text-success fw-bold fs-12 mt-3"><i class="feather-check-circle me-1"></i>Approved</div>
+                            @else
+                                <div class="text-muted fs-11 mt-3">Values auto-save temporarily.</div>
+                            @endif
+                        </div>
                     </div>
                     
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
                         @can('edit reports')
                             <button wire:click="saveReport('Draft')" class="btn btn-outline-primary fw-bold">
                                 <i class="feather-save me-1"></i> Save Draft

@@ -12,19 +12,40 @@
                     @if($modalError) <div class="alert alert-danger">{{ $modalError }}</div> @endif
                     <div class="mb-3">
                         <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" wire:model="new_name">
-                        @error('new_name') <span class="text-danger fs-12">{{ $message }}</span> @enderror
+                        <div class="input-group">
+                            <select class="form-select bg-light fw-medium text-dark" wire:model="new_title" style="max-width: 100px;">
+                                <option value="Mr.">Mr.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="Miss">Miss</option>
+                                <option value="Master">Master</option>
+                                <option value="Baby">Baby</option>
+                                <option value="B/O">B/O</option>
+                                <option value="Dr.">Dr.</option>
+                                <option value="Prof.">Prof.</option>
+                                <option value="Smt.">Smt.</option>
+                                <option value="Sri">Sri</option>
+                            </select>
+                            <input type="text" class="form-control" wire:model="new_name" placeholder="Full Name">
+                        </div>
+                        @error('new_name') <span class="text-danger fs-12 d-block mt-1">{{ $message }}</span> @enderror
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Phone <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" wire:model="new_phone">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-control" wire:model="new_phone" placeholder="10-digit mobile">
                             @error('new_phone') <span class="text-danger fs-12">{{ $message }}</span> @enderror
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Age <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" wire:model="new_age">
-                            @error('new_age') <span class="text-danger fs-12">{{ $message }}</span> @enderror
+                            <label class="form-label">Age</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" wire:model="new_age" placeholder="Age">
+                                <select class="form-select bg-light" wire:model="new_age_type" style="max-width: 80px;">
+                                    <option value="Years">Yrs</option>
+                                    <option value="Months">Mos</option>
+                                    <option value="Days">Dys</option>
+                                </select>
+                            </div>
+                            @error('new_age') <span class="text-danger fs-12 d-block mt-1">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="mb-3">
