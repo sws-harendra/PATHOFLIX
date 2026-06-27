@@ -328,9 +328,9 @@
                                                     <span class="fs-10 text-muted">-</span>
                                                     <input type="number" class="form-control form-control-sm px-1 text-center" style="width: 45px;" wire:model="parameters.{{ $editingParamIndex }}.ranges.{{ $rIndex }}.age_max">
                                                     <select class="form-select form-select-sm px-1" style="width: 85px;" wire:model="parameters.{{ $editingParamIndex }}.ranges.{{ $rIndex }}.age_unit">
-                                                        <option value="Years">Years</option>
-                                                        <option value="Months">Months</option>
-                                                        <option value="Days">Days</option>
+                                                        <option value="Years">Year</option>
+                                                        <option value="Months">Month</option>
+                                                        <option value="Days">Day</option>
                                                     </select>
                                                 </div>
                                             </td>

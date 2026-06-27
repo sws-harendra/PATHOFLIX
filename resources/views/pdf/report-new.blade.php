@@ -580,7 +580,7 @@
                             @if(!empty($settings['global_sig_1_name']))
                                 <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
                                 @if(!empty($settings['global_sig_1_desig']))
-                                    <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                                    <span class="doc-desig">{!! nl2br(e($settings['global_sig_1_desig'])) !!}</span>
                                 @endif
                             @endif
                         </td>
@@ -590,42 +590,39 @@
                 {{-- Multi Signatory Layout --}}
                 <table class="multi-sig-table">
                     <tr>
-                        <td style="text-align:left; padding-left:35px; font-weight:700; font-size:11px;">
-                            
-                        </td>
-                        @if(!empty($settings['global_sig_2_name']))
-                            <td>
+                        <td style="width: 33%; text-align: left; vertical-align: bottom; padding-left: 35px;">
+                            @if(!empty($settings['global_sig_2_name']))
                                 @if(!empty($settings['global_sig_2_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_2_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_2_name'] }}</span>
                                 @if(!empty($settings['global_sig_2_desig']))
-                                    <span class="doc-desig">{{ $settings['global_sig_2_desig'] }}</span>
-                                @endif
-                            </td>
-                        @endif
-                        <td>
-                            @if($sigImgSrc)
-                                <img class="sign-img" src="{{ $sigImgSrc }}"><br>
-                            @endif
-                            @if(!empty($settings['global_sig_1_name']))
-                                <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
-                                @if(!empty($settings['global_sig_1_desig']))
-                                    <span class="doc-desig">{{ $settings['global_sig_1_desig'] }}</span>
+                                    <span class="doc-desig">{!! nl2br(e($settings['global_sig_2_desig'])) !!}</span>
                                 @endif
                             @endif
                         </td>
-                        @if(!empty($settings['global_sig_3_name']))
-                            <td>
+                        <td style="width: 34%; text-align: center; vertical-align: bottom;">
+                            @if(!empty($settings['global_sig_3_name']))
                                 @if(!empty($settings['global_sig_3_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_3_path'] }}"><br>
                                 @endif
                                 <span class="doc-name">{{ $settings['global_sig_3_name'] }}</span>
                                 @if(!empty($settings['global_sig_3_desig']))
-                                    <span class="doc-desig">{{ $settings['global_sig_3_desig'] }}</span>
+                                    <span class="doc-desig">{!! nl2br(e($settings['global_sig_3_desig'])) !!}</span>
                                 @endif
-                            </td>
-                        @endif
+                            @endif
+                        </td>
+                        <td style="width: 33%; text-align: right; vertical-align: bottom; padding-right: 35px;">
+                            @if(!empty($settings['global_sig_1_name']))
+                                @if($sigImgSrc)
+                                    <img class="sign-img" src="{{ $sigImgSrc }}"><br>
+                                @endif
+                                <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
+                                @if(!empty($settings['global_sig_1_desig']))
+                                    <span class="doc-desig">{!! nl2br(e($settings['global_sig_1_desig'])) !!}</span>
+                                @endif
+                            @endif
+                        </td>
                     </tr>
                 </table>
             @endif
@@ -880,23 +877,39 @@
                 @if(isset($dept->sig_1_path) && $dept->sig_1_path)
                     <table class="multi-sig-table" style="margin-top:12px;">
                         <tr>
-                            <td style="text-align:left; padding-left:35px; font-weight:700; font-size:11px;">
-                                CHECKED BY
-                            </td>
-                            @if(isset($dept->sig_1_path) && $dept->sig_1_path)
-                                <td>
-                                    <img style="max-height:40px;" src="{{ storage_base64($dept->sig_1_path) }}"><br>
-                                    <span class="doc-name">{{ $dept->sig_1_name ?? '' }}</span>
-                                    <span class="doc-desig">{{ $dept->sig_1_desig ?? '' }}</span>
-                                </td>
-                            @endif
-                            @if(isset($dept->sig_2_path) && $dept->sig_2_path)
-                                <td>
-                                    <img style="max-height:40px;" src="{{ storage_base64($dept->sig_2_path) }}"><br>
+                            <td style="width: 33%; text-align: left; vertical-align: bottom; padding-left: 35px;">
+                                @if(isset($dept->sig_2_name) && $dept->sig_2_name)
+                                    @if(isset($dept->sig_2_path) && $dept->sig_2_path)
+                                        <img style="max-height:40px;" src="{{ storage_base64($dept->sig_2_path) }}"><br>
+                                    @endif
                                     <span class="doc-name">{{ $dept->sig_2_name ?? '' }}</span>
-                                    <span class="doc-desig">{{ $dept->sig_2_desig ?? '' }}</span>
-                                </td>
-                            @endif
+                                    @if(isset($dept->sig_2_desig) && $dept->sig_2_desig)
+                                        <span class="doc-desig">{!! nl2br(e($dept->sig_2_desig ?? '')) !!}</span>
+                                    @endif
+                                @endif
+                            </td>
+                            <td style="width: 34%; text-align: center; vertical-align: bottom;">
+                                @if(isset($dept->sig_3_name) && $dept->sig_3_name)
+                                    @if(isset($dept->sig_3_path) && $dept->sig_3_path)
+                                        <img style="max-height:40px;" src="{{ storage_base64($dept->sig_3_path) }}"><br>
+                                    @endif
+                                    <span class="doc-name">{{ $dept->sig_3_name ?? '' }}</span>
+                                    @if(isset($dept->sig_3_desig) && $dept->sig_3_desig)
+                                        <span class="doc-desig">{!! nl2br(e($dept->sig_3_desig ?? '')) !!}</span>
+                                    @endif
+                                @endif
+                            </td>
+                            <td style="width: 33%; text-align: right; vertical-align: bottom; padding-right: 35px;">
+                                @if(isset($dept->sig_1_name) && $dept->sig_1_name)
+                                    @if(isset($dept->sig_1_path) && $dept->sig_1_path)
+                                        <img style="max-height:40px;" src="{{ storage_base64($dept->sig_1_path) }}"><br>
+                                    @endif
+                                    <span class="doc-name">{{ $dept->sig_1_name ?? '' }}</span>
+                                    @if(isset($dept->sig_1_desig) && $dept->sig_1_desig)
+                                        <span class="doc-desig">{!! nl2br(e($dept->sig_1_desig ?? '')) !!}</span>
+                                    @endif
+                                @endif
+                            </td>
                         </tr>
                     </table>
                 @endif

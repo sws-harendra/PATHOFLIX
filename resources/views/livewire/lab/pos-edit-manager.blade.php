@@ -364,9 +364,9 @@
                                 <input type="number" class="form-control-pos rounded-0 rounded-start" style="border-right:0;" wire:model="patient_age">
                                 <select class="form-select-pos rounded-0 rounded-end" style="max-width: 100px;" wire:model="patient_age_unit">
                                     <option value="">-</option>
-                                    <option>Years</option>
-                                    <option>Months</option>
-                                    <option>Days</option>
+                                    <option value="Years">Year</option>
+                                    <option value="Months">Month</option>
+                                    <option value="Days">Day</option>
                                 </select>
                             </div>
                         </div>

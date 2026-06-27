@@ -638,6 +638,9 @@ class ResultEntryManager extends Component
             return;
         }
 
+        // Save as Draft before printing to ensure TestReport exists (prevents 404) and includes the latest results
+        $this->saveResults('Draft');
+
         // Printing proceeds regardless of image presence to allow for physical letterhead space
         $testIds = is_array($this->selectedTests) ? implode(',', $this->selectedTests) : $this->selectedTests;
         $url = route('lab.reports.print', ['id' => $this->invoice->id, 'template' => 'new'])

@@ -839,7 +839,7 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 1</div>
+                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 1 (Right Side)</div>
                                     <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_signature_image)
                                             <img src="{{ $new_signature_image->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
@@ -854,7 +854,7 @@
                                         <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="authorized_signatory_name" placeholder="Full Name">
                                     </div>
                                     <div>
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="authorized_signatory_designation" placeholder="Medical Designation">
+                                        <textarea class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="authorized_signatory_designation" placeholder="Qualifications (Multiple Lines Allowed)&#10;e.g. MBBS, MD (Pathology)&#10;Reg No: 12345" rows="3"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -863,7 +863,7 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 2</div>
+                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 2 (Left Side)</div>
                                     <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_global_sig_2)
                                             <img src="{{ $new_global_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
@@ -878,7 +878,7 @@
                                         <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="global_sig_2_name" placeholder="Full Name">
                                     </div>
                                     <div>
-                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="global_sig_2_desig" placeholder="Medical Designation">
+                                        <textarea class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="global_sig_2_desig" placeholder="Qualifications (Multiple Lines Allowed)&#10;e.g. B.Sc MLT&#10;Lab Technician" rows="3"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -887,7 +887,7 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 3</div>
+                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 3 (Center)</div>
                                     <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                         @if($new_global_sig_3)
                                             <img src="{{ $new_global_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
@@ -899,8 +899,19 @@
                                         <input type="file" wire:model="new_global_sig_3" class="position-absolute opacity-0 w-100 h-100 cursor-pointer">
                                     </div>
                                     <div class="mb-3">
-                                     {{-- Department Signatures --}}
-                <div class="col-12">
+                                        <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="global_sig_3_name" placeholder="Full Name">
+                                    </div>
+                                    <div>
+                                        <textarea class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="global_sig_3_desig" placeholder="Qualifications (Multiple Lines Allowed)&#10;e.g. Co-Signer" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Department Signatures --}}
+                <div class="col-12 mt-4">
                     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
                 <div class="settings-section-header d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
@@ -909,11 +920,11 @@
                         </div>
                         <span class="fs-15 fw-bold">Department-Specific Signatures</span>
                     </div>
-                    <div style="width: 280px;">
-                        <div class="settings-input-group border-0 bg-white bg-opacity-20">
-                            <div class="settings-input-icon bg-transparent border-0 text-white opacity-75" style="width: 40px;"><i class="feather-search fs-12"></i></div>
-                            <select class="form-control form-select border-0 bg-transparent text-white fw-bold fs-12 cursor-pointer ps-0" wire:model.live="selected_dept_id">
-                                <option value="" class="text-dark">Select Department...</option>
+                    <div style="width: 320px;">
+                        <div class="settings-input-group border-0 bg-white shadow-sm">
+                            <div class="settings-input-icon bg-transparent border-0 text-primary" style="width: 40px;"><i class="feather-search fs-14"></i></div>
+                            <select class="form-control form-select border-0 bg-transparent text-dark fw-bold fs-13 cursor-pointer ps-0 py-2" wire:model.live="selected_dept_id">
+                                <option value="" class="text-muted">Select Clinical Department...</option>
                                 @foreach(\App\Models\Department::forCompany(auth()->user()->company_id)->get() as $dept)
                                     <option value="{{ $dept->id }}" class="text-dark">{{ $dept->name }}</option>
                                 @endforeach
@@ -936,7 +947,7 @@
                                     <div class="col-md-4">
                                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
                                             <div class="card-body p-4 text-center">
-                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 1</div>
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 1 (Right)</div>
                                                 <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                     @if($new_dept_sig_1)
                                                         <img src="{{ $new_dept_sig_1->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
@@ -951,7 +962,7 @@
                                                     <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="dept_sig_1_name" placeholder="Full Name">
                                                 </div>
                                                 <div>
-                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_1_desig" placeholder="Designation">
+                                                    <textarea class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_1_desig" placeholder="Qualifications (Multiple Lines)&#10;e.g. MBBS, MD" rows="3"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -960,7 +971,7 @@
                                     <div class="col-md-4">
                                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
                                             <div class="card-body p-4 text-center">
-                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 2</div>
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 2 (Left)</div>
                                                 <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                     @if($new_dept_sig_2)
                                                         <img src="{{ $new_dept_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
@@ -975,7 +986,7 @@
                                                     <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 fw-bold text-center fs-14 bg-transparent" wire:model="dept_sig_2_name" placeholder="Full Name">
                                                 </div>
                                                 <div>
-                                                    <input type="text" class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_2_desig" placeholder="Designation">
+                                                    <textarea class="form-control form-control-sm border-0 border-bottom rounded-0 px-0 text-center fs-12 text-muted bg-transparent" wire:model="dept_sig_2_desig" placeholder="Qualifications (Multiple Lines)&#10;e.g. Technician" rows="3"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -984,7 +995,7 @@
                                     <div class="col-md-4">
                                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-light">
                                             <div class="card-body p-4 text-center">
-                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 3</div>
+                                                <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Dept Signatory 3 (Center)</div>
                                                 <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                                     @if($new_dept_sig_3)
                                                         <img src="{{ $new_dept_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
