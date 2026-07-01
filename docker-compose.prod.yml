@@ -9,6 +9,16 @@ services:
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=dbpostgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-pathology_saas}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
     env_file:
       - .env
     volumes:
@@ -59,12 +69,27 @@ services:
   scheduler:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
+    image: pathology-app-prod
     container_name: pathology_scheduler
-    restart: unless-stopped
-    working_dir: /var/www
+    restart: always
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=dbpostgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-pathology_saas}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - CACHE_STORE=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+    env_file:
+      - .env
     volumes:
-      - ./:/var/www
+      - storage-data:/var/www/storage
     depends_on:
       - app
       - dbpostgres
