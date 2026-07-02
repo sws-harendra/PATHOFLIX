@@ -59,7 +59,7 @@
 
                 <div class="flex items-center gap-12 border-t border-white/10 pt-12">
                     <div class="flex items-center gap-3">
-                        <i class="feather-shield text-brand-400 text-3xl"></i>
+                        <svg class="w-9 h-9 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         <div>
                             <p class="text-white font-bold tracking-tight">Fully Secure</p>
                             <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">256-Bit Encrypted
@@ -67,7 +67,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <i class="feather-zap text-brand-400 text-3xl"></i>
+                        <svg class="w-9 h-9 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         <div>
                             <p class="text-white font-bold tracking-tight">Instant Access</p>
                             <p class="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">Zero Wait Time</p>
@@ -84,7 +84,7 @@
             <!-- Mobile Logo -->
             <div class="flex items-center gap-3 lg:hidden mb-12">
                 <div class="bg-brand-600 p-2.5 rounded-xl">
-                    <i class="feather-activity text-white text-xl"></i>
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </div>
                 <span
                     class="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-white uppercase transition-all duration-300">
@@ -107,7 +107,7 @@
                     <div class="relative group">
                         <div
                             class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
-                            <i class="feather-user-check"></i>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         </div>
                         <input type="text" wire:model="patient_id" placeholder="e.g. PAT0032"
                             class="block w-full pl-14 pr-5 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
@@ -122,7 +122,7 @@
                     <div class="relative group">
                         <div
                             class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
-                            <i class="feather-phone"></i>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                         </div>
                         <input type="text" wire:model="mobile" placeholder="Enter 10-digit number"
                             class="block w-full pl-14 pr-5 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
@@ -133,7 +133,7 @@
                 @if($errorMessage)
                     <div
                         class="p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-2xl flex items-start gap-3 animate__animated animate__headShake">
-                        <i class="feather-alert-octagon text-red-500 mt-0.5"></i>
+                        <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <p class="text-sm font-semibold text-red-600 dark:text-red-400 leading-tight">{{ $errorMessage }}
                         </p>
                     </div>
@@ -143,8 +143,7 @@
                 <button type="submit"
                     class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-5 rounded-2xl shadow-xl shadow-brand-600/30 hover:shadow-brand-700/40 hover:-translate-y-1 transition-all flex justify-center items-center gap-3 group mt-4">
                     <span wire:loading.remove>View My Reports</span>
-                    <i wire:loading.remove
-                        class="feather-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    <svg wire:loading.remove class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     <div wire:loading class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin">
                     </div>
                     <span wire:loading>Verifying details...</span>
@@ -154,10 +153,10 @@
             <div class="pt-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center text-sm">
                 <a href="tel:{{ $siteSetting->contact_phone ?? '#' }}"
                     class="inline-flex items-center gap-2 font-bold text-zinc-500 hover:text-brand-600 transition-colors">
-                    <i class="feather-headphones text-lg"></i> Help Desk
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v5a2 2 0 01-2 2h-2a2 2 0 01-2-2v-5a2 2 0 012-2h2zM6 9v3m0 0v5a2 2 0 002 2h2a2 2 0 002-2v-5a2 2 0 00-2-2H8z"></path></svg> Help Desk
                 </a>
                 <div class="inline-flex items-center gap-2 font-bold text-emerald-600">
-                    <i class="feather-lock text-emerald-500"></i> Secure
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Secure
                 </div>
             </div>
         </div>
