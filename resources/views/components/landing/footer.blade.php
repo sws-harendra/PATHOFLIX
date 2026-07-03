@@ -12,12 +12,12 @@
 
 
 <footer
-    class="bg-zinc-950 text-zinc-400 pt-24 pb-8 relative overflow-hidden selection:bg-brand-500/30 selection:text-white">
+    class="bg-[#0b1f1d] text-[#f4f7f6]/70 pt-24 pb-8 relative overflow-hidden selection:bg-brand-500/30 selection:text-white border-t border-[#0c5f56]/15">
     <div
-        class="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none">
+        class="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0c5f56]/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none">
     </div>
     <div
-        class="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-indigo-500/10 blur-[150px] rounded-full translate-y-1/2 pointer-events-none">
+        class="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-[#0c5f56]/10 blur-[150px] rounded-full translate-y-1/2 pointer-events-none">
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -49,12 +49,12 @@
             </div>
 
             <div class="lg:col-span-2 lg:col-start-6">
-                <h4 class="text-sm font-semibold text-white mb-6">Product</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-6">Product</h4>
                 <ul class="space-y-4">
                     @foreach([['label' => 'Lab Automation', 'url' => route('features')], ['label' => 'Smart Reporting', 'url' => route('features')], ['label' => 'Partner Portal', 'url' => route('features')], ['label' => 'Pricing Plans', 'url' => route('pricing')]] as $link)
                         <li>
                             <a href="{{ $link['url'] }}"
-                                class="text-sm group flex items-center gap-2 hover:text-white transition-colors duration-300">
+                                class="text-sm group flex items-center gap-2 hover:text-brand-400 transition-colors duration-300">
                                 <span>{{ $link['label'] }}</span>
                             </a>
                         </li>
@@ -63,29 +63,29 @@
             </div>
 
             <div class="lg:col-span-2">
-                <h4 class="text-sm font-semibold text-white mb-6">Company</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-6">Company</h4>
                 <ul class="space-y-4">
                     @foreach([['label' => 'About Us', 'url' => route('about')], ['label' => 'How It Works', 'url' => route('how-it-works')], ['label' => 'Contact Sales', 'url' => route('contact')], ['label' => 'Request Demo', 'url' => route('enquiry')]] as $link)
                         <li>
                             <a href="{{ $link['url'] }}"
-                                class="text-sm hover:text-white transition-colors duration-300">{{ $link['label'] }}</a>
+                                class="text-sm hover:text-brand-400 transition-colors duration-300">{{ $link['label'] }}</a>
                         </li>
                     @endforeach
                 </ul>
             </div>
 
             <div class="lg:col-span-2">
-                <h4 class="text-sm font-semibold text-white mb-6">Support</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-6">Support</h4>
                 <ul class="space-y-4">
                     <li><a href="{{ route('portal.login') }}"
-                            class="text-sm font-bold text-brand-500 hover:text-brand-400 transition-colors duration-300">Download
+                            class="text-sm font-bold text-brand-400 hover:text-brand-350 transition-colors duration-300">Download
                             Report</a></li>
                     <li><a href="{{ route('faq') }}"
-                            class="text-sm hover:text-white transition-colors duration-300">FAQ</a></li>
+                            class="text-sm hover:text-brand-400 transition-colors duration-300">FAQ</a></li>
                     <li><a href="{{ route('terms') }}"
-                            class="text-sm hover:text-white transition-colors duration-300">Terms of Service</a></li>
+                            class="text-sm hover:text-brand-400 transition-colors duration-300">Terms of Service</a></li>
                     <li><a href="{{ route('privacy') }}"
-                            class="text-sm hover:text-white transition-colors duration-300">Privacy Policy</a></li>
+                            class="text-sm hover:text-brand-400 transition-colors duration-300">Privacy Policy</a></li>
                     <li><a href="mailto:{{ $contactEmail }}"
                             class="text-sm text-brand-400 hover:text-brand-300 transition-colors duration-300">{{ $contactEmail }}</a>
                     </li>

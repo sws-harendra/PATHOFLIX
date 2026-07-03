@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- Feather Icons (same as dashboard) -->
@@ -27,7 +27,7 @@
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 
     @php
-        $brandColor = \App\Models\SiteSetting::get('primary_color', '#0284c7');
+        $brandColor = \App\Models\SiteSetting::get('primary_color', '#0c5f56');
         $siteName = \App\Models\SiteSetting::get('site_name', 'SWS Pathology');
     @endphp
 
@@ -35,6 +35,7 @@
         @theme {
             --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
             --font-display: 'Outfit', sans-serif;
+            --font-serif: 'Instrument Serif', serif;
 
             --color-brand-50: color-mix(in srgb, {{ $brandColor }} 10%, white);
             --color-brand-100: color-mix(in srgb, {{ $brandColor }} 20%, white);
@@ -51,6 +52,12 @@
             --color-accent: var(--color-brand-600);
 
             --animate-float: float 6s ease-in-out infinite;
+            --animate-float-slow: floatSlow 8s ease-in-out infinite;
+            --animate-float-fast: floatFast 5s ease-in-out infinite;
+            --animate-scale-bg: scaleBg 30s ease-in-out infinite alternate;
+            --animate-gradient-drift-1: gradientDrift1 18s ease-in-out infinite;
+            --animate-gradient-drift-2: gradientDrift2 24s ease-in-out infinite alternate;
+            --animate-draw-line: drawLine 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             --animate-fade-in-up: fadeInUp 0.8s ease-out forwards;
             --animate-shimmer: shimmer 2.5s linear infinite;
             --animate-pulse-soft: pulseSoft 3s ease-in-out infinite;
@@ -63,6 +70,30 @@
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(1deg); }
+        }
+        @keyframes floatFast {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(-1deg); }
+        }
+        @keyframes scaleBg {
+            0% { transform: scale(1) translate(0px, 0px); }
+            100% { transform: scale(1.08) translate(10px, -5px); }
+        }
+        @keyframes gradientDrift1 {
+            0%, 100% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.15); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        @keyframes gradientDrift2 {
+            0%, 100% { transform: translate(0px, 0px) scale(1.1); }
+            50% { transform: translate(-40px, 30px) scale(0.9); }
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
         }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(40px); }
@@ -150,8 +181,44 @@
         .delay-5 { transition-delay: 0.5s; }
         .delay-6 { transition-delay: 0.6s; }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f4f7f6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0c5f56;
+            border-radius: 10px;
+            border: 2px solid #f4f7f6;
+        }
+
+        /* Navbar Hover Underline Effect */
+        .nav-link-underline {
+            position: relative;
+            padding-bottom: 2px;
+        }
+        .nav-link-underline::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--color-brand-600);
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .nav-link-underline:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
         body {
-            @apply bg-white text-zinc-900 font-sans antialiased;
+            @apply bg-[#f4f7f6] text-[#0f2d2a] font-sans antialiased;
         }
 
         /* Smooth section transitions */
@@ -163,7 +230,22 @@
     @livewireStyles
 </head>
 
-<body class="antialiased selection:bg-brand-500 selection:text-white">
+<body class="antialiased selection:bg-brand-500 selection:text-white relative">
+    <!-- Light Noise Texture Overlay -->
+    <div class="fixed inset-0 z-[9999] pointer-events-none opacity-[0.018] mix-blend-multiply" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
+
+    <!-- Global Living Background (Slowly Drifting Color Gradients) -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#f4f7f6]">
+        <!-- Blob 1: Premium Forest Teal -->
+        <div class="absolute -top-[15%] -left-[15%] w-[70vw] h-[70vw] rounded-full bg-[#0c5f56]/25 blur-[130px] animate-gradient-drift-1"></div>
+        <!-- Blob 2: Deep Indigo-Violet -->
+        <div class="absolute bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/22 blur-[140px] animate-gradient-drift-2"></div>
+        <!-- Blob 3: Warm Amber (adds premium warmth, avoids plain light-gray/white coldness) -->
+        <div class="absolute top-[35%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-amber-500/18 blur-[120px] animate-gradient-drift-1"></div>
+        <!-- Blob 4: Soft Emerald -->
+        <div class="absolute -bottom-[10%] left-[10%] w-[65vw] h-[65vw] rounded-full bg-emerald-500/20 blur-[130px] animate-gradient-drift-2"></div>
+    </div>
+
     <!-- Navbar -->
     <x-landing.navbar />
 
