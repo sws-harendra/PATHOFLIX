@@ -42,7 +42,7 @@
                 class="font-display uppercase transition-all duration-500 whitespace-nowrap">
                 <span>{{ explode(' ', $siteName)[0] ?? 'SWS' }}</span>
                 <span class="text-brand-600">
-                    {{ implode(' ', array_slice(explode(' ', $siteName), 1)) ?: 'Pathology' }}
+                    {{ implode(' ', array_slice(explode(' ', $siteName), 1)) ?: '' }}
                 </span>
             </span>
         </a>
