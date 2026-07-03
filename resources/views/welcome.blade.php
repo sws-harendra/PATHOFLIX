@@ -10,7 +10,7 @@
 @endphp
 
 <x-landing-layout>
-    <x-slot name="title">{{ \App\Models\SiteSetting::get('meta_title', 'SWS Pathology - Precision Diagnostics') }}</x-slot>
+    <x-slot name="title">{{ \App\Models\SiteSetting::get('meta_title', 'SWS - Precision Diagnostics') }}</x-slot>
 
     <div class="text-[#0f2d2a] font-sans relative">
 
