@@ -20,7 +20,7 @@ class LandingPageSeeder extends Seeder
             ['setting_key' => 'site_logo', 'setting_value' => null, 'setting_group' => 'branding'],
             ['setting_key' => 'site_logo_dark', 'setting_value' => null, 'setting_group' => 'branding'],
             ['setting_key' => 'site_favicon', 'setting_value' => null, 'setting_group' => 'branding'],
-            ['setting_key' => 'primary_color', 'setting_value' => '#0284c7', 'setting_group' => 'branding'],
+            ['setting_key' => 'primary_color', 'setting_value' => '#C70000', 'setting_group' => 'branding'],
 
             // Home
             ['setting_key' => 'hero_title', 'setting_value' => 'Intelligence for Modern Laboratories', 'setting_group' => 'home'],

@@ -11,7 +11,7 @@
     <section class="pt-32 pb-20 relative overflow-hidden bg-zinc-50 border-b border-zinc-100">
         <div class="absolute inset-0 z-0 pointer-events-none">
             <div class="absolute top-0 right-1/4 w-[600px] h-[600px] bg-brand-400/10 blur-[150px] rounded-full translate-x-1/2 -translate-y-1/4"></div>
-            <div class="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-emerald-400/5 blur-[150px] rounded-full -translate-x-1/2 translate-y-1/4"></div>
+            <div class="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-red-400/5 blur-[150px] rounded-full -translate-x-1/2 translate-y-1/4"></div>
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 reveal">
@@ -70,9 +70,9 @@
 
                     @if($submitted)
                         <div class="text-center py-10 px-4 animate-fade-in-up">
-                            <div class="w-24 h-24 bg-emerald-50 border-8 border-emerald-50/50 rounded-full flex items-center justify-center mx-auto mb-8 relative">
-                                <div class="absolute inset-0 rounded-full bg-emerald-100 animate-ping opacity-50"></div>
-                                <i class="feather-check text-4xl text-emerald-500 relative z-10"></i>
+                            <div class="w-24 h-24 bg-red-50 border-8 border-red-50/50 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                                <div class="absolute inset-0 rounded-full bg-red-100 animate-ping opacity-50"></div>
+                                <i class="feather-check text-4xl text-red-500 relative z-10"></i>
                             </div>
 
                             <h3 class="font-display text-3xl font-bold text-zinc-900 mb-4">Message Sent!</h3>

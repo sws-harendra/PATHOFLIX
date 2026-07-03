@@ -194,7 +194,7 @@ if (!function_exists('getIndianCurrency')) {
             <tr class="grand-total"><td>NET PAYABLE</td><td style="text-align:right;">Rs.{{ number_format($invoice->total_amount, 2) }}</td></tr>
             <tr><td>Amount Received</td><td style="text-align:right;font-weight:700;">Rs.{{ number_format($invoice->paid_amount, 2) }}</td></tr>
             @if($invoice->due_amount > 0)
-                <tr style="color:#dc2626; font-weight:700;"><td>Total Balance Due</td><td style="text-align:right;">Rs.{{ number_format($invoice->due_amount, 2) }}</td></tr>
+                <tr style="color:#C70000; font-weight:700;"><td>Total Balance Due</td><td style="text-align:right;">Rs.{{ number_format($invoice->due_amount, 2) }}</td></tr>
             @endif
         </table>
 

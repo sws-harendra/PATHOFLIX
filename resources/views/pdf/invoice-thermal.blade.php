@@ -204,7 +204,7 @@
         <div class="total-row"><span class="lbl">Paid Amount:</span><span
                 class="val">Rs.{{ number_format($invoice->paid_amount, 2) }}</span></div>
         @if($invoice->due_amount > 0)
-            <div class="total-row" style="color:#dc2626;"><span class="lbl bold">DUE BALANCE:</span><span
+            <div class="total-row" style="color:#C70000;"><span class="lbl bold">DUE BALANCE:</span><span
                     class="val">Rs.{{ number_format($invoice->due_amount, 2) }}</span></div>
         @endif
     </div>

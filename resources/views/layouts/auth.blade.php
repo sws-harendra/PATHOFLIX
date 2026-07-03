@@ -29,7 +29,7 @@
             --color-brand-100: #e0f2fe;
             --color-brand-200: #bae6fd;
             --color-brand-500: #0ea5e9;
-            --color-brand-600: #0284c7;
+            --color-brand-600: #C70000;
             --color-brand-700: #0369a1;
             --color-brand-900: #0c4a6e;
         }

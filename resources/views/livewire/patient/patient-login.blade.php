@@ -1,7 +1,7 @@
 @php
     $siteName = \App\Models\SiteSetting::get('site_name', 'SWS Pathology');
     $siteLogo = \App\Models\SiteSetting::get('site_logo');
-    $primaryColor = \App\Models\SiteSetting::get('primary_color', '#0284c7');
+    $primaryColor = \App\Models\SiteSetting::get('primary_color', '#C70000');
     
     // Split name for styling
     $nameParts = explode(' ', $siteName);
@@ -155,8 +155,8 @@
                     class="inline-flex items-center gap-2 font-bold text-zinc-500 hover:text-brand-600 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v5a2 2 0 01-2 2h-2a2 2 0 01-2-2v-5a2 2 0 012-2h2zM6 9v3m0 0v5a2 2 0 002 2h2a2 2 0 002-2v-5a2 2 0 00-2-2H8z"></path></svg> Help Desk
                 </a>
-                <div class="inline-flex items-center gap-2 font-bold text-emerald-600">
-                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Secure
+                <div class="inline-flex items-center gap-2 font-bold text-red-600">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Secure
                 </div>
             </div>
         </div>

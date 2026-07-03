@@ -27,7 +27,7 @@
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 
     @php
-        $brandColor = \App\Models\SiteSetting::get('primary_color', '#0c5f56');
+        $brandColor = \App\Models\SiteSetting::get('primary_color', '#C70000');
         $siteName = \App\Models\SiteSetting::get('site_name', 'SWS Pathology');
     @endphp
 
@@ -187,12 +187,12 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #f4f7f6;
+            background: #ffffff;
         }
         ::-webkit-scrollbar-thumb {
-            background: #0c5f56;
+            background: #C70000;
             border-radius: 10px;
-            border: 2px solid #f4f7f6;
+            border: 2px solid #ffffff;
         }
 
         /* Navbar Hover Underline Effect */
@@ -218,12 +218,18 @@
         }
 
         body {
-            @apply bg-[#f4f7f6] text-[#0f2d2a] font-sans antialiased;
+            @apply bg-[#ffffff] text-[#18181b] font-sans antialiased;
         }
 
         /* Smooth section transitions */
         section {
             @apply relative;
+        }
+
+        .scroll-frame {
+            will-change: transform, opacity;
+            transform-origin: center center;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out;
         }
     </style>
 
@@ -235,15 +241,15 @@
     <div class="fixed inset-0 z-[9999] pointer-events-none opacity-[0.018] mix-blend-multiply" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E&quot;);"></div>
 
     <!-- Global Living Background (Slowly Drifting Color Gradients) -->
-    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#f4f7f6]">
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#ffffff]">
         <!-- Blob 1: Premium Forest Teal -->
-        <div class="absolute -top-[15%] -left-[15%] w-[70vw] h-[70vw] rounded-full bg-[#0c5f56]/20 blur-[130px] animate-gradient-drift-1"></div>
+        <div class="absolute -top-[15%] -left-[15%] w-[70vw] h-[70vw] rounded-full bg-[#C70000]/20 blur-[130px] animate-gradient-drift-1"></div>
         <!-- Blob 2: Deep Indigo-Violet -->
         <div class="absolute bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/16 blur-[140px] animate-gradient-drift-2"></div>
         <!-- Blob 3: Warm Amber (adds premium warmth, avoids plain light-gray/white coldness) -->
         <div class="absolute top-[35%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-amber-500/12 blur-[120px] animate-gradient-drift-1"></div>
         <!-- Blob 4: Soft Emerald -->
-        <div class="absolute -bottom-[10%] left-[10%] w-[65vw] h-[65vw] rounded-full bg-emerald-500/14 blur-[130px] animate-gradient-drift-2"></div>
+        <div class="absolute -bottom-[10%] left-[10%] w-[65vw] h-[65vw] rounded-full bg-red-500/14 blur-[130px] animate-gradient-drift-2"></div>
 
         <!-- Light Falling Snow Particles -->
         <canvas id="bg-particles" class="absolute inset-0 w-full h-full opacity-75"></canvas>
@@ -311,7 +317,7 @@
                         const p = particles[i];
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, true);
-                        ctx.fillStyle = `rgba(12, 95, 86, ${p.opacity})`;
+                        ctx.fillStyle = `rgba(220, 38, 38, ${p.opacity})`;
                         ctx.fill();
 
                         p.y += p.speed;
@@ -330,6 +336,37 @@
                     requestAnimationFrame(draw);
                 }
                 draw();
+            }
+
+            // Scroll driven framing effect
+            const scrollFrames = document.querySelectorAll('.scroll-frame');
+            
+            function handleScrollFrame() {
+                const viewportHeight = window.innerHeight;
+                scrollFrames.forEach(frame => {
+                    const rect = frame.getBoundingClientRect();
+                    const elementHeight = rect.height;
+                    const elementTop = rect.top;
+                    const elementBottom = rect.bottom;
+                    
+                    if (elementTop < viewportHeight && elementBottom > 0) {
+                        const distFromCenter = Math.abs((elementTop + elementHeight / 2) - viewportHeight / 2);
+                        const centerRatio = Math.max(0, 1 - (distFromCenter / (viewportHeight / 1.1)));
+                        
+                        // Scale smoothly from 0.94 to 1.0 based on viewport center proximity
+                        const scale = 0.94 + (0.06 * centerRatio);
+                        const opacity = 0.88 + (0.12 * centerRatio);
+                        
+                        frame.style.transform = `scale(${scale})`;
+                        frame.style.opacity = `${opacity}`;
+                    }
+                });
+            }
+            
+            if (scrollFrames.length > 0) {
+                window.addEventListener('scroll', handleScrollFrame);
+                // Initial run
+                handleScrollFrame();
             }
         });
     </script>
