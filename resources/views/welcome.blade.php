@@ -60,9 +60,9 @@
                             <a href="#contact" class="inline-flex justify-center items-center gap-2 px-10 py-5 bg-[#0c5f56] text-white hover:bg-[#094d45] rounded-full font-bold text-md shadow-xl shadow-teal-900/10 hover:shadow-teal-900/25 transition-all duration-300 transform hover:-translate-y-1 active:scale-95">
                                 {{ $heroCta }} <i class="feather-arrow-right"></i>
                             </a>
-                            <a href="{{ route('portal.login') }}" class="inline-flex justify-center items-center gap-2 px-10 py-5 bg-white text-[#0f2d2a] hover:bg-brand-50 rounded-full font-bold text-md border border-[#0c5f56]/15 shadow-sm hover:shadow-md transition-all duration-300 active:scale-95">
+                            <!-- <a href="{{ route('portal.login') }}" class="inline-flex justify-center items-center gap-2 px-10 py-5 bg-white text-[#0f2d2a] hover:bg-brand-50 rounded-full font-bold text-md border border-[#0c5f56]/15 shadow-sm hover:shadow-md transition-all duration-300 active:scale-95">
                                 <i class="feather-download-cloud text-brand-600"></i> Download Report
-                            </a>
+                            </a> -->
                         </div>
                     </div>
 
