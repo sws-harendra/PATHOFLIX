@@ -237,13 +237,16 @@
     <!-- Global Living Background (Slowly Drifting Color Gradients) -->
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#f4f7f6]">
         <!-- Blob 1: Premium Forest Teal -->
-        <div class="absolute -top-[15%] -left-[15%] w-[70vw] h-[70vw] rounded-full bg-[#0c5f56]/25 blur-[130px] animate-gradient-drift-1"></div>
+        <div class="absolute -top-[15%] -left-[15%] w-[70vw] h-[70vw] rounded-full bg-[#0c5f56]/20 blur-[130px] animate-gradient-drift-1"></div>
         <!-- Blob 2: Deep Indigo-Violet -->
-        <div class="absolute bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/22 blur-[140px] animate-gradient-drift-2"></div>
+        <div class="absolute bottom-[5%] -right-[10%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/16 blur-[140px] animate-gradient-drift-2"></div>
         <!-- Blob 3: Warm Amber (adds premium warmth, avoids plain light-gray/white coldness) -->
-        <div class="absolute top-[35%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-amber-500/18 blur-[120px] animate-gradient-drift-1"></div>
+        <div class="absolute top-[35%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-amber-500/12 blur-[120px] animate-gradient-drift-1"></div>
         <!-- Blob 4: Soft Emerald -->
-        <div class="absolute -bottom-[10%] left-[10%] w-[65vw] h-[65vw] rounded-full bg-emerald-500/20 blur-[130px] animate-gradient-drift-2"></div>
+        <div class="absolute -bottom-[10%] left-[10%] w-[65vw] h-[65vw] rounded-full bg-emerald-500/14 blur-[130px] animate-gradient-drift-2"></div>
+
+        <!-- Light Falling Snow Particles -->
+        <canvas id="bg-particles" class="absolute inset-0 w-full h-full opacity-75"></canvas>
     </div>
 
     <!-- Navbar -->
@@ -273,6 +276,61 @@
             document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
                 observer.observe(el);
             });
+
+            // Falling particles engine (Light Snow/SaaS Sparkles)
+            const canvas = document.getElementById('bg-particles');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let width = canvas.width = window.innerWidth;
+                let height = canvas.height = window.innerHeight;
+
+                window.addEventListener('resize', () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                });
+
+                const particles = [];
+                const particleCount = 45;
+
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2.5 + 1.0,
+                        opacity: Math.random() * 0.28 + 0.08,
+                        speed: Math.random() * 0.35 + 0.15
+                    });
+                }
+
+                let angle = 0;
+                function draw() {
+                    ctx.clearRect(0, 0, width, height);
+                    angle += 0.003;
+
+                    for (let i = 0; i < particleCount; i++) {
+                        const p = particles[i];
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, true);
+                        ctx.fillStyle = `rgba(12, 95, 86, ${p.opacity})`;
+                        ctx.fill();
+
+                        p.y += p.speed;
+                        p.x += Math.sin(angle) * 0.3;
+
+                        if (p.y > height) {
+                            particles[i] = {
+                                x: Math.random() * width,
+                                y: -10,
+                                radius: p.radius,
+                                opacity: p.opacity,
+                                speed: p.speed
+                            };
+                        }
+                    }
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            }
         });
     </script>
 </body>
