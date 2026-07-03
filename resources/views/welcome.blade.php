@@ -32,16 +32,24 @@
                             <span class="text-xs font-bold text-brand-800 tracking-wide">Next-Gen LIS Platform 2.0</span>
                         </div>
 
+                        @php
+                            $words = explode(' ', $heroTitle);
+                            $wordCount = count($words);
+                            if ($wordCount >= 2) {
+                                $mainPart = implode(' ', array_slice($words, 0, $wordCount - 2));
+                                $accentPart1 = $words[$wordCount - 2];
+                                $accentPart2 = $words[$wordCount - 1];
+                                $formattedTitle = e($mainPart) . ' <span class="text-brand-600 italic font-serif">' . e($accentPart1) . '</span>' .
+                                    ' <span class="text-brand-600 italic font-serif pr-4 relative inline-block">' . e($accentPart2) . 
+                                    '<svg class="absolute w-full h-3.5 -bottom-2.5 left-0 text-brand-500/40 pointer-events-none" viewBox="0 0 200 9" fill="none" preserveAspectRatio="none"><path d="M2.00018 7.37072C50.2989 -0.669527 122.956 -1.68412 198.057 7.37072" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" class="animate-draw-line" /></svg></span>';
+                            } else {
+                                $formattedTitle = '<span class="text-brand-600 italic font-serif pr-4 relative inline-block">' . e($heroTitle) . 
+                                    '<svg class="absolute w-full h-3.5 -bottom-2.5 left-0 text-brand-500/40 pointer-events-none" viewBox="0 0 200 9" fill="none" preserveAspectRatio="none"><path d="M2.00018 7.37072C50.2989 -0.669527 122.956 -1.68412 198.057 7.37072" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" class="animate-draw-line" /></svg></span>';
+                            }
+                        @endphp
+
                         <h1 class="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight mb-8 text-[#0f2d2a]">
-                            {!! str_replace(
-                                ['Modern', 'Laboratories', 'Intelligence'],
-                                [
-                                    '<span class="text-brand-600 italic font-serif">Modern</span>',
-                                    '<span class="text-brand-600 italic font-serif pr-4 relative">Laboratories<svg class="absolute w-full h-3 -bottom-1 left-0 text-brand-500/40" viewBox="0 0 200 9" fill="none"><path d="M2.00018 7.37072C50.2989 -0.669527 122.956 -1.68412 198.057 7.37072" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="200" stroke-dashoffset="200" class="animate-draw-line" /></svg></span>',
-                                    '<span class="font-sans font-black tracking-tighter uppercase text-[#0f2d2a]">Intelligence</span>'
-                                ],
-                                e($heroTitle)
-                            ) !!}
+                            {!! $formattedTitle !!}
                         </h1>
 
                         <p class="text-lg md:text-xl text-[#0f2d2a]/80 leading-relaxed mb-10 max-w-xl font-medium">
