@@ -12,12 +12,12 @@
 
 
 <footer
-    class="bg-[#0b1f1d] text-[#f4f7f6]/70 pt-24 pb-8 relative overflow-hidden selection:bg-brand-500/30 selection:text-white border-t border-[#0c5f56]/15">
+    class="bg-[#0f172a] text-[#ffffff]/70 pt-24 pb-8 relative overflow-hidden selection:bg-brand-500/30 selection:text-white border-t border-[#C70000]/15">
     <div
-        class="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0c5f56]/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none">
+        class="absolute top-0 right-0 w-[600px] h-[600px] bg-[#C70000]/10 blur-[120px] rounded-full -translate-y-1/2 pointer-events-none">
     </div>
     <div
-        class="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-[#0c5f56]/10 blur-[150px] rounded-full translate-y-1/2 pointer-events-none">
+        class="absolute bottom-0 left-[-10%] w-[500px] h-[500px] bg-[#C70000]/10 blur-[150px] rounded-full translate-y-1/2 pointer-events-none">
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -100,10 +100,10 @@
             <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-full border border-white/5">
                 <div class="relative flex h-2.5 w-2.5">
                     <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                 </div>
-                <span class="text-xs font-medium text-emerald-400/90 uppercase tracking-wider">All Systems
+                <span class="text-xs font-medium text-red-400/90 uppercase tracking-wider">All Systems
                     Operational</span>
             </div>
         </div>

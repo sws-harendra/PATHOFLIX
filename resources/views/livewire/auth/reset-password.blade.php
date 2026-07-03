@@ -1,7 +1,7 @@
 @php
     $siteName = \App\Models\SiteSetting::get('site_name', 'SWS Pathology');
     $siteLogo = \App\Models\SiteSetting::get('site_logo');
-    $primaryColor = \App\Models\SiteSetting::get('primary_color', '#0284c7');
+    $primaryColor = \App\Models\SiteSetting::get('primary_color', '#C70000');
 
     // Split name for styling
     $nameParts = explode(' ', $siteName);

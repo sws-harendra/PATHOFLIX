@@ -49,11 +49,11 @@
         }
 
         /* Teal theme for top cards */
-        .bg-teal-custom { background-color: #17a2b8; }
+        .bg-red-custom { background-color: #C70000; }
         .bg-dark-custom { background-color: #343a40; }
         .bg-blue-custom { background-color: #007bff; }
         .bg-red-custom { background-color: #dc3545; }
-        .bg-green-custom { background-color: #28a745; }
+        .bg-red-custom { background-color: #C70000; }
 
         /* Filter bar */
         .filter-bar {
@@ -114,7 +114,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .rank-header-legacy.bg-green { background: #28a745; }
+        .rank-header-legacy.bg-green { background: #C70000; }
         .rank-header-legacy.bg-red { background: #dc3545; }
         
         .rank-title-legacy { font-weight: 600; font-size: 14px; margin: 0; }
@@ -213,7 +213,7 @@
         {{-- Row 1: Master Stats (Teal) --}}
         <div class="row g-3 mb-4">
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($stats['total_tests']) }}</span>
                     <span class="lbl">Tests</span>
                     <div class="icon"><i class="feather-activity"></i></div>
@@ -221,7 +221,7 @@
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($stats['total_packages']) }}</span>
                     <span class="lbl">Package</span>
                     <div class="icon"><i class="feather-package"></i></div>
@@ -229,7 +229,7 @@
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($stats['total_doctors']) }}</span>
                     <span class="lbl">Doctors</span>
                     <div class="icon"><i class="feather-user-check"></i></div>
@@ -237,7 +237,7 @@
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($stats['total_patients']) }}</span>
                     <span class="lbl">Patients</span>
                     <div class="icon"><i class="feather-users"></i></div>
@@ -245,7 +245,7 @@
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($stats['total_ccs']) }}</span>
                     <span class="lbl">Collection</span>
                     <div class="icon"><i class="feather-map-pin"></i></div>
@@ -253,7 +253,7 @@
                 </div>
             </div>
             <div class="col-lg-2 col-md-4 col-6">
-                <div class="colorful-card bg-teal-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($ops['home_visits']) }}</span>
                     <span class="lbl">Home visits</span>
                     <div class="icon"><i class="feather-home"></i></div>
@@ -305,7 +305,7 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="colorful-card bg-green-custom">
+                <div class="colorful-card bg-red-custom">
                     <span class="val">{{ number_format($ops['completed_tests']) }}</span>
                     <span class="lbl">Completed Tests</span>
                     <div class="icon"><i class="feather-check-circle"></i></div>
@@ -331,7 +331,7 @@
                     <canvas id="incomeChart"></canvas>
                 </div>
                 <div class="d-flex justify-content-center gap-4 mt-4">
-                    <span class="small fw-bold"><i class="feather-square me-1" style="color: #17a2b8"></i> Income</span>
+                    <span class="small fw-bold"><i class="feather-square me-1" style="color: #C70000"></i> Income</span>
                     <span class="small fw-bold"><i class="feather-square me-1" style="color: #fd7e14"></i> Expenses</span>
                     <span class="small fw-bold"><i class="feather-square me-1" style="color: #6f42c1"></i> Purchases</span>
                     <span class="small fw-bold"><i class="feather-square me-1" style="color: #dc3545"></i> Due</span>

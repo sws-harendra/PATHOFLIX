@@ -23,7 +23,7 @@
             font-size: 15px;
         }
         .bg-blue { background-color: #007bff !important; }
-        .bg-green { background-color: #28a745 !important; }
+        .bg-green { background-color: #C70000 !important; }
         .bg-red { background-color: #dc3545 !important; }
         
         .btn-create {

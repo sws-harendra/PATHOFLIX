@@ -337,7 +337,7 @@
             @elseif($invoice->payment_status === 'Partial')
                 <div class="status-badge" style="border-color:#d97706; color:#d97706;">PARTIAL</div>
             @else
-                 <div class="status-badge" style="border-color:#dc2626; color:#dc2626;">UNPAID</div>
+                 <div class="status-badge" style="border-color:#C70000; color:#C70000;">UNPAID</div>
             @endif
         </div>
 
@@ -362,7 +362,7 @@
                 <td class="total-val" style="color:#16a34a;">Rs.{{ number_format($invoice->paid_amount, 2) }}</td>
             </tr>
             @if($invoice->due_amount > 0)
-                <tr style="color:#dc2626; font-weight:700;">
+                <tr style="color:#C70000; font-weight:700;">
                     <td>Balance Due</td>
                     <td class="total-val">Rs.{{ number_format($invoice->due_amount, 2) }}</td>
                 </tr>

@@ -44,7 +44,7 @@
                             </div>
                             <div class="flex items-start gap-4 animate-fade-in-up" style="animation-delay: 0.3s">
                                 <div
-                                    class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400 shrink-0">
+                                    class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-red-400 shrink-0">
                                     <i class="feather-activity"></i>
                                 </div>
                                 <div>
@@ -215,7 +215,7 @@
                     <label class="relative flex items-center cursor-pointer mt-1">
                         <input type="checkbox" wire:model="agree_terms" class="peer hidden">
                         <div
-                            class="w-5 h-5 border-2 border-zinc-300 dark:border-zinc-700 rounded-md peer-checked:bg-emerald-600 peer-checked:border-emerald-600 transition-all">
+                            class="w-5 h-5 border-2 border-zinc-300 dark:border-zinc-700 rounded-md peer-checked:bg-red-600 peer-checked:border-red-600 transition-all">
                         </div>
                         <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity left-1"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">

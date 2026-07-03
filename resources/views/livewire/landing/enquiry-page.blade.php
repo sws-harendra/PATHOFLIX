@@ -20,15 +20,15 @@
                 <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                 @if($submitted)
-                    <div class="mb-8 bg-emerald-50 rounded-2xl p-6 border border-emerald-100 flex items-start gap-4 relative z-10 animate-fade-in-up">
-                        <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                            <i class="feather-check text-emerald-600 text-lg"></i>
+                    <div class="mb-8 bg-red-50 rounded-2xl p-6 border border-red-100 flex items-start gap-4 relative z-10 animate-fade-in-up">
+                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                            <i class="feather-check text-red-600 text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="text-emerald-800 font-bold mb-1">Enquiry Received Successfully!</h4>
-                            <p class="text-sm text-emerald-600 font-medium">Our team will contact you within 24 hours to schedule your personalized demo.</p>
+                            <h4 class="text-red-800 font-bold mb-1">Enquiry Received Successfully!</h4>
+                            <p class="text-sm text-red-600 font-medium">Our team will contact you within 24 hours to schedule your personalized demo.</p>
                         </div>
-                        <button wire:click="$set('submitted', false)" class="absolute top-4 right-4 text-emerald-400 hover:text-emerald-600">
+                        <button wire:click="$set('submitted', false)" class="absolute top-4 right-4 text-red-400 hover:text-red-600">
                             <i class="feather-x"></i>
                         </button>
                     </div>
