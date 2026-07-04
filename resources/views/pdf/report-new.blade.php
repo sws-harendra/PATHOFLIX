@@ -25,6 +25,14 @@
         
         $fontSize     = ($settings['pdf_font_size'] ?? 13) . 'px';
         $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
+
+        $displayHeader = $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer' && $headerImgSrc;
+        $displayFooter = $showFooter && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer' && $footerImgSrc;
+        $useLetterhead = ($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'];
+
+        $bodyMarginTop = ($displayHeader || $useLetterhead) ? $marginTop : '38px';
+        $bodyMarginBottom = $displayFooter ? $marginBottom : '38px';
+        $headerHeightCss = $displayHeader ? $headerHeight : '0px';
     @endphp
 
     <style>
@@ -41,7 +49,7 @@
             color: #1a1a1a;
             background: #fff;
             line-height: 1.45;
-            margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
+            margin: {{ $bodyMarginTop }} {{ $marginRight }} {{ $bodyMarginBottom }} {{ $marginLeft }};
         }
 
         /* ══════════════════════════════════════════════
@@ -52,13 +60,14 @@
             top: 0;
             left: 0;
             right: 0;
-            height: {{ $marginTop }};
+            height: {{ $headerHeightCss }};
             overflow: hidden;
+            display: {{ $displayHeader ? 'block' : 'none' }};
         }
 
         .header-logo-container {
             width: 100%;
-            height: {{ $headerHeight }};
+            height: {{ $headerHeightCss }};
             display: block;
             overflow: hidden;
             text-align: center;
@@ -73,16 +82,14 @@
 
         /* ── PATIENT INFO BOX ── */
         .patient-box {
-            position: absolute;
-            bottom: 0;
-            left: {{ $marginLeft }};
-            right: {{ $marginRight }};
+            position: relative;
+            margin: 0 0 20px 0;
             border: 1px solid #1a1a1a !important;
-            margin: 0;
-            padding: 8px 10px;
+            padding: 12px 10px 10px;
             font-size: 10.5px;
             display: block;
             border-radius: 2px;
+            background: #fff;
         }
 
         .patient-table {
@@ -507,14 +514,15 @@
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
         <div class="header-logo-container">
-            @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
+            @if($displayHeader)
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
         </div>
+    </header>
 
-        {{-- Patient Info Box — always visible --}}
-        <div class="patient-box" style="margin-top: 0; clear: both;">
-            <table class="patient-table">
+    {{-- Patient Info Box --}}
+    <div class="patient-box" style="margin-top: 20px; clear: both; position: relative;">
+        <table class="patient-table">
                 <tr>
                     <td class="lbl">Name</td>
                     <td class="val">: {{ $patient->name }}</td>
@@ -629,7 +637,7 @@
         </div>
 
         <img class="footer-banner" src="{{ $footerImgSrc }}" alt="Footer"
-            style="{{ ($showHeader && ($showFooter ?? true)) ? '' : 'visibility: hidden;' }}">
+            style="{{ $displayFooter ? '' : 'visibility: hidden;' }}">
     </footer>
 
     {{-- ══════════════════ BODY CONTENT ══════════════════ --}}
