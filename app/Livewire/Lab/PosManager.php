@@ -105,9 +105,9 @@ class PosManager extends Component
             $cc = CollectionCenter::find($this->collection_center_id);
             $this->branch_id = $cc->branch_id ?? $this->branch_id;
         } else {
-            // Global/Main Admin - Use session context or default
+            // Global/Main Admin - Use session context and keep booking tied to the main lab by default
             $this->branch_id = ($activeBranchId === 'all') ? (Branch::where('company_id', $companyId)->first()->id ?? null) : $activeBranchId;
-            $this->collection_center_id = $user->collection_center_id ?? (CollectionCenter::where('company_id', $companyId)->first()->id ?? null);
+            $this->collection_center_id = null;
         }
 
         $this->expected_report_at = now()->addHours(2)->format('Y-m-d\TH:i');
@@ -758,12 +758,9 @@ class PosManager extends Component
         }
 
         $this->validate([
-            'collection_center_id' => 'required|exists:collection_centers,id',
+            'collection_center_id' => 'nullable|exists:collection_centers,id',
             'branch_id' => 'nullable|exists:branches,id',
             'collection_type' => 'required|string',
-        ], [
-            'collection_center_id.required' => 'Please select a Collection Center.',
-            'collection_center_id.exists' => 'The selected Collection Center is invalid.',
         ]);
 
         DB::beginTransaction();
@@ -911,6 +908,13 @@ class PosManager extends Component
                     }
                 }
             }
+
+            $defaultCollectionCenterId = CollectionCenter::where('company_id', $companyId)
+                ->where('is_main_lab', true)
+                ->value('id')
+                ?? CollectionCenter::where('company_id', $companyId)->value('id');
+
+            $this->collection_center_id = $this->collection_center_id ?? $defaultCollectionCenterId;
 
             $invoice = Invoice::create([
                 'company_id' => $companyId,

@@ -743,12 +743,9 @@ class PosEditManager extends Component
         }
 
         $this->validate([
-            'collection_center_id' => 'required|exists:collection_centers,id',
+            'collection_center_id' => 'nullable|exists:collection_centers,id',
             'branch_id' => 'nullable|exists:branches,id',
             'collection_type' => 'required|string',
-        ], [
-            'collection_center_id.required' => 'Please select a Collection Center.',
-            'collection_center_id.exists' => 'The selected Collection Center is invalid.',
         ]);
 
         DB::beginTransaction();
@@ -816,6 +813,13 @@ class PosEditManager extends Component
                     }
                 }
             }
+
+            $defaultCollectionCenterId = CollectionCenter::where('company_id', $companyId)
+                ->where('is_main_lab', true)
+                ->value('id')
+                ?? CollectionCenter::where('company_id', $companyId)->value('id');
+
+            $this->collection_center_id = $this->collection_center_id ?? $defaultCollectionCenterId;
 
             // Update invoice
             $invoice->update([
