@@ -93,9 +93,7 @@
                 {{-- Totals --}}
                 <div class="row">
                     <div class="col-6">
-                        @if($invoice->collectionCenter)
-                            <div class="fs-11 text-muted"><strong>Collection Center:</strong> {{ $invoice->collectionCenter->name }}</div>
-                        @endif
+                        <div class="fs-11 text-muted"><strong>Main Lab:</strong> {{ $invoice->collectionCenter ? $invoice->collectionCenter->name : 'Main Lab' }}</div>
                         <div class="fs-11 text-muted"><strong>Collection Type:</strong> {{ $invoice->collection_type }}</div>
                     </div>
                     <div class="col-6">

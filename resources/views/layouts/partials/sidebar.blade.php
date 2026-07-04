@@ -225,12 +225,12 @@
                             <span class="nxl-mtext">Main Branches</span>
                         </a>
                     </li>
-                    <li class="nxl-item {{ request()->routeIs('lab.collection.centers') ? 'active' : '' }}">
+                    <!-- <li class="nxl-item {{ request()->routeIs('lab.collection.centers') ? 'active' : '' }}">
                         <a href="{{ route('lab.collection.centers') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-map"></i></span>
                             <span class="nxl-mtext">Collection Centers</span>
                         </a>
-                    </li>
+                    </li> -->
 
                     <li class="nxl-item nxl-caption">
                         <label>Relationships</label>
@@ -416,12 +416,12 @@
                     <li class="nxl-item nxl-caption">
                         <label>Network</label>
                     </li>
-                    <li class="nxl-item {{ request()->routeIs('lab.collection.centers') ? 'active' : '' }}">
+                    <!-- <li class="nxl-item {{ request()->routeIs('lab.collection.centers') ? 'active' : '' }}">
                         <a href="{{ route('lab.collection.centers') }}" class="nxl-link" wire:navigate>
                             <span class="nxl-micon"><i class="feather-map"></i></span>
                             <span class="nxl-mtext">Collection Centers</span>
                         </a>
-                    </li>
+                    </li> -->
 
                     <li class="nxl-item nxl-caption">
                         <label>Finance</label>

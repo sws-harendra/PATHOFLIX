@@ -518,18 +518,13 @@
                 </div>
 
                 <div class="col-md-4 px-2">
-                    {{-- 4. SELECT COLLECTION CENTER --}}
+                    {{-- 4. MAIN LAB / COLLECTION SOURCE --}}
                     <div class="pos-card">
                         <div class="pos-header bg-blue">
-                            <span><i class="feather-map-pin me-2"></i>Select Collection Center</span>
+                            <span><i class="feather-map-pin me-2"></i>Main Lab</span>
                         </div>
                         <div class="card-body p-3">
-                            <select class="form-select-pos" wire:model="collection_center_id">
-                                <option value="">Select Collection Center</option>
-                                @foreach(\App\Models\CollectionCenter::all() as $cc)
-                                    <option value="{{ $cc->id }}">{{ $cc->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="text-muted small">Bookings will be saved under the main lab by default.</div>
                         </div>
                     </div>
 
