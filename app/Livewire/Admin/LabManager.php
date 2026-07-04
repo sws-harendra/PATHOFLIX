@@ -187,6 +187,10 @@ class LabManager extends Component
             // Assign Role
             $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'lab_admin']);
             $user->assignRole($role);
+
+            // 4. Import all active global tests into the new lab
+            $labTestService = new \App\Services\LabTestService();
+            $labTestService->importAllGlobalTests($company->id);
         });
 
         session()->flash('success', 'Lab created successfully with Admin credentials!');

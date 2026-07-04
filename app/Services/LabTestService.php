@@ -119,6 +119,30 @@ class LabTestService
     }
 
     /**
+     * Import all active global tests into a company.
+     */
+    public function importAllGlobalTests($companyId)
+    {
+        $globals = GlobalTest::where('is_active', true)->get();
+        $importedCount = 0;
+
+        foreach ($globals as $global) {
+            $alreadyExists = LabTest::where('company_id', $companyId)
+                ->where('global_test_id', $global->id)
+                ->exists();
+
+            if ($alreadyExists) {
+                continue;
+            }
+
+            $this->importFromGlobal($global->id, $companyId);
+            $importedCount++;
+        }
+
+        return $importedCount;
+    }
+
+    /**
      * Toggle the active status of a test
      */
     public function toggleStatus($id)
