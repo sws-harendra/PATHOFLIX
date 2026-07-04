@@ -28,11 +28,8 @@
 
         $displayHeader = $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer' && $headerImgSrc;
         $displayFooter = $showFooter && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer' && $footerImgSrc;
-        $useLetterhead = ($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'];
-
-        $bodyMarginTop = ($displayHeader || $useLetterhead) ? $marginTop : '38px';
+        $bodyMarginTop = $displayHeader ? $marginTop : '38px';
         $bodyMarginBottom = $displayFooter ? $marginBottom : '38px';
-        $headerHeightCss = $displayHeader ? $headerHeight : '0px';
     @endphp
 
     <style>
@@ -60,14 +57,14 @@
             top: 0;
             left: 0;
             right: 0;
-            height: {{ $headerHeightCss }};
+            height: {{ $displayHeader ? $headerHeight : '0px' }};
             overflow: hidden;
             display: {{ $displayHeader ? 'block' : 'none' }};
         }
 
         .header-logo-container {
             width: 100%;
-            height: {{ $headerHeightCss }};
+            height: {{ $headerHeight }};
             display: block;
             overflow: hidden;
             text-align: center;
@@ -85,11 +82,10 @@
             position: relative;
             margin: 0 0 20px 0;
             border: 1px solid #1a1a1a !important;
-            padding: 12px 10px 10px;
+            padding: 8px 10px;
             font-size: 10.5px;
             display: block;
             border-radius: 2px;
-            background: #fff;
         }
 
         .patient-table {
@@ -146,9 +142,8 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height:
-                {{ $footerHeight }}
-            ;
+            height: {{ $displayFooter ? $footerHeight : '0px' }};
+            display: {{ $displayFooter ? 'block' : 'none' }};
         }
 
         /* Signature Table */
@@ -326,18 +321,11 @@
         }
 
         /* ── Flag & Abnormal Colors ── */
-        .flag-H {
-            color: #cc0000;
-            font-weight: 700;
-        }
-
-        .flag-L {
-            color: #0055aa;
-            font-weight: 700;
-        }
-
+        .flag-H,
+        .flag-L,
         .result-bold {
-            font-weight: 700;
+            color: inherit;
+            font-weight: normal;
         }
 
         /* ══════════════════════════════════════════════
@@ -521,8 +509,8 @@
     </header>
 
     {{-- Patient Info Box --}}
-    <div class="patient-box" style="margin-top: 20px; clear: both; position: relative;">
-        <table class="patient-table">
+    <div class="patient-box" style="margin-top: 0; clear: both;">
+            <table class="patient-table">
                 <tr>
                     <td class="lbl">Name</td>
                     <td class="val">: {{ $patient->name }}</td>
@@ -637,7 +625,7 @@
         </div>
 
         <img class="footer-banner" src="{{ $footerImgSrc }}" alt="Footer"
-            style="{{ $displayFooter ? '' : 'visibility: hidden;' }}">
+            style="{{ $displayFooter ? '' : 'display: none;' }}">
     </footer>
 
     {{-- ══════════════════ BODY CONTENT ══════════════════ --}}
@@ -761,19 +749,9 @@
                             $isSubHeader = (is_null($r->result_value) || trim($r->result_value) === '')
                                 && (is_null($r->reference_range) || trim($r->reference_range) === '');
 
-                            // Determine flag
+                            // No highlighting for results
                             $flag = null;
-                            if ($r->is_highlighted && $r->status) {
-                                $rawFlag = strtoupper(trim($r->status));
-                                if (in_array($rawFlag, ['H', 'HIGH'])) {
-                                    $flag = 'H';
-                                } elseif (in_array($rawFlag, ['L', 'LOW'])) {
-                                    $flag = 'L';
-                                } else {
-                                    $flag = '*';
-                                }
-                            }
-                            $isAbnormal = $r->is_highlighted;
+                            $isAbnormal = false;
                         @endphp
 
                         @if($isSubHeader)
