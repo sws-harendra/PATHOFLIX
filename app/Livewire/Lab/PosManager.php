@@ -63,7 +63,7 @@ class PosManager extends Component
     public $overpaymentError = false;
     public $paymentModesList = [];
     public $cachedCenters = [], $cachedBranches = [], $cachedMemberships = [];
-    public $new_title = 'Mr.', $new_name, $new_phone, $new_age, $new_age_type = 'Years', $new_gender = 'Male';
+    public $new_title = '', $new_name, $new_phone, $new_age, $new_age_type = '', $new_gender = 'Male';
     public $new_doc_name, $new_doc_phone, $new_doc_commission = 0;
     public $new_agent_name, $new_agent_phone, $new_agent_agency, $new_agent_commission = 0;
     public $isMembershipModalOpen = false, $selectedMembershipId = null;

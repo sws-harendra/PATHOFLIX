@@ -14,6 +14,7 @@
                         <label class="form-label">Full Name <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <select class="form-select bg-light fw-medium text-dark" wire:model="new_title" style="max-width: 100px;">
+                                <option value="">-</option>
                                 <option value="Mr.">Mr.</option>
                                 <option value="Mrs.">Mrs.</option>
                                 <option value="Miss">Miss</option>
@@ -40,9 +41,10 @@
                             <div class="input-group">
                                 <input type="number" class="form-control" wire:model="new_age" placeholder="Age">
                                 <select class="form-select bg-light" wire:model="new_age_type" style="max-width: 80px;">
-                                    <option value="Years">Yrs</option>
-                                    <option value="Months">Mos</option>
-                                    <option value="Days">Dys</option>
+                                 <option value="">-</option>    
+                                <option value="Years">Year</option>
+                                    <option value="Months">Month</option>
+                                    <option value="Days">Day</option>
                                 </select>
                             </div>
                             @error('new_age') <span class="text-danger fs-12 d-block mt-1">{{ $message }}</span> @enderror
