@@ -24,13 +24,13 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
                 <div class="grid lg:grid-cols-12 gap-16 items-center">
                     <div class="lg:col-span-7 reveal">
-                        <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-brand-50/60 border border-brand-200/50 shadow-sm mb-8">
+                        <!-- <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-brand-50/60 border border-brand-200/50 shadow-sm mb-8">
                             <span class="relative flex h-2.5 w-2.5">
                                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-500"></span>
                             </span>
                             <span class="text-xs font-bold text-brand-800 tracking-wide">Next-Gen LIS Platform 2.0</span>
-                        </div>
+                        </div> -->
 
                         @php
                             $words = explode(' ', $heroTitle);
