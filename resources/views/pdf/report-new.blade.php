@@ -77,12 +77,12 @@
             bottom: 0;
             left: {{ $marginLeft }};
             right: {{ $marginRight }};
-            border: 1px solid #1a1a1a !important;
+            border: 0.5pt solid #1a1a1a !important;
             margin: 0;
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            border-radius: 2px;
+            /* border-radius: 2px; removed for DomPDF sharpness */
         }
 
         .patient-table {
@@ -97,7 +97,7 @@
         }
 
         .patient-table .lbl {
-            font-weight: 700;
+            font-weight: bold;
             color: #1a1a1a;
             width: 14%;
             white-space: nowrap;
@@ -155,7 +155,7 @@
             width: 55%;
             text-align: left;
             vertical-align: bottom;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 11px;
             padding-left: 35px;
             padding-bottom: 8px;
@@ -176,7 +176,7 @@
         }
 
         .doc-name {
-            font-weight: 700;
+            font-weight: bold;
             font-size: 11px;
             display: block;
             margin-bottom: 0px;
@@ -225,7 +225,7 @@
            ══════════════════════════════════════════════ */
         .dept-title {
             text-align: center;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 12px;
             letter-spacing: 0.8px;
             text-transform: uppercase;
@@ -235,7 +235,7 @@
 
         .test-title {
             text-align: center;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 11px;
             text-transform: uppercase;
             margin-bottom: 2px;
@@ -276,11 +276,11 @@
         }
 
         .result-table thead th {
-            border-top: 1.5px solid #333;
-            border-bottom: 1.5px solid #333;
+            border-top: 1pt solid #333;
+            border-bottom: 1pt solid #333;
             padding: 6px 6px;
             text-align: left;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 10.5px;
             text-transform: uppercase;
             color: #000;
@@ -290,7 +290,7 @@
         .result-table tbody td {
             padding: 5px 6px;
             vertical-align: top;
-            border-bottom: 0.5px solid #eee;
+            border-bottom: 0.5pt solid #eee;
         }
 
         /* Explicitly remove vertical lines */
@@ -300,12 +300,12 @@
         }
 
         .result-table tr:last-child td {
-            border-bottom: 1.5px solid #333;
+            border-bottom: 1pt solid #333;
         }
 
         /* Sub-header rows (section dividers like "TOTAL COUNT") */
         .result-table .sub-hdr td {
-            font-weight: 700;
+            font-weight: bold;
             font-size: 10px;
             text-transform: uppercase;
             padding: 3px 6px 1px;
@@ -321,16 +321,16 @@
         /* ── Flag & Abnormal Colors ── */
         .flag-H {
             color: #cc0000;
-            font-weight: 700;
+            font-weight: bold;
         }
 
         .flag-L {
             color: #0055aa;
-            font-weight: 700;
+            font-weight: bold;
         }
 
         .result-bold {
-            font-weight: 700;
+            font-weight: bold;
         }
 
         /* ══════════════════════════════════════════════
@@ -345,7 +345,7 @@
         }
 
         .interp-label {
-            font-weight: 700;
+            font-weight: bold;
             font-size: 10px;
             margin-bottom: 3px;
             color: #1a1a1a;
@@ -366,15 +366,15 @@
 
         .interp-content table th {
             background: #f0f0f0;
-            border: 1px solid #bbb;
+            border: 0.5pt solid #bbb;
             padding: 3px 6px;
-            font-weight: 700;
+            font-weight: bold;
             text-align: left;
             font-size: 10px;
         }
 
         .interp-content table td {
-            border: 1px solid #bbb;
+            border: 0.5pt solid #bbb;
             padding: 3px 6px;
             font-size: 10px;
         }
@@ -425,21 +425,21 @@
         }
 
         .remarks-block table th {
-            border: 1px solid #bbb;
+            border: 0.5pt solid #bbb;
             padding: 3px 6px;
-            font-weight: 700;
+            font-weight: bold;
             text-align: left;
         }
 
         .remarks-block table td {
-            border: 1px solid #bbb;
+            border: 0.5pt solid #bbb;
             padding: 3px 6px;
         }
 
         .doctor-comments {
             margin: 25px 0 10px;
             padding: 10px 0;
-            border-top: 1.5px solid #eee;
+            border-top: 1pt solid #eee;
         }
 
         /* ══════════════════════════════════════════════
@@ -464,7 +464,7 @@
 
         .end-of-report {
             text-align: center;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 10px;
             margin-top: 20px;
             padding-top: 8px;
@@ -486,6 +486,8 @@
 </head>
 
 <body>
+    <!-- Global White Backdrop to fix DomPDF PNG transparency grey-out bug -->
+    <div style="position: fixed; top: -100px; left: -100px; width: 200%; height: 200%; z-index: -9999; background-color: #ffffff;"></div>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
         <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
