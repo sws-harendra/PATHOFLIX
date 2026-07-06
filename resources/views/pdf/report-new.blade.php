@@ -35,11 +35,15 @@
             box-sizing: border-box;
         }
 
+        html {
+            background-color: #ffffff !important;
+        }
+
         body {
             font-family: {{ $fontFamily }};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
-            background: #fff;
+            background-color: #ffffff !important;
             line-height: 1.45;
             margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
@@ -77,7 +81,7 @@
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            background: transparent !important;
+            background-color: #ffffff !important;
         }
 
         .patient-table {

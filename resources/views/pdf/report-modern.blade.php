@@ -8,10 +8,15 @@
             margin: {{ $settings['pdf_show_header'] ? '130px' : '30px' }} 30px {{ $settings['pdf_show_footer'] ? '100px' : '30px' }} 30px;
         }
 
+        html {
+            background-color: #ffffff !important;
+        }
+
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             font-size: 11px;
             color: #111;
+            background-color: #ffffff !important;
             line-height: 1.4;
         }
 
@@ -68,6 +73,7 @@
             margin-top: 0px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
+            background-color: #ffffff !important;
         }
 
         .patient-box td {
