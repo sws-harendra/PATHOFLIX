@@ -27,7 +27,7 @@
         $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
     @endphp
 
-    <!-- <style>
+    <style>
         /* ── RESET ── */
         * {
             margin: 0;
@@ -43,7 +43,7 @@
             font-family: {{ $fontFamily }};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
-            /* background-color: #ffffff !important; */
+            background-color: #ffffff !important;
             line-height: 1.45;
             margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
@@ -81,7 +81,7 @@
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            /* background-color: #ffffff !important; */
+            background: transparent !important;
         }
 
         .patient-table {
@@ -481,13 +481,15 @@
             border-top: 1px dashed #ccc;
             font-size: 10px;
         }
-    </style> -->
+    </style>
 </head>
 
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000; background-color: #ffffff;">
+            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
+        </div>
     @endif
 
     {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
@@ -496,7 +498,7 @@
     <header>
         <div class="header-logo-container">
             @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
-                <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
+                <img class="header-banner" src="{{ $headerImgSrc }}" style="background-color: #ffffff !important;" alt="Header">
             @endif
         </div>
 
