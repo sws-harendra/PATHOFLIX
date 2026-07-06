@@ -27,7 +27,7 @@
         $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
     @endphp
 
-    <style>
+    <!-- <style>
         /* ── RESET ── */
         * {
             margin: 0;
@@ -481,7 +481,7 @@
             border-top: 1px dashed #ccc;
             font-size: 10px;
         }
-    </style>
+    </style> -->
 </head>
 
 <body>
