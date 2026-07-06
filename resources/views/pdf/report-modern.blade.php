@@ -79,7 +79,7 @@
             font-weight: bold;
             color: #555;
             width: 15%;
-            background: #fafafa;
+            background: transparent;
         }
         .patient-box .val {
             width: 35%;
@@ -94,7 +94,7 @@
         }
 
         .results-table th {
-            background-color: #f3f4f6;
+            background-color: transparent;
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid #ccc;
@@ -197,7 +197,7 @@
             font-size: 10px;
         }
         .interpretation-block table th {
-            background-color: #f3f4f6;
+            background-color: transparent;
             padding: 4px 8px;
             text-align: left;
             border: 1px solid #ccc;
@@ -211,7 +211,7 @@
             font-size: 10px;
         }
         .interpretation-block table tr:nth-child(even) {
-            background-color: #fafafa;
+            background-color: transparent;
         }
         
         /* Watermark */
@@ -250,16 +250,7 @@
         </div>
     @endif
 
-    {{-- Watermark --}}
-    @if(isset($company->logo) && $company->logo)
-        <div class="watermark">
-            <img src="{{ storage_base64($company->logo) }}">
-        </div>
-    @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
-        <div class="watermark">
-            <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
-        </div>
-    @endif
+    {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
 
     {{-- HEADER --}}
     @if($settings['pdf_show_header'] && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')

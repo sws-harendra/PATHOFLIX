@@ -279,7 +279,7 @@
             font-size: 10.5px;
             text-transform: uppercase;
             color: #000;
-            background: #fbfbfb;
+            background: transparent;
         }
 
         .result-table tbody td {
@@ -360,7 +360,7 @@
         }
 
         .interp-content table th {
-            background: #f0f0f0;
+            background: transparent;
             border: 1px solid #bbb;
             padding: 3px 6px;
             font-weight: 700;
@@ -379,7 +379,7 @@
         }
 
         .interp-content table tr:nth-child(even) {
-            background-color: #fafafa;
+            background-color: transparent;
         }
 
         .interp-content p {
@@ -486,18 +486,7 @@
         <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
     @endif
 
-    {{-- ══════════════════ WATERMARK ══════════════════ --}}
-    @if(($settings['pdf_background_mode'] ?? 'header_footer') !== 'letterhead')
-        @if(isset($company->logo) && $company->logo)
-            <div class="watermark">
-                <img src="{{ storage_base64($company->logo) }}">
-            </div>
-        @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
-            <div class="watermark">
-                <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
-            </div>
-        @endif
-    @endif
+    {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
