@@ -43,7 +43,7 @@
             font-family: {{ $fontFamily }};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
-            background-color: #ffffff !important;
+            /* background-color: #ffffff !important; */
             line-height: 1.45;
             margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
