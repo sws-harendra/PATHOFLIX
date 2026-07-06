@@ -72,13 +72,10 @@
             border-collapse: collapse;
             margin-top: 0px;
             margin-bottom: 20px;
-            border: 1px solid #ccc;
-            background-color: #ffffff !important;
         }
 
         .patient-box td {
             padding: 5px 10px;
-            border: 1px solid #eee;
         }
         
         .patient-box .lbl {
@@ -155,7 +152,6 @@
             font-size: 10px;
             padding: 5px;
             border: 1px dashed #ccc;
-            background: #fafafa;
         }
 
         /* Signatory */
