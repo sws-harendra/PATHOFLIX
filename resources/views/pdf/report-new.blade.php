@@ -13,7 +13,7 @@
 
         $sigImgSrc = !empty($settings['global_sig_1_path'])
             ? $settings['global_sig_1_path']
-            : null;
+            : null; 
 
         // ── Margins from Settings ──
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
@@ -73,12 +73,8 @@
 
         /* ── PATIENT INFO BOX ── */
         .patient-box {
-            position: absolute;
-            bottom: 0;
-            left: {{ $marginLeft }};
-            right: {{ $marginRight }};
             border: 1px solid #1a1a1a !important;
-            margin: 0;
+            margin: 10px {{ $marginRight }} 0 {{ $marginLeft }};
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
@@ -513,7 +509,7 @@
         </div>
 
         {{-- Patient Info Box — always visible --}}
-        <div class="patient-box" style="margin-top: 0; clear: both;">
+        <div class="patient-box" style="clear: both;">
             <table class="patient-table">
                 <tr>
                     <td class="lbl">Name</td>
