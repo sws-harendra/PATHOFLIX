@@ -35,11 +35,15 @@
             box-sizing: border-box;
         }
 
+        html {
+            background-color: #ffffff !important;
+        }
+
         body {
             font-family: {{ $fontFamily }};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
-            background: #fff;
+            background-color: #ffffff !important;
             line-height: 1.45;
             margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
@@ -254,6 +258,25 @@
 
         .barcode-area img {
             height: 45px;
+        }
+
+        /* ══════════════════════════════════════════════
+           WATERMARK
+           ══════════════════════════════════════════════ */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            opacity: 0.1;
+            z-index: -100;
+            text-align: center;
+        }
+
+        .watermark img {
+            width: 100%;
+            height: auto;
         }
 
         /* ══════════════════════════════════════════════
@@ -483,25 +506,31 @@
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000; background-color: #ffffff;">
+            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
+        </div>
     @endif
 
     {{-- ══════════════════ WATERMARK ══════════════════ --}}
     @if(($settings['pdf_background_mode'] ?? 'header_footer') !== 'letterhead')
         @if(isset($company->logo) && $company->logo)
             <div class="watermark">
-                <img src="{{ storage_base64($company->logo) }}">
+                <div style="background-color: #ffffff; display: inline-block;">
+                    <img src="{{ storage_base64($company->logo) }}">
+                </div>
             </div>
         @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
             <div class="watermark">
-                <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
+                <div style="background-color: #ffffff; display: inline-block;">
+                    <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
+                </div>
             </div>
         @endif
     @endif
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
-        <div class="header-logo-container">
+        <div class="header-logo-container" style="background-color: #ffffff;">
             @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
                 <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
