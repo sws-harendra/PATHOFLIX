@@ -73,12 +73,11 @@
 
         /* ── PATIENT INFO BOX ── */
         .patient-box {
-            border: 1px solid #1a1a1a !important;
             margin: 10px {{ $marginRight }} 0 {{ $marginLeft }};
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            border-radius: 2px;
+            background: transparent !important;
         }
 
         .patient-table {
