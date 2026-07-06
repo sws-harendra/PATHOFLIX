@@ -28,17 +28,11 @@
     @endphp
 
     <style>
-        /* ── RESET ──
-           NOTE: DomPDF does not reliably support `background: transparent`.
-           Instead of leaving areas unpainted it can render them with a grey
-           fallback fill. To avoid any grey/highlighted boxes we explicitly
-           force every element to a solid white background here, and never
-           use the word "transparent" anywhere below. */
+        /* ── RESET ── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            background-color: #ffffff;
         }
 
         html {
@@ -64,7 +58,6 @@
             right: 0;
             height: {{ $marginTop }};
             overflow: hidden;
-            background-color: #ffffff !important;
         }
 
         .header-logo-container {
@@ -74,7 +67,6 @@
             overflow: hidden;
             text-align: center;
             padding: 0;
-            background-color: #ffffff !important;
         }
 
         .header-banner {
@@ -89,20 +81,18 @@
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            background-color: #ffffff !important;
+            background: transparent !important;
         }
 
         .patient-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: #ffffff !important;
         }
 
         .patient-table td {
             padding: 0.5px 2px;
             vertical-align: top;
             line-height: 1.1;
-            background-color: #ffffff !important;
         }
 
         .patient-table .lbl {
@@ -121,7 +111,6 @@
             text-align: center;
             vertical-align: middle;
             width: 12%;
-            background-color: #ffffff !important;
         }
 
         .qr-code {
@@ -129,13 +118,11 @@
             height: 55px;
             display: block;
             margin: 0 auto;
-            background-color: #ffffff !important;
         }
 
         .barcode {
             margin-top: 5px;
             text-align: center;
-            background-color: #ffffff !important;
         }
 
         .barcode-img {
@@ -154,7 +141,6 @@
             height:
                 {{ $footerHeight }}
             ;
-            background-color: #ffffff !important;
         }
 
         /* Signature Table */
@@ -162,7 +148,6 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 5px;
-            background-color: #ffffff !important;
         }
 
         .sig-checked {
@@ -219,14 +204,12 @@
             left: {{ $marginLeft }};
             right: {{ $marginRight }};
             margin: 0;
-            background-color: #ffffff !important;
         }
 
         .multi-sig-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 5px;
-            background-color: #ffffff !important;
         }
 
         .multi-sig-table td {
@@ -285,12 +268,10 @@
             border-collapse: collapse;
             margin-bottom: 8px;
             font-size: 10px;
-            background-color: #ffffff !important;
         }
 
         .result-table tr {
             page-break-inside: avoid;
-            background-color: #ffffff !important;
         }
 
         .result-table thead th {
@@ -302,14 +283,13 @@
             font-size: 10.5px;
             text-transform: uppercase;
             color: #000;
-            background-color: #ffffff !important;
+            background: transparent;
         }
 
         .result-table tbody td {
             padding: 5px 6px;
             vertical-align: top;
             border-bottom: 0.5px solid #eee;
-            background-color: #ffffff !important;
         }
 
         /* Explicitly remove vertical lines */
@@ -330,7 +310,6 @@
             padding: 3px 6px 1px;
             color: #1a1a1a;
             border-bottom: none;
-            background-color: #ffffff !important;
         }
 
         /* Indented parameter rows under sub-headers */
@@ -362,7 +341,6 @@
             font-size: 10px;
             line-height: 1.5;
             page-break-inside: avoid;
-            background-color: #ffffff !important;
         }
 
         .interp-label {
@@ -383,11 +361,10 @@
             border-collapse: collapse;
             margin-top: 4px;
             font-size: 10px;
-            background-color: #ffffff !important;
         }
 
         .interp-content table th {
-            background-color: #ffffff !important;
+            background: transparent;
             border: 1px solid #bbb;
             padding: 3px 6px;
             font-weight: 700;
@@ -399,16 +376,14 @@
             border: 1px solid #bbb;
             padding: 3px 6px;
             font-size: 10px;
-            background-color: #ffffff !important;
         }
 
         .interp-content table tr {
             page-break-inside: avoid;
-            background-color: #ffffff !important;
         }
 
         .interp-content table tr:nth-child(even) {
-            background-color: #ffffff !important;
+            background-color: transparent;
         }
 
         .interp-content p {
@@ -439,7 +414,6 @@
             line-height: 1.5;
             border-top: 1px dashed #ccc;
             page-break-inside: avoid;
-            background-color: #ffffff !important;
         }
 
         .remarks-block table {
@@ -447,7 +421,6 @@
             border-collapse: collapse;
             margin-top: 4px;
             font-size: 10px;
-            background-color: #ffffff !important;
         }
 
         .remarks-block table th {
@@ -455,18 +428,35 @@
             padding: 3px 6px;
             font-weight: 700;
             text-align: left;
-            background-color: #ffffff !important;
         }
 
         .remarks-block table td {
             border: 1px solid #bbb;
             padding: 3px 6px;
-            background-color: #ffffff !important;
+        }
+
+        .doctor-comments {
+            margin: 25px 0 10px;
+            padding: 10px 0;
+            border-top: 1.5px solid #eee;
         }
 
         /* ══════════════════════════════════════════════
            MISC
            ══════════════════════════════════════════════ */
+        .watermark {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1000;
+            opacity: 0.08;
+        }
+
+        .watermark img {
+            width: 280px;
+        }
+
         .page-break {
             page-break-after: always;
         }
@@ -490,7 +480,6 @@
             padding: 6px 0;
             border-top: 1px dashed #ccc;
             font-size: 10px;
-            background-color: #ffffff !important;
         }
     </style>
 </head>
@@ -498,16 +487,18 @@
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000; background-color: #ffffff;">
+            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
+        </div>
     @endif
 
-    {{-- Watermark intentionally removed — it was a common source of the grey/opacity overlay issue under DomPDF. --}}
+    {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
         <div class="header-logo-container">
             @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
-                <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
+                <img class="header-banner" src="{{ $headerImgSrc }}" style="background-color: #ffffff !important;" alt="Header">
             @endif
         </div>
 
@@ -529,7 +520,7 @@
                         @if(isset($barcodeUri))
                             <div class="barcode">
                                 <img src="{{ $barcodeUri }}" class="barcode-img">
-                                <div style="font-size: 8px; margin-top: 1px; font-weight: bold; background-color: #ffffff;">{{ $invoice->invoice_number }}</div>
+                                <div style="font-size: 8px; margin-top: 1px; font-weight: bold;">{{ $invoice->invoice_number }}</div>
                             </div>
                         @endif
                     </td>
