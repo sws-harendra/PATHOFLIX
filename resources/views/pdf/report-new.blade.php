@@ -35,15 +35,11 @@
             box-sizing: border-box;
         }
 
-        html {
-            background-color: #ffffff !important;
-        }
-
         body {
             font-family: {{ $fontFamily }};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
-            background-color: #ffffff !important;
+            background: #fff;
             line-height: 1.45;
             margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }};
         }
@@ -283,7 +279,7 @@
             font-size: 10.5px;
             text-transform: uppercase;
             color: #000;
-            background: transparent;
+            background: #fbfbfb;
         }
 
         .result-table tbody td {
@@ -364,7 +360,7 @@
         }
 
         .interp-content table th {
-            background: transparent;
+            background: #f0f0f0;
             border: 1px solid #bbb;
             padding: 3px 6px;
             font-weight: 700;
@@ -383,7 +379,7 @@
         }
 
         .interp-content table tr:nth-child(even) {
-            background-color: transparent;
+            background-color: #fafafa;
         }
 
         .interp-content p {
@@ -487,18 +483,27 @@
 <body>
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000; background-color: #ffffff;">
-            <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
-        </div>
+        <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
     @endif
 
-    {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
+    {{-- ══════════════════ WATERMARK ══════════════════ --}}
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') !== 'letterhead')
+        @if(isset($company->logo) && $company->logo)
+            <div class="watermark">
+                <img src="{{ storage_base64($company->logo) }}">
+            </div>
+        @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
+            <div class="watermark">
+                <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
+            </div>
+        @endif
+    @endif
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
     <header>
         <div class="header-logo-container">
             @if($headerImgSrc && $showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
-                <img class="header-banner" src="{{ $headerImgSrc }}" style="background-color: #ffffff !important;" alt="Header">
+                <img class="header-banner" src="{{ $headerImgSrc }}" alt="Header">
             @endif
         </div>
 
