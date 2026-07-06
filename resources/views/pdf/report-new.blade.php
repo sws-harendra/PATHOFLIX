@@ -81,7 +81,7 @@
             padding: 8px 10px;
             font-size: 10.5px;
             display: block;
-            background-color: #ffffff !important;
+            /* background-color: #ffffff !important; */
         }
 
         .patient-table {
