@@ -247,7 +247,7 @@
     @endphp
 
     @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
-        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000;">
+        <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000; background-color: #ffffff;">
             <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
         </div>
     @endif
