@@ -98,8 +98,16 @@ Route::get('/bill/{hash}', [\App\Http\Controllers\InvoicePdfController::class, '
 Route::get('/login', Login::class)->name('login');
 Route::get('/forgot-password', \App\Livewire\Auth\ForgotPassword::class)->name('password.request');
 Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)->name('password.reset');
+Route::get('/membership-card/{id}/print', [\App\Http\Controllers\MembershipCardController::class, 'print'])->name('membership.card.print');
 
 
+ // Reports Generation
+            Route::get('/reports', ReportManager::class)->name('reports');
+            Route::get('/reports/entry/{id}', ResultEntryManager::class)->name('reports.entry');
+            Route::get('/reports/print/{id}/{template?}', [\App\Http\Controllers\ReportPdfController::class, 'download'])->name('reports.print');
+
+ Route::get('/invoice/{id}/pdf', [\App\Http\Controllers\InvoicePdfController::class, 'download'])->name('invoice.pdf');
+            Route::get('/invoice/{id}/pdf-plain', [\App\Http\Controllers\InvoicePdfController::class, 'downloadWithoutHeader'])->name('invoice.pdf.plain');
 // ==========================================
 // PROTECTED ROUTES (Must be logged in)
 // ==========================================
@@ -205,15 +213,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/settings', SettingsManager::class)->name('settings');
             Route::get('/audit-logs', \App\Livewire\Lab\AuditLogManager::class)->name('audit-logs')->middleware('can:view audit_logs');
             Route::get('/profile', PartnerProfile::class)->name('profile');
-            Route::get('/invoice/{id}/pdf', [\App\Http\Controllers\InvoicePdfController::class, 'download'])->name('invoice.pdf');
-            Route::get('/invoice/{id}/pdf-plain', [\App\Http\Controllers\InvoicePdfController::class, 'downloadWithoutHeader'])->name('invoice.pdf.plain');
+           
             Route::get('/settings/invoice-preview/{template}', [\App\Http\Controllers\InvoicePdfController::class, 'previewTemplate'])->name('settings.invoice.preview');
 
-            // Reports Generation
-            Route::get('/reports', ReportManager::class)->name('reports');
-            Route::get('/reports/entry/{id}', ResultEntryManager::class)->name('reports.entry');
-            Route::get('/reports/print/{id}/{template?}', [\App\Http\Controllers\ReportPdfController::class, 'download'])->name('reports.print');
-
+           
             // Invoice Print (browser)
             Route::get('/invoice/{id}/print', InvoicePrint::class)->name('invoice.print');
 
@@ -224,7 +227,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/invoice/{id}/barcode-stickers', [\App\Http\Controllers\BarcodeController::class, 'printStickers'])->name('invoice.barcode.stickers');
 
             // Membership Card
-            Route::get('/membership-card/{id}/print', [\App\Http\Controllers\MembershipCardController::class, 'print'])->name('membership.card.print');
+            
 
             // Inventory Management
             Route::prefix('inventory')->name('inventory.')->middleware('can:view inventory')->group(function () {
