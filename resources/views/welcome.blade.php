@@ -588,23 +588,26 @@
 
     </div>
     <!-- Floating APK Download Button -->
+<!-- Desktop -->
 <a href="{{ asset('apk/pathoflix.apk') }}"
    download
-   class="fixed bottom-6 right-6 z-[9999] group">
-
-    <div class="flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white px-5 py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-105">
-
-        <i class="feather-download text-xl"></i>
-
-        <div class="hidden sm:block">
-            <div class="text-[10px] uppercase tracking-wider font-semibold">
-                Android App
-            </div>
-            <div class="text-sm font-bold">
-                Download APK
-            </div>
-        </div>
-
+   class="fixed bottom-6 right-6 z-[9999] hidden lg:block">
+  <div class="bg-green-600 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2">
+        <i class="feather-download"></i>
+        <span class="font-bold text-sm">Download App</span>
     </div>
+</a>
+
+<!-- Mobile -->
+<a href="{{ asset('apk/pathoflix.apk') }}"
+   download
+   class="fixed bottom-5 right-5 z-[9999] lg:hidden">
+
+    <div class="bg-green-600 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2">
+        <i class="feather-download"></i>
+        <span class="font-bold text-sm">Download App</span>
+    </div>
+
+</a>
 </a>
 </x-landing-layout>
