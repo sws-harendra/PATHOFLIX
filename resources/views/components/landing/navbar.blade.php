@@ -90,7 +90,7 @@
           <a href="{{ asset('apk/pathoflix.apk') }}"
    download
    @click="open = false"
-   class="w-full text-center py-3.5 rounded-full font-bold text-xs uppercase tracking-wider text-white bg-green-600 hover:bg-green-700 transition-all">
+   class="w-full text-center py-3.5 px-3 rounded-full font-bold text-xs uppercase tracking-wider text-white bg-green-600 hover:bg-green-700 transition-all">
     Download App
 </a>     <!-- <a href="{{ url('/#contact') }}"
                    :class="scrolled ? 'py-2 px-5 text-[10px]' : 'py-3 px-6 text-xs'"
