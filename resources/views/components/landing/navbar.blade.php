@@ -87,12 +87,12 @@
                    class="hidden lg:flex uppercase tracking-wider font-bold text-white bg-[#C70000] hover:bg-[#b91c1c] rounded-full transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 shadow-md shadow-[#C70000]/10 whitespace-nowrap">                   
                 Log In
                 </a>
-          <a href="{{ asset('apk/pathoflix.apk') }}"
+          <!-- <a href="{{ asset('apk/pathoflix.apk') }}"
    download
    @click="open = false"
    class="w-full text-center py-3.5 px-3 rounded-full font-bold text-xs uppercase tracking-wider text-white bg-green-600 hover:bg-green-700 transition-all">
     Download App
-</a>     <!-- <a href="{{ url('/#contact') }}"
+</a>     <a href="{{ url('/#contact') }}"
                    :class="scrolled ? 'py-2 px-5 text-[10px]' : 'py-3 px-6 text-xs'"
                    class="hidden lg:flex uppercase tracking-wider font-bold text-white bg-[#C70000] hover:bg-[#b91c1c] rounded-full transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 shadow-md shadow-[#C70000]/10 whitespace-nowrap">
                     Contact Us
