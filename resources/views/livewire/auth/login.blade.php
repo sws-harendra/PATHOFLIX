@@ -6,7 +6,7 @@
     // Split name for styling
     $nameParts = explode(' ', $siteName);
     $firstName = $nameParts[0] ?? 'SWS';
-    $lastName = implode(' ', array_slice($nameParts, 1)) ?: 'Pathology';
+    $lastName = implode(' ', array_slice($nameParts, 1));
 @endphp
 
 <div class="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col lg:flex-row font-sans selection:bg-brand-500 selection:text-white transition-colors duration-300">
@@ -41,7 +41,7 @@
                     </div>
                     <span
                         class="font-display font-bold text-2xl tracking-tight text-white uppercase transition-all duration-300">
-                        {{ $firstName }} <span class="text-brand-400">{{ $lastName }}</span>
+                        {{ $firstName }}
                     </span>
                 </div>
 
@@ -87,7 +87,7 @@
                 </div>
                 <span
                     class="font-display font-bold text-xl tracking-tight text-zinc-900 dark:text-white uppercase transition-all duration-300">
-                    {{ $firstName }} <span class="text-brand-600">{{ $lastName }}</span>
+                    {{ $firstName }}
                 </span>
             </div>
 
@@ -138,30 +138,44 @@
                     </p> @enderror
                 </div>
 
-                <!-- Password -->
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center px-1">
-                        <label class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Secret</label>
-                        <a href="{{ route('password.request') }}" wire:navigate
-                            class="text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors">Forgot
-                            Password?</a>
-                    </div>
-                    <div class="relative group">
-                        <div
-                            class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
-                        </div>
-                        <input type="password" wire:model="password" placeholder="••••••••"
-                            class="block w-full pl-14 pr-5 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
-                            required>
-                    </div>
-                    @error('password') <p
-                        class="text-[10px] font-bold text-red-500 ml-1 uppercase tracking-wider animate-shake">
-                        {{ $message }}
-                    </p> @enderror
-                </div>
+              <div class="relative group" x-data="{ show: false }">
+    <div
+        class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-brand-600 transition-colors text-zinc-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+            </path>
+        </svg>
+    </div>
+
+    <input :type="show ? 'text' : 'password'"
+        wire:model="password"
+        placeholder="••••••••"
+        class="block w-full pl-14 pr-14 py-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-hidden focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all font-medium text-zinc-900 dark:text-white shadow-xs"
+        required>
+
+    <button type="button"
+        @click="show = !show"
+        class="absolute inset-y-0 right-0 pr-5 flex items-center text-zinc-400 hover:text-brand-600">
+
+        <!-- Eye Open -->
+        <svg x-show="!show" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+
+        <!-- Eye Closed -->
+        <svg x-show="show" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3l18 18"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.477 10.489A3 3 0 0013.5 13.5"/>
+        </svg>
+
+    </button>
+</div>
 
                 <!-- Remember Me -->
                 <div class="flex items-center px-1 justify-between">
