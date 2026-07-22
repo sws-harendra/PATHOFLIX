@@ -152,6 +152,7 @@ class ReportPdfController extends Controller
             'pdf_show_method' => Configuration::getFor('pdf_show_method', '1', $companyId) === '1',
             'pdf_vertical_spacing' => Configuration::getFor('pdf_vertical_spacing', 5, $companyId),
             'pdf_signature_offset' => Configuration::getFor('pdf_signature_offset', 185, $companyId),
+            'pdf_page_break_mode' => Configuration::getFor('pdf_page_break_mode', 'test', $companyId),
         ];
 
         // Determine final visibility (Setting toggle AND override via URL)
