@@ -659,7 +659,7 @@
             <div class="test-title" style="margin-bottom: 12px; font-size: 11.5px;">{{ strtoupper($testName) }}</div>
 
             {{-- ── Method (from LabTest master) ── --}}
-            @if($labTest->method)
+            @if($labTest && $labTest->method)
                 <div class="method-line">Method: {{ $labTest->method }}</div>
             @endif
 
@@ -836,14 +836,14 @@
             @endif
 
             {{-- ── Method (per-result level, if different from test master) ── --}}
-            @if($results && $results->count() > 0 && $results->first()->method && $results->first()->method !== $labTest->method)
+            @if($results && $results->count() > 0 && $results->first()->method && $labTest && $results->first()->method !== $labTest->method)
                 <p style="font-size:9px; color:#555; font-style:italic; margin-bottom:5px;">
                     <strong>Method:</strong> {{ $results->first()->method }}
                 </p>
             @endif
 
             {{-- ── Default Interpretation (from LabTest master — stored as HTML) ── --}}
-            @if($labTest->interpretation)
+            @if($labTest && $labTest->interpretation)
                 <div class="interp-block">
                     <div class="interp-label">Interpretation:</div>
                     <div class="interp-content">
@@ -853,7 +853,7 @@
             @endif
 
             {{-- ── Description / Note (from LabTest master — plain text) ── --}}
-            @if($labTest->description)
+            @if($labTest && $labTest->description)
                 <div class="interp-block" style="color:#555;">
                     <div class="interp-label" style="color:#333;">Note:</div>
                     <div class="interp-content">

@@ -180,8 +180,9 @@
                                                  </a>
                                              @endcan
 
+                                             @if($invoice->testReport)
                                              <div class="dropdown {{ $loop->remaining < 2 ? 'dropup' : '' }}">
-                                                 <button class="btn btn-sm {{ ($invoice->testReport && $invoice->testReport->status === 'Approved') ? 'btn-success' : 'btn-outline-primary' }} dropdown-toggle fs-11" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
+                                                 <button class="btn btn-sm {{ ($invoice->testReport->status === 'Approved') ? 'btn-success' : 'btn-outline-primary' }} dropdown-toggle fs-11" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                                                      <i class="feather-printer me-1"></i> Print
                                                  </button>
                                                  <ul class="dropdown-menu dropdown-menu-end shadow border-0">
@@ -194,6 +195,7 @@
                                                      <li><button type="button" class="dropdown-item fs-12 text-dark" wire:click="printSelected({{ $invoice->id }}, 0)"><i class="feather-check-square me-2"></i> Without Header</button></li>
                                                  </ul>
                                              </div>
+                                             @endif
 
                                             {{-- WhatsApp Share --}}
                                             <div class="dropdown {{ $loop->remaining < 2 ? 'dropup' : '' }}">

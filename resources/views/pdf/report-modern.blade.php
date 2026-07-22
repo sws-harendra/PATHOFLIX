@@ -340,7 +340,7 @@
                     <tr>
                         <td colspan="4" class="test-title">
                             {{ $testName }}
-                            @if($labTest->method)
+                            @if($labTest && $labTest->method)
                                 <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
                             @endif
                         </td>
@@ -439,7 +439,7 @@
                         </tr>
                     @endforeach
                     @endif
-                    @if($labTest->description)
+                    @if($labTest && $labTest->description)
                         <tr>
                             <td colspan="4" style="padding-left: 15px; padding-top: 5px; padding-bottom: 5px; font-size: 10px; color: #555;">
                                 <strong>Note:</strong> <br>
@@ -447,7 +447,7 @@
                             </td>
                         </tr>
                     @endif
-                    @if($labTest->interpretation)
+                    @if($labTest && $labTest->interpretation)
                         <tr>
                             <td colspan="4" class="interpretation-block" style="padding-left: 15px; padding-top: 5px; padding-bottom: 15px; font-size: 11px; color: #333;">
                                 <strong>Interpretation:</strong> <br>
