@@ -75,15 +75,25 @@ class ReportManager extends Component
 
     public function printSelected($invoiceId, $withHeader = 1)
     {
-        if (empty($this->selectedTests)) {
-            $this->dispatch('notify', ['type' => 'error', 'message' => 'Please select at least one test to print.']);
+        $invoice = Invoice::with('items')->find($invoiceId);
+        $testIds = $this->selectedTests;
+
+        if (empty($testIds) && $invoice) {
+            // Auto-select completed test items for this invoice if none checked
+            $testIds = $invoice->items->where('status', 'Completed')->pluck('id')->toArray();
+            if (empty($testIds)) {
+                $testIds = $invoice->items->pluck('id')->toArray();
+            }
+        }
+
+        if (empty($testIds)) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'No test results available to print.']);
             return;
         }
 
-        // Printing proceeds regardless of image presence to allow for physical letterhead space
-        $testIds = is_array($this->selectedTests) ? implode(',', $this->selectedTests) : $this->selectedTests;
+        $idsString = is_array($testIds) ? implode(',', $testIds) : $testIds;
         $url = route('lab.reports.print', ['id' => $invoiceId, 'template' => 'new'])
-             . '?tests=' . $testIds
+             . '?tests=' . $idsString
              . '&header=' . ($withHeader ? '1' : '0');
         
         $this->dispatch('open-new-tab', ['url' => $url]);

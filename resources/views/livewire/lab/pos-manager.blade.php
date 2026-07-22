@@ -480,7 +480,7 @@
                         <div class="card-body p-3">
                             <select class="form-select-pos" wire:change="addTestToCart($event.target.value)">
                                 <option value="">Select Package</option>
-                                @foreach(\App\Models\LabTest::where('is_package', true)->get() as $pkg)
+                                @foreach(\App\Models\LabTest::where('company_id', auth()->user()->company_id)->where('is_package', true)->where('is_active', true)->orderBy('name')->get() as $pkg)
                                     <option value="{{ $pkg->id }}">{{ $pkg->name }}</option>
                                 @endforeach
                             </select>

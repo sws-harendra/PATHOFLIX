@@ -110,7 +110,8 @@
                                 <table class="table table-sm align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr class="fs-10 text-uppercase text-muted fw-bold">
-                                            <th class="ps-3 py-3" style="min-width: 180px;">Param Name</th>
+                                            <th class="ps-2 py-3 text-center" style="width: 70px;">Order</th>
+                                            <th style="min-width: 180px;">Param Name</th>
                                             <th style="min-width: 70px;">Code</th>
                                             <th style="min-width: 120px;">Method</th>
                                             <th style="min-width: 100px;">Input</th>
@@ -120,8 +121,41 @@
                                     </thead>
                                     <tbody>
                                         @foreach($parameters as $index => $param)
-                                            <tr wire:key="param-d-{{ $index }}" class="border-bottom border-white">
-                                                <td class="ps-3 py-2">
+                                            <tr wire:key="param-d-{{ $index }}" 
+                                                draggable="true"
+                                                x-data="{ isDragging: false }"
+                                                @dragstart="e => { e.dataTransfer.setData('text/plain', {{ $index }}); isDragging = true; }"
+                                                @dragend="isDragging = false"
+                                                @dragover.prevent
+                                                @drop.prevent="e => { 
+                                                    let from = parseInt(e.dataTransfer.getData('text/plain')); 
+                                                    let to = {{ $index }}; 
+                                                    if (!isNaN(from) && from !== to) { 
+                                                        $wire.reorderParameters(from, to); 
+                                                    } 
+                                                }"
+                                                :class="{ 'bg-soft-primary opacity-50': isDragging }"
+                                                class="border-bottom border-white">
+                                                <td class="ps-2 py-2 text-center align-middle">
+                                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                                        <span class="text-muted cursor-move" style="cursor: grab;" title="Drag to reorder">
+                                                            <i class="feather-grid fs-12"></i>
+                                                        </span>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <button type="button" wire:click="moveParameterUp({{ $index }})" 
+                                                                class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                {{ $index === 0 ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
+                                                                <i class="feather-chevron-up fs-11"></i>
+                                                            </button>
+                                                            <button type="button" wire:click="moveParameterDown({{ $index }})" 
+                                                                class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                {{ $index === count($parameters) - 1 ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
+                                                                <i class="feather-chevron-down fs-11"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
                                                     <input type="text" class="form-control form-control-sm @error('parameters.' . $index . '.name') is-invalid @enderror" 
                                                         wire:model="parameters.{{ $index }}.name" placeholder="Parameter Name">
                                                 </td>
@@ -167,9 +201,19 @@
                                 @foreach($parameters as $index => $param)
                                     <div wire:key="param-m-{{ $index }}" class="card border shadow-sm rounded-3 mb-2">
                                         <div class="card-body p-3">
-                                            {{-- Row 1: Name + Delete --}}
+                                            {{-- Row 1: Order + Move Up/Down + Name + Delete --}}
                                             <div class="d-flex align-items-center gap-2 mb-2">
-                                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold fs-10 px-2">{{ $index + 1 }}</span>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold fs-10 px-2 flex-shrink-0">{{ $index + 1 }}</span>
+                                                <div class="btn-group btn-group-sm flex-shrink-0">
+                                                    <button type="button" wire:click="moveParameterUp({{ $index }})" 
+                                                        class="btn btn-soft-secondary btn-sm py-0 px-2 border-0" {{ $index === 0 ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
+                                                        <i class="feather-chevron-up"></i>
+                                                    </button>
+                                                    <button type="button" wire:click="moveParameterDown({{ $index }})" 
+                                                        class="btn btn-soft-secondary btn-sm py-0 px-2 border-0" {{ $index === count($parameters) - 1 ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
+                                                        <i class="feather-chevron-down"></i>
+                                                    </button>
+                                                </div>
                                                 <input type="text" class="form-control form-control-sm flex-grow-1 @error('parameters.' . $index . '.name') is-invalid @enderror" 
                                                     wire:model="parameters.{{ $index }}.name" placeholder="Parameter Name">
                                                 <button type="button" wire:click="removeParameter({{ $index }})" class="btn btn-icon btn-soft-danger btn-sm border-0 flex-shrink-0">

@@ -86,10 +86,11 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="width: 30%">Test Parameter</th>
+                                <th style="width: 70px;" class="text-center">Order</th>
+                                <th style="width: 28%">Test Parameter</th>
                                 <th style="width: 25%">Result Value</th>
-                                <th style="width: 15%">Unit</th>
-                                <th style="width: 20%">Reference Range</th>
+                                <th style="width: 12%">Unit</th>
+                                <th style="width: 18%">Reference Range</th>
                                 <th style="width: 10%" class="text-center">Highlight</th>
                             </tr>
                         </thead>
@@ -97,7 +98,7 @@
                             @foreach($groupedParams as $dept => $billItems)
                                 {{-- Department Header --}}
                                 <tr>
-                                    <td colspan="5" class="bg-primary text-white py-2 fs-13 fw-bold">
+                                    <td colspan="6" class="bg-primary text-white py-2 fs-13 fw-bold">
                                         <i class="feather-layers me-2"></i>{{ strtoupper($dept) }}
                                     </td>
                                 </tr>
@@ -112,7 +113,7 @@
                                     {{-- Bill Item Header (Package or Single Test) --}}
                                     @if($testItem && $testItem->labTest && $testItem->labTest->is_package)
                                         <tr>
-                                            <td colspan="5" class="bg-soft-primary py-2 fs-12 fw-bold text-dark border-bottom">
+                                            <td colspan="6" class="bg-soft-primary py-2 fs-12 fw-bold text-dark border-bottom">
                                                 <div class="d-flex align-items-center justify-content-between px-2">
                                                     <div class="d-flex align-items-center">
                                                         <input type="checkbox" class="form-check-input me-2" 
@@ -142,7 +143,7 @@
                                         
                                         {{-- Test Name Subheader --}}
                                         <tr>
-                                            <td colspan="5" class="bg-light py-2 fs-12 fw-bold text-dark border-bottom">
+                                            <td colspan="6" class="bg-light py-2 fs-12 fw-bold text-dark border-bottom">
                                                 <div class="d-flex align-items-center justify-content-between px-3">
                                                     <div class="d-flex align-items-center">
                                                         @if(!($testItem->labTest->is_package ?? false))
@@ -175,7 +176,7 @@
                                              {{-- CULTURE TEST UI --}}
                                              @php $cKey = $params->first()['key']; @endphp
                                              <tr>
-                                                 <td colspan="5" class="bg-light pb-4 border-bottom">
+                                                 <td colspan="6" class="bg-light pb-4 border-bottom">
                                                      <div class="card border border-info shadow-sm">
                                                          <div class="card-header bg-soft-info py-2">
                                                              <h6 class="mb-0 text-info fs-12 fw-bold"><i class="feather-microscope me-2"></i>Microbiology Culture Report</h6>
@@ -341,68 +342,101 @@
                                                  </td>
                                              </tr>
                                         @else
-                                        @foreach($params as $p)
-                                             @php
-                                                 $paramKey = $p['key'];
-                                                 $isHigh = $highlights[$paramKey] ?? false;
-                                             @endphp
-                                             <tr class="{{ $isHigh ? 'table-danger' : '' }}" wire:key="param-{{ $paramKey }}">
-                                                 <td class="fw-bold fs-12 ps-4">
-                                                     <div class="d-flex align-items-center">
-                                                         {{ $p['name'] }}
-                                                         @if($isHigh)
-                                                             @php $f = $flags[$paramKey] ?? 'Abn'; @endphp
-                                                             <span class="ms-2 badge {{ in_array($f, ['H', 'Abn']) ? 'bg-danger' : 'bg-warning text-dark' }} px-2" style="font-size: 10px;">
-                                                                 {{ $f === 'H' ? 'High' : ($f === 'L' ? 'Low' : 'Abnormal') }}
-                                                             </span>
-                                                         @endif
-                                                     </div>
-                                                     @if(!empty($p['short_code']))
-                                                         <div class="fs-10 text-muted">Code: {{ $p['short_code'] }}</div>
-                                                     @endif
-                                                 </td>
-                                                 <td>
-                                                     <div class="input-group input-group-sm w-100">
-                                                         @if(($p['input_type'] ?? 'numeric') === 'selection')
-                                                             <select class="form-select {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
-                                                                     wire:model.live="results.{{ $paramKey }}">
-                                                                 <option value="">Select Result</option>
-                                                                 @foreach($p['options'] ?? [] as $opt)
-                                                                     <option value="{{ $opt }}">{{ $opt }}</option>
-                                                                 @endforeach
-                                                             </select>
-                                                         @elseif(($p['input_type'] ?? 'numeric') === 'calculated')
-                                                             <input type="text" class="form-control bg-light fw-bold text-primary border-primary border-opacity-25" 
-                                                                    wire:model="results.{{ $paramKey }}" readonly title="Auto-Calculated">
-                                                             <span class="input-group-text bg-soft-primary"><i class="feather-cpu" style="font-size: 10px;"></i></span>
-                                                         @else
-                                                             <input type="text" class="form-control {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
-                                                                    wire:model.live.debounce.500ms="results.{{ $paramKey }}">
-                                                         @endif
+                                              @foreach($params as $p)
+                                              @php
+                                                  $paramKey = $p['key'];
+                                                  $isHigh = $highlights[$paramKey] ?? false;
+                                              @endphp
+                                              <tr class="{{ $isHigh ? 'table-danger' : '' }}" 
+                                                  wire:key="param-{{ $paramKey }}"
+                                                  draggable="true"
+                                                  x-data="{ isDragging: false }"
+                                                  @dragstart="e => { e.dataTransfer.setData('text/plain', '{{ $paramKey }}'); isDragging = true; }"
+                                                  @dragend="isDragging = false"
+                                                  @dragover.prevent
+                                                  @drop.prevent="e => { 
+                                                      let fromKey = e.dataTransfer.getData('text/plain'); 
+                                                      let toKey = '{{ $paramKey }}'; 
+                                                      if (fromKey && fromKey !== toKey) { 
+                                                          $wire.reorderParameters(fromKey, toKey); 
+                                                      } 
+                                                  }"
+                                                  :class="{ 'bg-soft-primary opacity-50': isDragging }">
+                                                  <td class="text-center align-middle py-1 ps-2">
+                                                      <div class="d-flex align-items-center justify-content-center gap-1">
+                                                          <span class="text-muted cursor-move" style="cursor: grab;" title="Drag to reorder">
+                                                              <i class="feather-grid fs-12"></i>
+                                                          </span>
+                                                          <div class="d-flex flex-column gap-1">
+                                                              <button type="button" wire:click="moveParameterUp('{{ $paramKey }}')" 
+                                                                  class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                  {{ $loop->first ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
+                                                                  <i class="feather-chevron-up fs-11"></i>
+                                                              </button>
+                                                              <button type="button" wire:click="moveParameterDown('{{ $paramKey }}')" 
+                                                                  class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                  {{ $loop->last ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
+                                                                  <i class="feather-chevron-down fs-11"></i>
+                                                              </button>
+                                                          </div>
+                                                      </div>
+                                                  </td>
+                                                  <td class="fw-bold fs-12 ps-3">
+                                                      <div class="d-flex align-items-center">
+                                                          {{ $p['name'] }}
+                                                          @if($isHigh)
+                                                              @php $f = $flags[$paramKey] ?? 'Abn'; @endphp
+                                                              <span class="ms-2 badge {{ in_array($f, ['H', 'Abn']) ? 'bg-danger' : 'bg-warning text-dark' }} px-2" style="font-size: 10px;">
+                                                                  {{ $f === 'H' ? 'High' : ($f === 'L' ? 'Low' : 'Abnormal') }}
+                                                              </span>
+                                                          @endif
+                                                      </div>
+                                                      @if(!empty($p['short_code']))
+                                                          <div class="fs-10 text-muted">Code: {{ $p['short_code'] }}</div>
+                                                      @endif
+                                                  </td>
+                                                  <td>
+                                                      <div class="input-group input-group-sm w-100">
+                                                          @if(($p['input_type'] ?? 'numeric') === 'selection')
+                                                              <select class="form-select {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
+                                                                      wire:model.live="results.{{ $paramKey }}">
+                                                                  <option value="">Select Result</option>
+                                                                  @foreach($p['options'] ?? [] as $opt)
+                                                                      <option value="{{ $opt }}">{{ $opt }}</option>
+                                                                  @endforeach
+                                                              </select>
+                                                          @elseif(($p['input_type'] ?? 'numeric') === 'calculated')
+                                                              <input type="text" class="form-control bg-light fw-bold text-primary border-primary border-opacity-25" 
+                                                                     wire:model="results.{{ $paramKey }}" readonly title="Auto-Calculated">
+                                                              <span class="input-group-text bg-soft-primary"><i class="feather-cpu" style="font-size: 10px;"></i></span>
+                                                          @else
+                                                              <input type="text" class="form-control {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
+                                                                     wire:model.live.debounce.500ms="results.{{ $paramKey }}">
+                                                          @endif
 
-                                                         @if($isHigh && isset($flags[$paramKey]) && !in_array($p['input_type'] ?? '', ['selection', 'calculated']))
-                                                             <span class="input-group-text bg-danger text-white border-danger fw-bold fs-11 px-2">
-                                                                 {{ $flags[$paramKey] }}
-                                                             </span>
-                                                         @endif
-                                                     </div>
-                                                 </td>
-                                                 <td class="fs-12 text-muted">{{ $p['unit'] }}</td>
-                                                 <td class="fs-12 fw-medium text-dark">{{ $p['ref_range'] ?: '-' }}</td>
-                                                 <td class="text-center">
-                                                     <div class="form-check form-switch d-flex justify-content-center">
-                                                         <input class="form-check-input" type="checkbox" 
-                                                                wire:model.live="highlights.{{ $paramKey }}" 
-                                                                style="width: 2.5em; height: 1.25em;">
-                                                     </div>
-                                                 </td>
-                                             </tr>
-                                         @endforeach
-                                         @endif
+                                                          @if($isHigh && isset($flags[$paramKey]) && !in_array($p['input_type'] ?? '', ['selection', 'calculated']))
+                                                              <span class="input-group-text bg-danger text-white border-danger fw-bold fs-11 px-2">
+                                                                  {{ $flags[$paramKey] }}
+                                                              </span>
+                                                          @endif
+                                                      </div>
+                                                  </td>
+                                                  <td class="fs-12 text-muted">{{ $p['unit'] }}</td>
+                                                  <td class="fs-12 fw-medium text-dark">{{ $p['ref_range'] ?: '-' }}</td>
+                                                  <td class="text-center">
+                                                      <div class="form-check form-switch d-flex justify-content-center">
+                                                          <input class="form-check-input" type="checkbox" 
+                                                                 wire:model.live="highlights.{{ $paramKey }}" 
+                                                                 style="width: 2.5em; height: 1.25em;">
+                                                      </div>
+                                                  </td>
+                                              </tr>
+                                          @endforeach
+                                          @endif
 
                                         {{-- Granular Remark Editor (Inside Test Loop) --}}
                                         <tr wire:key="remark-{{ $itemId }}-{{ $labTestId }}">
-                                            <td colspan="5" class="bg-light p-3 border-bottom" wire:ignore>
+                                            <td colspan="6" class="bg-light p-3 border-bottom" wire:ignore>
                                                 <label class="form-label fw-bold fs-11 text-muted text-uppercase mb-1">
                                                     <i class="feather-align-left me-1 text-primary"></i>Interpretation for {{ $testName }}
                                                 </label>
