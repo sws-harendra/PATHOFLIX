@@ -711,6 +711,58 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Watermark & Typography Spacing --}}
+                            <div class="row g-4 mt-2">
+                                <div class="col-12">
+                                    <div class="card border border-light-subtle rounded-4 bg-white shadow-sm">
+                                        <div class="card-body p-4">
+                                            <h6 class="fw-bolder mb-3"><i class="feather-droplet text-primary me-2"></i>Watermark & Spacing</h6>
+                                            <div class="row g-4">
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="pdfShowWatermark" wire:model="pdf_show_watermark">
+                                                        <label class="form-check-label fw-bold" for="pdfShowWatermark">Enable Background Watermark</label>
+                                                    </div>
+
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="pdfShowMethod" wire:model="pdf_show_method">
+                                                        <label class="form-check-label fw-bold" for="pdfShowMethod">Show Test Method on Reports</label>
+                                                    </div>
+                                                    
+                                                    <div class="p-3 bg-light rounded-4 text-center border-dashed border-2">
+                                                        @if($pdf_watermark_image)
+                                                            <img src="{{ secure_storage_url($pdf_watermark_image) }}" alt="Watermark" class="img-fluid rounded shadow-sm mb-3" style="max-height:100px;">
+                                                            <div>
+                                                                <button wire:click="$set('pdf_watermark_image', null)" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">Remove Image</button>
+                                                            </div>
+                                                        @elseif($new_watermark_image)
+                                                            <img src="{{ $new_watermark_image->temporaryUrl() }}" alt="Preview" class="img-fluid rounded shadow-sm mb-3" style="max-height:100px;">
+                                                            <div class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">New Watermark Ready</div>
+                                                        @else
+                                                            <div class="py-3">
+                                                                <i class="feather-upload-cloud text-muted fs-3 mb-2"></i>
+                                                                <p class="text-muted fs-12 mb-0">Upload a watermark image (will be centered in background)</p>
+                                                            </div>
+                                                        @endif
+                                                        <input type="file" wire:model="new_watermark_image" accept="image/*" class="form-control form-control-sm border-light rounded-3 mt-2 fs-13">
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <label class="form-label fs-13 text-muted">Report Vertical Spacing (Padding in px)</label>
+                                                    <input type="number" wire:model="pdf_vertical_spacing" class="form-control mb-3" placeholder="e.g. 5" min="0" max="20">
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Increase this value to add more space between test parameters.</small>
+                                                    
+                                                    <label class="form-label fs-13 text-muted mt-3">Signature Bottom Offset (in px)</label>
+                                                    <input type="number" wire:model="pdf_signature_offset" class="form-control mb-2" placeholder="e.g. 185">
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Adjust to move the signature block up or down (Default is 185).</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         @can('edit settings')

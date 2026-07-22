@@ -25,6 +25,8 @@
         
         $fontSize     = ($settings['pdf_font_size'] ?? 13) . 'px';
         $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
+        $verticalSpacing = ($settings['pdf_vertical_spacing'] ?? 5) . 'px';
+        $signatureOffset = ($settings['pdf_signature_offset'] ?? 185) . 'px';
     @endphp
 
     <style>
@@ -201,7 +203,7 @@
         /* ── Multi-Signature Row ── */
         .sig-container {
             position: absolute;
-            bottom: 185px; /* Positioned just above the footer banner */
+            bottom: {{ $signatureOffset }};
             left: {{ $marginLeft }};
             right: {{ $marginRight }};
             margin: 0;
@@ -288,7 +290,7 @@
         }
 
         .result-table tbody td {
-            padding: 5px 6px;
+            padding: {{ $verticalSpacing }} 6px;
             vertical-align: top;
             border-bottom: 0.5px solid #eee;
         }
@@ -487,21 +489,15 @@
 
 <body>
 
-    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'] && $showHeader)
         <img src="{{ $settings['pdf_letterhead_image'] }}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: -1000;" alt="Letterhead">
     @endif
 
     {{-- ══════════════════ WATERMARK ══════════════════ --}}
-    @if(($settings['pdf_background_mode'] ?? 'header_footer') !== 'letterhead')
-        @if(isset($company->logo) && $company->logo)
-            <div class="watermark">
-                <img src="{{ storage_base64($company->logo) }}">
-            </div>
-        @elseif(file_exists(public_path('assets/images/healthcare-logo.png')))
-            <div class="watermark">
-                <img src="{{ public_path('assets/images/healthcare-logo.png') }}">
-            </div>
-        @endif
+    @if(($settings['pdf_show_watermark'] ?? false) && !empty($settings['pdf_watermark_image']))
+        <div class="watermark">
+            <img src="{{ $settings['pdf_watermark_image'] }}">
+        </div>
     @endif
 
     {{-- ══════════════════ FIXED HEADER ══════════════════ --}}
@@ -659,7 +655,7 @@
             <div class="test-title" style="margin-bottom: 12px; font-size: 11.5px;">{{ strtoupper($testName) }}</div>
 
             {{-- ── Method (from LabTest master) ── --}}
-            @if($labTest && $labTest->method)
+            @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
                 <div class="method-line">Method: {{ $labTest->method }}</div>
             @endif
 

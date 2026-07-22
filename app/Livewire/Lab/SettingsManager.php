@@ -82,6 +82,12 @@ class SettingsManager extends Component
     public $pdf_margin_right = 25;
     public $pdf_header_height = 200;
     public $pdf_footer_height = 180;
+    public $pdf_show_watermark = false;
+    public $pdf_show_method = true;
+    public $pdf_watermark_image;
+    public $new_watermark_image;
+    public $pdf_vertical_spacing = 5;
+    public $pdf_signature_offset = 185;
 
     public $pdfSaved = false;
 
@@ -148,6 +154,11 @@ class SettingsManager extends Component
         // PDF header/footer
         $this->pdf_show_header = Configuration::getFor('pdf_show_header', '1') === '1';
         $this->pdf_show_footer = Configuration::getFor('pdf_show_footer', '1') === '1';
+        $this->pdf_show_watermark = Configuration::getFor('pdf_show_watermark', '0') === '1';
+        $this->pdf_show_method = Configuration::getFor('pdf_show_method', '1') === '1';
+        $this->pdf_watermark_image = Configuration::getFor('pdf_watermark_image', null);
+        $this->pdf_vertical_spacing = (int) Configuration::getFor('pdf_vertical_spacing', 5);
+        $this->pdf_signature_offset = (int) Configuration::getFor('pdf_signature_offset', 185);
         $this->pdf_background_mode = Configuration::getFor('pdf_background_mode', 'header_footer');
         $this->pdf_header_image = Configuration::getFor('pdf_header_image', null);
         $this->pdf_footer_image = Configuration::getFor('pdf_footer_image', null);
@@ -379,6 +390,12 @@ class SettingsManager extends Component
             $this->new_letterhead_image = null;
         }
 
+        // Upload watermark image
+        if (is_object($this->new_watermark_image) && method_exists($this->new_watermark_image, 'store')) {
+            $this->pdf_watermark_image = $this->new_watermark_image->store('invoice-watermarks');
+            $this->new_watermark_image = null;
+        }
+
         // Upload signature image
         if (is_object($this->new_signature_image) && method_exists($this->new_signature_image, 'store')) {
             $this->signature_image = $this->new_signature_image->store('signatures');
@@ -386,10 +403,13 @@ class SettingsManager extends Component
         }
 
         Configuration::setFor('pdf_show_footer', $this->pdf_show_footer ? '1' : '0');
+        Configuration::setFor('pdf_show_watermark', $this->pdf_show_watermark ? '1' : '0');
+        Configuration::setFor('pdf_show_method', $this->pdf_show_method ? '1' : '0');
         Configuration::setFor('pdf_background_mode', $this->pdf_background_mode);
         Configuration::setFor('pdf_header_image', $this->pdf_header_image);
         Configuration::setFor('pdf_footer_image', $this->pdf_footer_image);
         Configuration::setFor('pdf_letterhead_image', $this->pdf_letterhead_image);
+        Configuration::setFor('pdf_watermark_image', $this->pdf_watermark_image);
         
         // Layout & Typography
         Configuration::setFor('pdf_font_size', $this->pdf_font_size);
@@ -400,6 +420,8 @@ class SettingsManager extends Component
         Configuration::setFor('pdf_margin_right', $this->pdf_margin_right);
         Configuration::setFor('pdf_header_height', $this->pdf_header_height);
         Configuration::setFor('pdf_footer_height', $this->pdf_footer_height);
+        Configuration::setFor('pdf_vertical_spacing', $this->pdf_vertical_spacing);
+        Configuration::setFor('pdf_signature_offset', $this->pdf_signature_offset);
         
         Configuration::setFor('authorized_signatory_name', $this->authorized_signatory_name);
         Configuration::setFor('authorized_signatory_designation', $this->authorized_signatory_designation);
