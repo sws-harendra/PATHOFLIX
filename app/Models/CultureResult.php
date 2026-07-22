@@ -18,6 +18,16 @@ class CultureResult extends Model
         'remarks'
     ];
 
+    public function getLabTestIdAttribute($value)
+    {
+        return (!empty($value) && is_numeric($value)) ? (int)$value : null;
+    }
+
+    public function setLabTestIdAttribute($value)
+    {
+        $this->attributes['lab_test_id'] = (!empty($value) && is_numeric($value)) ? (int)$value : null;
+    }
+
     public function testReport()
     {
         return $this->belongsTo(TestReport::class);

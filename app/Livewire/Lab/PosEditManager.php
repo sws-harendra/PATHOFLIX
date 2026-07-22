@@ -341,7 +341,15 @@ class PosEditManager extends Component
     // ==========================================
     public function addTestToCart($testId)
     {
-        $test = LabTest::findOrFail($testId);
+        if (empty($testId) || !is_numeric($testId)) {
+            return;
+        }
+
+        $test = LabTest::where('company_id', auth()->user()->company_id)->find($testId);
+        if (!$test) {
+            return;
+        }
+
         if (!collect($this->cart)->contains('id', $test->id)) {
             $cartItem = [
                 'id' => $test->id,

@@ -797,7 +797,7 @@
                                         $displayRange = $r->reference_range;
                                         
                                         // Backup: If range is empty, try to show the full master range list
-                                        if (empty(trim($displayRange)) && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
+                                        if (empty(trim($displayRange)) && !empty($r->lab_test_id) && $r->labTest && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
                                             $masterParam = collect($r->labTest->parameters)->first(function($p) use ($r) {
                                                 $pName = is_array($p) ? ($p['name'] ?? '') : $p;
                                                 return $pName === $r->parameter_name;

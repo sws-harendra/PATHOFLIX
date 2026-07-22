@@ -245,7 +245,15 @@ class PosManager extends Component
     // ==========================================
     public function addTestToCart($testId)
     {
-        $test = LabTest::findOrFail($testId);
+        if (empty($testId) || !is_numeric($testId)) {
+            return;
+        }
+
+        $test = LabTest::where('company_id', auth()->user()->company_id)->find($testId);
+        if (!$test) {
+            return;
+        }
+        
         $cartCollection = collect($this->cart);
         
         if (!$cartCollection->contains('id', $test->id)) {

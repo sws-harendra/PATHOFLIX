@@ -185,6 +185,7 @@ class ReportPdfController extends Controller
         $allTests = collect();
 
         foreach ($results as $r) {
+            if (empty($r->lab_test_id)) continue;
             $key = $r->invoice_item_id . '_' . $r->lab_test_id;
             if (!$allTests->has($key)) {
                 $allTests->put($key, [
@@ -199,6 +200,7 @@ class ReportPdfController extends Controller
         }
 
         foreach ($cultureResults as $cr) {
+            if (empty($cr->lab_test_id)) continue;
             $key = $cr->invoice_item_id . '_' . $cr->lab_test_id;
             if (!$allTests->has($key)) {
                 $allTests->put($key, [

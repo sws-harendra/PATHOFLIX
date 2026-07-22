@@ -217,6 +217,27 @@ class ResultEntryManager extends Component
                 }
             }
         }
+
+        // Reorder parametersList to match saved results order if report results exist
+        if (!empty($existingResultsMap)) {
+            $sortedList = [];
+            foreach (array_keys($existingResultsMap) as $savedKey) {
+                if (isset($this->parametersList[$savedKey])) {
+                    $sortedList[$savedKey] = $this->parametersList[$savedKey];
+                }
+            }
+            foreach ($this->parametersList as $k => $paramObj) {
+                if (!isset($sortedList[$k])) {
+                    $sortedList[$k] = $paramObj;
+                }
+            }
+            $this->parametersList = $sortedList;
+        }
+
+        // Auto-select all item IDs by default so user can print directly without manual selection
+        if (empty($this->selectedTests)) {
+            $this->selectedTests = $this->invoice->items->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        }
     }
 
     private function findMatchingRange($param, $patientGender, $days, $months, $years)
@@ -501,7 +522,8 @@ class ResultEntryManager extends Component
             ]);
         }
 
-        // Save Results
+        // Save Results in exact reordered sequence
+        ReportResult::where('test_report_id', $this->testReport->id)->delete();
         foreach ($this->parametersList as $key => $details) {
             $val = $this->results[$key] ?? '';
             $highlight = $this->highlights[$key] ?? false;
@@ -512,23 +534,18 @@ class ResultEntryManager extends Component
             if ($flag === 'H') $stat = 'High';
             if ($flag === 'L') $stat = 'Low';
 
-            ReportResult::updateOrCreate(
-                [
-                    'test_report_id' => $this->testReport->id,
-                    'invoice_item_id' => $details['invoice_item_id'],
-                    'lab_test_id' => $details['lab_test_id'],
-                    'parameter_name' => $details['name'],
-                ],
-                [
-                    'lab_test_id' => $details['lab_test_id'],
-                    'result_value' => $val,
-                    'status' => $stat,
-                    'is_highlighted' => $highlight,
-                    'reference_range' => $details['ref_range'],
-                    'unit' => $details['unit'],
-                    'method' => $details['method'] ?? null,
-                ]
-            );
+            ReportResult::create([
+                'test_report_id' => $this->testReport->id,
+                'invoice_item_id' => $details['invoice_item_id'],
+                'lab_test_id' => $details['lab_test_id'],
+                'parameter_name' => $details['name'],
+                'result_value' => $val,
+                'status' => $stat,
+                'is_highlighted' => $highlight,
+                'reference_range' => $details['ref_range'],
+                'unit' => $details['unit'],
+                'method' => $details['method'] ?? null,
+            ]);
         }
 
         // Save Culture Results
@@ -632,19 +649,28 @@ class ResultEntryManager extends Component
 
     public function printSelected($withHeader = 1)
     {
-        if (empty($this->selectedTests)) {
-            $this->dispatch('notify', ['type' => 'error', 'message' => 'Please select at least one test to print.']);
-            session()->flash('error', 'Please select at least one test to print.');
+        $testIds = $this->selectedTests;
+        if (empty($testIds)) {
+            // Auto-select completed test items or all test items if none checked
+            $testIds = $this->invoice->items->where('status', 'Completed')->pluck('id')->toArray();
+            if (empty($testIds)) {
+                $testIds = $this->invoice->items->pluck('id')->toArray();
+            }
+        }
+
+        if (empty($testIds)) {
+            $this->dispatch('notify', ['type' => 'error', 'message' => 'No test results available to print.']);
+            session()->flash('error', 'No test results available to print.');
             return;
         }
 
         // Save as Draft before printing to ensure TestReport exists (prevents 404) and includes the latest results
-        $this->saveResults('Draft');
+        $this->saveReport('Draft');
 
         // Printing proceeds regardless of image presence to allow for physical letterhead space
-        $testIds = is_array($this->selectedTests) ? implode(',', $this->selectedTests) : $this->selectedTests;
+        $idsString = is_array($testIds) ? implode(',', $testIds) : $testIds;
         $url = route('lab.reports.print', ['id' => $this->invoice->id, 'template' => 'new'])
-             . '?tests=' . $testIds
+             . '?tests=' . $idsString
              . '&header=' . ($withHeader ? '1' : '0');
         
         $this->dispatch('open-new-tab', ['url' => $url]);
@@ -659,6 +685,76 @@ class ResultEntryManager extends Component
     {
         unset($this->cultureAntibiotics[$key][$index]);
         $this->cultureAntibiotics[$key] = array_values($this->cultureAntibiotics[$key]);
+    }
+
+    public function moveParameterUp($key)
+    {
+        $keys = array_keys($this->parametersList);
+        $index = array_search($key, $keys);
+
+        if ($index !== false && $index > 0) {
+            $prevKey = $keys[$index - 1];
+            if (isset($this->parametersList[$key]) && isset($this->parametersList[$prevKey]) &&
+                $this->parametersList[$key]['invoice_item_id'] === $this->parametersList[$prevKey]['invoice_item_id'] &&
+                $this->parametersList[$key]['lab_test_id'] === $this->parametersList[$prevKey]['lab_test_id']) {
+                
+                $keys[$index] = $prevKey;
+                $keys[$index - 1] = $key;
+
+                $reordered = [];
+                foreach ($keys as $k) {
+                    $reordered[$k] = $this->parametersList[$k];
+                }
+                $this->parametersList = $reordered;
+            }
+        }
+    }
+
+    public function moveParameterDown($key)
+    {
+        $keys = array_keys($this->parametersList);
+        $index = array_search($key, $keys);
+
+        if ($index !== false && $index < count($keys) - 1) {
+            $nextKey = $keys[$index + 1];
+            if (isset($this->parametersList[$key]) && isset($this->parametersList[$nextKey]) &&
+                $this->parametersList[$key]['invoice_item_id'] === $this->parametersList[$nextKey]['invoice_item_id'] &&
+                $this->parametersList[$key]['lab_test_id'] === $this->parametersList[$nextKey]['lab_test_id']) {
+                
+                $keys[$index] = $nextKey;
+                $keys[$index + 1] = $key;
+
+                $reordered = [];
+                foreach ($keys as $k) {
+                    $reordered[$k] = $this->parametersList[$k];
+                }
+                $this->parametersList = $reordered;
+            }
+        }
+    }
+
+    public function reorderParameters($fromKey, $toKey)
+    {
+        if (!isset($this->parametersList[$fromKey]) || !isset($this->parametersList[$toKey])) return;
+
+        $keys = array_keys($this->parametersList);
+        $fromIndex = array_search($fromKey, $keys);
+        $toIndex = array_search($toKey, $keys);
+
+        if ($fromIndex !== false && $toIndex !== false && $fromIndex !== $toIndex) {
+            if ($this->parametersList[$fromKey]['invoice_item_id'] === $this->parametersList[$toKey]['invoice_item_id'] &&
+                $this->parametersList[$fromKey]['lab_test_id'] === $this->parametersList[$toKey]['lab_test_id']) {
+                
+                $movedKey = array_splice($keys, $fromIndex, 1)[0];
+                array_splice($keys, $toIndex, 0, [$movedKey]);
+
+                $reordered = [];
+                foreach ($keys as $k) {
+                    $reordered[$k] = $this->parametersList[$k];
+                }
+                $this->parametersList = $reordered;
+            }
+        }
     }
 
     public function render()
