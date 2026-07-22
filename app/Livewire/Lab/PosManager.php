@@ -257,6 +257,38 @@ class PosManager extends Component
         $cartCollection = collect($this->cart);
         
         if (!$cartCollection->contains('id', $test->id)) {
+
+            // ── Overlap Prevention ──
+            // If adding a standalone test, check if it's already inside any package in the cart
+            if (!$test->is_package) {
+                foreach ($this->cart as $existingItem) {
+                    if (($existingItem['is_package'] ?? false) && !empty($existingItem['linked_tests'])) {
+                        $linkedIds = collect($existingItem['linked_tests'])->pluck('id')->toArray();
+                        if (in_array($test->id, $linkedIds)) {
+                            $this->dispatch('notify', ['type' => 'warning', 'message' => "\"{$test->name}\" is already included in package \"{$existingItem['name']}\". Not added again."]);
+                            $this->testSearch = '';
+                            $this->activeSearchField = null;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // If adding a package, remove standalone tests that overlap with its linked tests
+            if ($test->is_package && !empty($test->linked_test_ids)) {
+                $removedNames = [];
+                $this->cart = array_values(array_filter($this->cart, function ($existingItem) use ($test, &$removedNames) {
+                    if (!($existingItem['is_package'] ?? false) && in_array($existingItem['id'], $test->linked_test_ids)) {
+                        $removedNames[] = $existingItem['name'];
+                        return false; // Remove from cart
+                    }
+                    return true;
+                }));
+                if (!empty($removedNames)) {
+                    $this->dispatch('notify', ['type' => 'info', 'message' => 'Removed standalone test(s) already in package: ' . implode(', ', $removedNames)]);
+                }
+            }
+
             // Add if not present
             $cartItem = [
                 'id' => $test->id,

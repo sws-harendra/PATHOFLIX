@@ -147,6 +147,11 @@ class ReportPdfController extends Controller
             // Visibility
             'pdf_show_header' => Configuration::getFor('pdf_show_header', null, $companyId) !== '0',
             'pdf_show_footer' => Configuration::getFor('pdf_show_footer', null, $companyId) !== '0',
+            'pdf_show_watermark' => Configuration::getFor('pdf_show_watermark', null, $companyId) === '1',
+            'pdf_watermark_image' => storage_base64(Configuration::getFor('pdf_watermark_image', null, $companyId)),
+            'pdf_show_method' => Configuration::getFor('pdf_show_method', '1', $companyId) === '1',
+            'pdf_vertical_spacing' => Configuration::getFor('pdf_vertical_spacing', 5, $companyId),
+            'pdf_signature_offset' => Configuration::getFor('pdf_signature_offset', 185, $companyId),
         ];
 
         // Determine final visibility (Setting toggle AND override via URL)
@@ -186,7 +191,8 @@ class ReportPdfController extends Controller
 
         foreach ($results as $r) {
             if (empty($r->lab_test_id)) continue;
-            $key = $r->invoice_item_id . '_' . $r->lab_test_id;
+            // Group by lab_test_id only to merge results from duplicate invoice items (package + standalone overlap)
+            $key = (string) $r->lab_test_id;
             if (!$allTests->has($key)) {
                 $allTests->put($key, [
                     'invoice_item_id' => $r->invoice_item_id,
@@ -196,12 +202,16 @@ class ReportPdfController extends Controller
                     'cultureResult' => null
                 ]);
             }
-            $allTests[$key]['results']->push($r);
+            // Avoid duplicate parameter rows (same parameter_name for same test)
+            $existingParamNames = $allTests[$key]['results']->pluck('parameter_name')->toArray();
+            if (!in_array($r->parameter_name, $existingParamNames)) {
+                $allTests[$key]['results']->push($r);
+            }
         }
 
         foreach ($cultureResults as $cr) {
             if (empty($cr->lab_test_id)) continue;
-            $key = $cr->invoice_item_id . '_' . $cr->lab_test_id;
+            $key = (string) $cr->lab_test_id;
             if (!$allTests->has($key)) {
                 $allTests->put($key, [
                     'invoice_item_id' => $cr->invoice_item_id,
@@ -216,6 +226,9 @@ class ReportPdfController extends Controller
                 $allTests->put($key, $item);
             }
         }
+
+        // Sort by invoice_item_id to preserve the bill/cart insertion order
+        $allTests = $allTests->sortBy('invoice_item_id');
 
         $groupedResults = $allTests->groupBy(function ($testData) {
             return $testData['labTest']->department_id ?? 0;

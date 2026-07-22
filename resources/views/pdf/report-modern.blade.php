@@ -106,7 +106,7 @@
         }
 
         .results-table td {
-            padding: 6px 8px;
+            padding: {{ $verticalSpacing }} 8px;
             border-bottom: 1px dashed #eee;
         }
 
@@ -244,18 +244,24 @@
     @php
         $marginTop    = ($settings['pdf_margin_top'] ?? 310) . 'px';
         $marginBottom = ($settings['pdf_margin_bottom'] ?? 255) . 'px';
+        $verticalSpacing = ($settings['pdf_vertical_spacing'] ?? 5) . 'px';
     @endphp
 
-    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'])
+    @if(($settings['pdf_background_mode'] ?? 'header_footer') === 'letterhead' && isset($settings['pdf_letterhead_image']) && $settings['pdf_letterhead_image'] && $showHeader)
         <div style="position: fixed; top: -{{ $marginTop }}; left: -25px; right: -25px; bottom: -{{ $marginBottom }}; z-index: -2000; background-color: #ffffff;">
             <img src="{{ $settings['pdf_letterhead_image'] }}" style="width: 100%; height: 100%;" alt="Letterhead">
         </div>
     @endif
 
-    {{-- Watermark disabled to prevent grey background issues under DomPDF --}}
+    {{-- Watermark --}}
+    @if(($settings['pdf_show_watermark'] ?? false) && !empty($settings['pdf_watermark_image']))
+        <div class="watermark">
+            <img src="{{ $settings['pdf_watermark_image'] }}">
+        </div>
+    @endif
 
     {{-- HEADER --}}
-    @if($settings['pdf_show_header'] && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
+    @if($showHeader && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
         <header>
             @if($settings['pdf_header_image'])
                 <img src="{{ $settings['pdf_header_image'] }}" class="custom-header-img" alt="Header">
@@ -275,7 +281,7 @@
     @endif
 
     {{-- FOOTER --}}
-    @if($settings['pdf_show_footer'] && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
+    @if($showFooter && ($settings['pdf_background_mode'] ?? 'header_footer') === 'header_footer')
         <footer>
             @if($settings['pdf_footer_image'])
                 <img src="{{ $settings['pdf_footer_image'] }}" class="custom-footer-img" alt="Footer">
@@ -340,7 +346,7 @@
                     <tr>
                         <td colspan="4" class="test-title">
                             {{ $testName }}
-                            @if($labTest && $labTest->method)
+                            @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
                                 <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
                             @endif
                         </td>
