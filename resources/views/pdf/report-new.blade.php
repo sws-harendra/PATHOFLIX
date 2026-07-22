@@ -629,13 +629,18 @@
     </footer>
 
     {{-- ══════════════════ BODY CONTENT ══════════════════ --}}
-    @php $testIndex = 0; @endphp
+    @php 
+        $testIndex = 0; 
+        $deptIndex = 0;
+        $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
+    @endphp
 
     @foreach($groupedResults as $deptId => $data)
         @php
             $dept = $data['department'];
             $tests = $data['tests'];
             $deptName = $dept ? $dept->name : 'General';
+            $testInDeptIndex = 0;
         @endphp
 
         @foreach($tests as $testId => $testData)
@@ -645,13 +650,21 @@
                 $results = $testData['results'];
             @endphp
 
-            {{-- Page break before each test --}}
-            @if($testIndex > 0)
-                <div style="page-break-after: always;"></div>
+            {{-- Page break logic --}}
+            @if($pageBreakMode === 'test')
+                @if($testIndex > 0)
+                    <div style="page-break-after: always;"></div>
+                @endif
+            @elseif($pageBreakMode === 'department')
+                @if($deptIndex > 0 && $testInDeptIndex === 0)
+                    <div style="page-break-after: always;"></div>
+                @endif
             @endif
 
             {{-- ── Department & Test Title ── --}}
-            <div class="dept-title">{{ strtoupper($deptName) }}</div>
+            @if($pageBreakMode === 'test' || $testInDeptIndex === 0)
+                <div class="dept-title">{{ strtoupper($deptName) }}</div>
+            @endif
             <div class="test-title" style="margin-bottom: 12px; font-size: 11.5px;">{{ strtoupper($testName) }}</div>
 
             {{-- ── Method (from LabTest master) ── --}}
@@ -911,8 +924,12 @@
                 @endif
             @endif
 
-            @php $testIndex++; @endphp
+            @php 
+                $testIndex++; 
+                $testInDeptIndex++;
+            @endphp
         @endforeach
+        @php $deptIndex++; @endphp
     @endforeach
 
     {{-- ── Global Report Comments ── --}}

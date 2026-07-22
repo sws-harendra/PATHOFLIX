@@ -84,6 +84,7 @@ class SettingsManager extends Component
     public $pdf_footer_height = 180;
     public $pdf_show_watermark = false;
     public $pdf_show_method = true;
+    public $pdf_page_break_mode = 'test';
     public $pdf_watermark_image;
     public $new_watermark_image;
     public $pdf_vertical_spacing = 5;
@@ -159,6 +160,7 @@ class SettingsManager extends Component
         $this->pdf_watermark_image = Configuration::getFor('pdf_watermark_image', null);
         $this->pdf_vertical_spacing = (int) Configuration::getFor('pdf_vertical_spacing', 5);
         $this->pdf_signature_offset = (int) Configuration::getFor('pdf_signature_offset', 185);
+        $this->pdf_page_break_mode = Configuration::getFor('pdf_page_break_mode', 'test');
         $this->pdf_background_mode = Configuration::getFor('pdf_background_mode', 'header_footer');
         $this->pdf_header_image = Configuration::getFor('pdf_header_image', null);
         $this->pdf_footer_image = Configuration::getFor('pdf_footer_image', null);
@@ -405,6 +407,7 @@ class SettingsManager extends Component
         Configuration::setFor('pdf_show_footer', $this->pdf_show_footer ? '1' : '0');
         Configuration::setFor('pdf_show_watermark', $this->pdf_show_watermark ? '1' : '0');
         Configuration::setFor('pdf_show_method', $this->pdf_show_method ? '1' : '0');
+        Configuration::setFor('pdf_page_break_mode', $this->pdf_page_break_mode);
         Configuration::setFor('pdf_background_mode', $this->pdf_background_mode);
         Configuration::setFor('pdf_header_image', $this->pdf_header_image);
         Configuration::setFor('pdf_footer_image', $this->pdf_footer_image);

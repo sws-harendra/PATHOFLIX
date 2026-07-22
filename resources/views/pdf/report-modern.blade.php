@@ -317,34 +317,65 @@
     </table>
 
     {{-- RESULTS Engine --}}
+    @php 
+        $testIndex = 0; 
+        $deptIndex = 0;
+        $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
+    @endphp
     
     @foreach($groupedResults as $deptId => $data)
         @php 
             $dept = $data['department'];
             $tests = $data['tests'];
             $deptName = $dept ? $dept->name : 'General';
+            $testInDeptIndex = 0;
         @endphp
-        <div class="dept-header">{{ strtoupper($deptName) }}</div>
-        
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th style="width: 35%">Investigation</th>
-                    <th style="width: 20%">Result</th>
-                    <th style="width: 15%">Unit</th>
-                    <th style="width: 30%">Reference Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($tests as $testKey => $testData)
-                    @php
-                        $testName = $testData['name'];
-                        $results = $testData['results'];
-                        $labTest = $testData['labTest'];
-                        $remark = $testData['remark'] ?? '';
-                    @endphp
+
+        @if($pageBreakMode === 'department' && $deptIndex > 0)
+            <div style="page-break-before: always;"></div>
+        @endif
+
+        @if($pageBreakMode !== 'test')
+            <div class="dept-header">{{ strtoupper($deptName) }}</div>
+            <table class="results-table">
+                <thead>
                     <tr>
-                        <td colspan="4" class="test-title">
+                        <th style="width: 35%">Investigation</th>
+                        <th style="width: 20%">Result</th>
+                        <th style="width: 15%">Unit</th>
+                        <th style="width: 30%">Reference Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+        @endif
+
+        @foreach($tests as $testKey => $testData)
+            @php
+                $testName = $testData['name'];
+                $results = $testData['results'];
+                $labTest = $testData['labTest'];
+                $remark = $testData['remark'] ?? '';
+            @endphp
+
+            @if($pageBreakMode === 'test')
+                @if($testIndex > 0)
+                    <div style="page-break-before: always;"></div>
+                @endif
+                <div class="dept-header">{{ strtoupper($deptName) }}</div>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%">Investigation</th>
+                            <th style="width: 20%">Result</th>
+                            <th style="width: 15%">Unit</th>
+                            <th style="width: 30%">Reference Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            @endif
+
+            <tr>
+                <td colspan="4" class="test-title">
                             {{ $testName }}
                             @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
                                 <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
@@ -471,9 +502,22 @@
                             </td>
                         </tr>
                     @endif
+                    
+                    @if($pageBreakMode === 'test')
+                            </tbody>
+                        </table>
+                    @endif
+
+                    @php 
+                        $testIndex++; 
+                        $testInDeptIndex++;
+                    @endphp
                 @endforeach
-            </tbody>
-        </table>
+
+                @if($pageBreakMode !== 'test')
+                    </tbody>
+                </table>
+                @endif
 
         {{-- Per-Department Signatures --}}
         @if($settings['report_signature_mode'] == 'per_department' && $dept)
@@ -501,6 +545,7 @@
                 @endif
             </div>
         @endif
+        @php $deptIndex++; @endphp
     @endforeach
 
     {{-- REPORT COMMENTS --}}

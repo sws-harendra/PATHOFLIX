@@ -755,8 +755,16 @@
                                                     <small class="text-muted d-block"><i class="feather-info me-1"></i> Increase this value to add more space between test parameters.</small>
                                                     
                                                     <label class="form-label fs-13 text-muted mt-3">Signature Bottom Offset (in px)</label>
-                                                    <input type="number" wire:model="pdf_signature_offset" class="form-control mb-2" placeholder="e.g. 185">
+                                                    <input type="number" wire:model="pdf_signature_offset" class="form-control mb-3" placeholder="e.g. 185">
                                                     <small class="text-muted d-block"><i class="feather-info me-1"></i> Adjust to move the signature block up or down (Default is 185).</small>
+                                                    
+                                                    <label class="form-label fs-13 text-muted mt-3">Report Page Break Mode</label>
+                                                    <select wire:model="pdf_page_break_mode" class="form-select mb-2">
+                                                        <option value="continuous">Continuous (No page breaks)</option>
+                                                        <option value="department">Department Wise (Break before each department)</option>
+                                                        <option value="test">Single Test Per Page (Break before each test)</option>
+                                                    </select>
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Control how tests and departments are printed across pages.</small>
                                                 </div>
                                             </div>
                                         </div>
