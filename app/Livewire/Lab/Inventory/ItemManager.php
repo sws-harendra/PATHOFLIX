@@ -28,7 +28,7 @@ class ItemManager extends Component
     {
         $items = InventoryItem::with('category')
             ->where('company_id', auth()->user()->company_id)
-            ->where('name', 'ilike', '%' . $this->searchTerm . '%')
+            ->where('name', 'like', '%' . $this->searchTerm . '%')
             ->orderBy('name')
             ->paginate(15);
 

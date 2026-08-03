@@ -42,9 +42,9 @@ class SalesAgentManager extends Component
     {
         $agents = SalesAgent::withCount('companies')
             ->where(function($q) {
-                $q->where('name', 'ilike', '%' . $this->searchTerm . '%')
-                  ->orWhere('email', 'ilike', '%' . $this->searchTerm . '%')
-                  ->orWhere('phone', 'ilike', '%' . $this->searchTerm . '%');
+                $q->where('name', 'like', '%' . $this->searchTerm . '%')
+                  ->orWhere('email', 'like', '%' . $this->searchTerm . '%')
+                  ->orWhere('phone', 'like', '%' . $this->searchTerm . '%');
             })
             ->orderBy('name', 'asc')
             ->paginate(10);

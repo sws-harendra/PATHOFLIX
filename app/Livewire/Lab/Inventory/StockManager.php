@@ -33,7 +33,7 @@ class StockManager extends Component
         $stocks = InventoryStock::with(['item', 'batches'])
             ->where('branch_id', $branchId)
             ->whereHas('item', function($query) {
-                $query->where('name', 'ilike', '%' . $this->searchTerm . '%');
+                $query->where('name', 'like', '%' . $this->searchTerm . '%');
             })
             ->paginate(15);
 

@@ -20,8 +20,8 @@ class SupplierManager extends Component
     {
         $suppliers = InventorySupplier::where('company_id', auth()->user()->company_id)
             ->where(function($query) {
-                $query->where('name', 'ilike', '%' . $this->searchTerm . '%')
-                      ->orWhere('contact_person', 'ilike', '%' . $this->searchTerm . '%');
+                $query->where('name', 'like', '%' . $this->searchTerm . '%')
+                      ->orWhere('contact_person', 'like', '%' . $this->searchTerm . '%');
             })
             ->orderBy('name')
             ->paginate(15);

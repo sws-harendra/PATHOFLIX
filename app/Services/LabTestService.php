@@ -17,8 +17,8 @@ class LabTestService
 
         if (!empty($searchTerm)) {
             $query = $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'ilike', '%' . $searchTerm . '%')
-                  ->orWhere('test_code', 'ilike', '%' . $searchTerm . '%');
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('test_code', 'like', '%' . $searchTerm . '%');
             });
         }
 
@@ -33,8 +33,8 @@ class LabTestService
     public function searchGlobalTests($globalSearch = null, $limit = 15)
     {
         return GlobalTest::with('dept')
-            ->where('name', 'ilike', '%' . $globalSearch . '%')
-            ->orWhere('test_code', 'ilike', '%' . $globalSearch . '%')
+            ->where('name', 'like', '%' . $globalSearch . '%')
+            ->orWhere('test_code', 'like', '%' . $globalSearch . '%')
             ->limit($limit)
             ->get();
     }
@@ -184,8 +184,8 @@ class LabTestService
 
         if (!empty($searchTerm)) {
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'ilike', '%' . $searchTerm . '%')
-                  ->orWhere('test_code', 'ilike', '%' . $searchTerm . '%');
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('test_code', 'like', '%' . $searchTerm . '%');
             });
         }
 
@@ -204,8 +204,8 @@ class LabTestService
 
         if (!empty($searchTerm)) {
             $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'ilike', '%' . $searchTerm . '%')
-                  ->orWhere('test_code', 'ilike', '%' . $searchTerm . '%');
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('test_code', 'like', '%' . $searchTerm . '%');
             });
         }
 

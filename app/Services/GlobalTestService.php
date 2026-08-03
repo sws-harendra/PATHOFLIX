@@ -49,11 +49,11 @@ class GlobalTestService
     {
         $query = GlobalTest::query();
 
-        // Apply Search Filter (Using 'ilike' for PostgreSQL case-insensitive search)
+        // Apply Search Filter (Using 'like' for PostgreSQL case-insensitive search)
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', '%' . $search . '%')
-                    ->orWhere('test_code', 'ilike', '%' . $search . '%');
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('test_code', 'like', '%' . $search . '%');
             });
         }
 

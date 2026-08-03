@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->text('address')->nullable();
             $table->string('logo')->nullable();
             $table->string('status', 20)->default('active');
-            $table->jsonb('settings')->nullable();
+            $table->json('settings')->nullable();
             $table->timestamps();
             // Indexes
             $table->index('status');

@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('name');
             $table->decimal('price', 10, 2);
             $table->integer('duration_in_days')->default(30);
-            $table->jsonb('features')->nullable(); // JSONB for limits (e.g., {"max_branches": 5})
+            $table->json('features')->nullable(); // JSON for limits (e.g., {"max_branches": 5})
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

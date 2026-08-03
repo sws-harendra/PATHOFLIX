@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->text('address')->nullable();
             $table->string('avatar')->nullable();
             // Kisi specific patient ki extra medical history store karni ho toh
-            $table->jsonb('meta_data')->nullable();
+            $table->json('meta_data')->nullable();
             $table->timestamps();
         });
     }

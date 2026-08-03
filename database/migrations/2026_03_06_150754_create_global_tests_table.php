@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->text('description')->nullable();
             // Default parameters for the test, stored as JSON. This can include reference ranges, units, etc.
             // like: [{"param": "Hemoglobin", "unit": "g/dL", "male_range": "13-17"}]
-            $table->jsonb('default_parameters')->nullable();
+            $table->json('default_parameters')->nullable();
 
             $table->decimal('suggested_price', 8, 2)->nullable();
             $table->boolean('is_active')->default(true);

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoice_items', function (Blueprint $table) {
-            $table->enum('status', ['Pending', 'Completed'])->default('Pending')->after('total_price');
+            $table->enum('status', ['Pending', 'Completed'])->default('Pending')->after('price');
         });
     }
 

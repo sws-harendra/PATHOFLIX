@@ -403,7 +403,7 @@
                                 </div>
                                 <div x-show="open" class="search-dropdown position-absolute w-100 mt-1" style="z-index: 10;">
                                     <div wire:click="clearDoctor(); open = false; $wire.set('doctorSearch', '')" class="list-group-item text-muted">Clear Selection</div>
-                                    @foreach(\App\Models\User::role('doctor')->where('company_id', auth()->user()->company_id)->where('name', 'ilike', "%{$doctorSearch}%")->get() as $doc)
+                                    @foreach(\App\Models\User::role('doctor')->where('company_id', auth()->user()->company_id)->where('name', 'like', "%{$doctorSearch}%")->get() as $doc)
                                         <div wire:click="selectDoctor({{ $doc->id }}); open = false" class="list-group-item">
                                             <div class="fw-bold">{{ $doc->name }}</div>
                                             <div class="text-muted fs-12">{{ $doc->phone }}</div>
@@ -426,7 +426,7 @@
                                 </div>
                                 <div x-show="open" class="search-dropdown position-absolute w-100 mt-1" style="z-index: 10;">
                                     <div wire:click="clearAgent(); open = false; $wire.set('agentSearch', '')" class="list-group-item text-muted">Clear Selection</div>
-                                    @foreach(\App\Models\User::role('agent')->where('company_id', auth()->user()->company_id)->where('name', 'ilike', "%{$agentSearch}%")->get() as $agt)
+                                    @foreach(\App\Models\User::role('agent')->where('company_id', auth()->user()->company_id)->where('name', 'like', "%{$agentSearch}%")->get() as $agt)
                                         <div wire:click="selectAgent({{ $agt->id }}); open = false" class="list-group-item">
                                             <div class="fw-bold">{{ $agt->name }}</div>
                                             <div class="text-muted fs-12">{{ $agt->phone }}</div>

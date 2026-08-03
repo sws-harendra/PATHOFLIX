@@ -1016,7 +1016,7 @@ class PosEditManager extends Component
             $s = $this->patientSearch;
             $query = User::whereHas('patientProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$sharePatients, fn($q) => $q->where('branch_id', $myBranchId));
-                $query->where(fn($q) => $q->where('phone', 'ilike', "%{$s}%")->orWhere('name', 'ilike', "%{$s}%"));
+                $query->where(fn($q) => $q->where('phone', 'like', "%{$s}%")->orWhere('name', 'like', "%{$s}%"));
             $patients = $query->with('patientProfile')->orderBy('id', 'desc')->take(15)->get();
         }
 
@@ -1026,7 +1026,7 @@ class PosEditManager extends Component
             $query = User::whereHas('doctorProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$shareDoctors, fn($q) => $q->where('branch_id', $myBranchId));
             if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('phone', 'ilike', "%{$s}%"));
+                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
             }
             $doctors = $query->with('doctorProfile')->orderBy('id', 'desc')->take(15)->get();
         }
@@ -1037,7 +1037,7 @@ class PosEditManager extends Component
             $query = User::whereHas('agentProfile', fn($q) => $q->where('company_id', $companyId))
                 ->when($myBranchId && !$shareAgents, fn($q) => $q->where('branch_id', $myBranchId));
             if (!empty($s)) {
-                $query->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('phone', 'ilike', "%{$s}%"));
+                $query->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%"));
             }
             $agents = $query->with('agentProfile')->orderBy('id', 'desc')->take(15)->get();
         }
@@ -1046,7 +1046,7 @@ class PosEditManager extends Component
         $tQuery = LabTest::where('company_id', $companyId)->where('is_active', true);
         if ($this->activeSearchField === 'test' && !empty($this->testSearch)) {
             $s = $this->testSearch;
-            $tQuery->where(fn($q) => $q->where('name', 'ilike', "%{$s}%")->orWhere('test_code', 'ilike', "%{$s}%"));
+            $tQuery->where(fn($q) => $q->where('name', 'like', "%{$s}%")->orWhere('test_code', 'like', "%{$s}%"));
         }
         $tests = $tQuery->orderBy('id', 'desc')->get();
 

@@ -33,7 +33,7 @@ return new class extends Migration
             $table->integer('tat_hours')->default(24); 
             
             // The JSON array containing parameters & formulas
-            $table->jsonb('parameters')->nullable(); 
+            $table->json('parameters')->nullable(); 
 
             $table->boolean('is_active')->default(true);
 

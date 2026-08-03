@@ -435,9 +435,9 @@ class SettlementManager extends Component
                       ->where($settledField, false)->where('payment_status', 'Paid')->where('status', '!=', 'Cancelled');
                 }])
                 ->when($this->searchPartner, function($q) {
-                    $q->where(fn($q2) => $q2->where('name', 'ilike', "%{$this->searchPartner}%")->orWhere('center_code', 'ilike', "%{$this->searchPartner}%"));
+                    $q->where(fn($q2) => $q2->where('name', 'like', "%{$this->searchPartner}%")->orWhere('center_code', 'like', "%{$this->searchPartner}%"));
                 })
-                ->orderByRaw('pending_amount DESC NULLS LAST')
+                ->orderByRaw('IFNULL(pending_amount, 0) DESC')
                 ->orderBy('name', 'asc')
                 ->paginate(6, ['*'], 'partnersPage');
         } else {
@@ -453,9 +453,9 @@ class SettlementManager extends Component
                       ->where($settledField, false)->where('payment_status', 'Paid')->where('status', '!=', 'Cancelled');
                 }])
                 ->when($this->searchPartner, function($q) {
-                    $q->where(fn($q2) => $q2->where('name', 'ilike', "%{$this->searchPartner}%")->orWhere('phone', 'like', "%{$this->searchPartner}%"));
+                    $q->where(fn($q2) => $q2->where('name', 'like', "%{$this->searchPartner}%")->orWhere('phone', 'like', "%{$this->searchPartner}%"));
                 })
-                ->orderByRaw('pending_amount DESC NULLS LAST')
+                ->orderByRaw('IFNULL(pending_amount, 0) DESC')
                 ->orderBy('name', 'asc')
                 ->paginate(6, ['*'], 'partnersPage');
         }
