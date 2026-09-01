@@ -377,9 +377,9 @@
             <tr>
                 <td colspan="4" class="test-title">
                             {{ $testName }}
-                            @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
+                            <!-- @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
                                 <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
-                            @endif
+                            @endif -->
                         </td>
                     </tr>
                     @if($testData['cultureResult'])

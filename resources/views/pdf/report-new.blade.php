@@ -668,9 +668,9 @@
             <div class="test-title" style="margin-bottom: 12px; font-size: 11.5px;">{{ strtoupper($testName) }}</div>
 
             {{-- ── Method (from LabTest master) ── --}}
-            @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
+            <!-- @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
                 <div class="method-line">Method: {{ $labTest->method }}</div>
-            @endif
+            @endif -->
 
 
 
@@ -845,11 +845,11 @@
             @endif
 
             {{-- ── Method (per-result level, if different from test master) ── --}}
-            @if($results && $results->count() > 0 && $results->first()->method && $labTest && $results->first()->method !== $labTest->method)
+            {{-- @if($results && $results->count() > 0 && $results->first()->method && $labTest && $results->first()->method !== $labTest->method)
                 <p style="font-size:9px; color:#555; font-style:italic; margin-bottom:5px;">
                     <strong>Method:</strong> {{ $results->first()->method }}
                 </p>
-            @endif
+            @endif --}}
 
             {{-- ── Default Interpretation (from LabTest master — stored as HTML) ── --}}
             @if($labTest && $labTest->interpretation)

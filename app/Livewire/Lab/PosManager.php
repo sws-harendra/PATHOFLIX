@@ -603,6 +603,11 @@ class PosManager extends Component
             'new_age' => 'nullable|numeric|min:0|max:150',
         ]);
 
+        if ($this->new_age !== null && $this->new_age !== '' && empty($this->new_age_type)) {
+            $this->addError('new_age', 'You did not choose year, month, or day.');
+            return;
+        }
+
         DB::beginTransaction();
         try {
             $companyId = auth()->user()->company_id;
