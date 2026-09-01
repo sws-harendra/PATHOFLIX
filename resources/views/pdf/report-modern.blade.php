@@ -13,7 +13,7 @@
         }
 
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             font-size: 11px;
             color: #111;
             background-color: #ffffff !important;
@@ -107,7 +107,7 @@
 
         .results-table td {
             padding: {{ $verticalSpacing }} 8px;
-            border-bottom: 1px dashed #eee;
+            border-bottom: none;
         }
 
         /* Department Header */
@@ -472,7 +472,7 @@
                                 @endif
                             </td>
                             <td>{{ $r->unit }}</td>
-                            <td><span style="white-space: pre-line;">{{ $r->reference_range }}</span></td>
+                            <td><span style="white-space: pre-line;">{!! nl2br(e($r->reference_range)) !!}</span></td>
                         </tr>
                     @endforeach
                     @endif
@@ -558,28 +558,45 @@
 
     {{-- SIGNATURE BLOCK (Global Bottom) --}}
     @if($settings['report_signature_mode'] == 'global_bottom')
+        @php
+            $sig1Enabled = ($settings['global_sig_1_enabled'] ?? true) && (!empty($settings['global_sig_1_path']) || !empty($settings['global_sig_1_name']));
+            $sig2Enabled = ($settings['global_sig_2_enabled'] ?? true) && (!empty($settings['global_sig_2_path']) || !empty($settings['global_sig_2_name']));
+            $sig3Enabled = ($settings['global_sig_3_enabled'] ?? true) && (!empty($settings['global_sig_3_path']) || !empty($settings['global_sig_3_name']));
+        @endphp
         <div class="signature-row">
-            @if($settings['global_sig_1_path'])
+            @if($sig1Enabled)
                 <div class="signature-col">
-                    <img src="{{ $settings['global_sig_1_path'] }}" class="signature-img"><br>
-                    <strong>{{ $settings['global_sig_1_name'] }}</strong><br>
-                    {{ $settings['global_sig_1_desig'] }}
+                    @if(!empty($settings['global_sig_1_path']))
+                        <img src="{{ $settings['global_sig_1_path'] }}" class="signature-img"><br>
+                    @endif
+                    @if(!empty($settings['global_sig_1_name']))
+                        <strong>{{ $settings['global_sig_1_name'] }}</strong><br>
+                    @endif
+                    {{ $settings['global_sig_1_desig'] ?? '' }}
                 </div>
             @endif
 
-            @if($settings['global_sig_2_path'])
+            @if($sig2Enabled)
                 <div class="signature-col">
-                    <img src="{{ $settings['global_sig_2_path'] }}" class="signature-img"><br>
-                    <strong>{{ $settings['global_sig_2_name'] }}</strong><br>
-                    {{ $settings['global_sig_2_desig'] }}
+                    @if(!empty($settings['global_sig_2_path']))
+                        <img src="{{ $settings['global_sig_2_path'] }}" class="signature-img"><br>
+                    @endif
+                    @if(!empty($settings['global_sig_2_name']))
+                        <strong>{{ $settings['global_sig_2_name'] }}</strong><br>
+                    @endif
+                    {{ $settings['global_sig_2_desig'] ?? '' }}
                 </div>
             @endif
 
-            @if($settings['global_sig_3_path'])
+            @if($sig3Enabled)
                 <div class="signature-col">
-                    <img src="{{ $settings['global_sig_3_path'] }}" class="signature-img"><br>
-                    <strong>{{ $settings['global_sig_3_name'] }}</strong><br>
-                    {{ $settings['global_sig_3_desig'] }}
+                    @if(!empty($settings['global_sig_3_path']))
+                        <img src="{{ $settings['global_sig_3_path'] }}" class="signature-img"><br>
+                    @endif
+                    @if(!empty($settings['global_sig_3_name']))
+                        <strong>{{ $settings['global_sig_3_name'] }}</strong><br>
+                    @endif
+                    {{ $settings['global_sig_3_desig'] ?? '' }}
                 </div>
             @endif
         </div>

@@ -39,12 +39,15 @@ class CompanyRegistrationService
 
             // 3. Initialize Default PDF Settings for the new Company
             Configuration::setFor('pdf_font_size', '13', $company->id);
-            Configuration::setFor('pdf_font_family', 'Helvetica', $company->id);
+            Configuration::setFor('pdf_font_family', 'DejaVu Sans', $company->id);
             Configuration::setFor('pdf_margin_top', '310', $company->id);
             Configuration::setFor('pdf_margin_bottom', '255', $company->id);
             Configuration::setFor('pdf_header_height', '200', $company->id);
             Configuration::setFor('pdf_footer_height', '180', $company->id);
             Configuration::setFor('bill_template', 'classic', $company->id);
+            Configuration::setFor('global_sig_1_enabled', '1', $company->id);
+            Configuration::setFor('global_sig_2_enabled', '1', $company->id);
+            Configuration::setFor('global_sig_3_enabled', '1', $company->id);
 
             // 4. Create the Main/Default Branch for this Company
             $branch = Branch::create([

@@ -119,19 +119,22 @@ class ReportPdfController extends Controller
             'pdf_footer_image' => storage_base64($footerImage),
             'report_signature_mode' => Configuration::getFor('report_signature_mode', null, $companyId) ?: 'global_bottom',
 
+            'global_sig_1_enabled' => Configuration::getFor('global_sig_1_enabled', '1', $companyId) !== '0',
             'global_sig_1_name' => Configuration::getFor('authorized_signatory_name', null, $companyId) ?: 'Authorized Signatory',
             'global_sig_1_desig' => Configuration::getFor('authorized_signatory_designation', null, $companyId) ?: '',
             'global_sig_1_path' => storage_base64(Configuration::getFor('signature_image', null, $companyId)),
 
+            'global_sig_2_enabled' => Configuration::getFor('global_sig_2_enabled', '1', $companyId) !== '0',
             'global_sig_2_name' => Configuration::getFor('global_sig_2_name', '', $companyId) ?: '',
             'global_sig_2_desig' => Configuration::getFor('global_sig_2_desig', '', $companyId) ?: '',
             'global_sig_2_path' => storage_base64(Configuration::getFor('global_sig_2_path', null, $companyId)),
 
+            'global_sig_3_enabled' => Configuration::getFor('global_sig_3_enabled', '1', $companyId) !== '0',
             'global_sig_3_name' => Configuration::getFor('global_sig_3_name', '', $companyId) ?: '',
             'global_sig_3_desig' => Configuration::getFor('global_sig_3_desig', '', $companyId) ?: '',
             'global_sig_3_path' => storage_base64(Configuration::getFor('global_sig_3_path', null, $companyId)),
             'pdf_font_size' => Configuration::getFor('pdf_font_size', null, $companyId) ?: 13,
-            'pdf_font_family' => Configuration::getFor('pdf_font_family', null, $companyId) ?: 'Helvetica',
+            'pdf_font_family' => Configuration::getFor('pdf_font_family', null, $companyId) ?: 'DejaVu Sans',
 
             // ALWAYS reserve space for physical letterhead (1 inch = ~96px minimum, but user wants settings-driven)
             'pdf_margin_top' => Configuration::getFor('pdf_margin_top', null, $companyId) ?: 320,

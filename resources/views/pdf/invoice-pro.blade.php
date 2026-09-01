@@ -39,7 +39,11 @@ if (!function_exists('getIndianCurrency')) {
         $headerHeight = ($settings['pdf_header_height'] ?? 200) . 'px';
         $footerHeight = ($settings['pdf_footer_height'] ?? 180) . 'px';
         $fontSize     = ($settings['pdf_font_size'] ?? 13) . 'px';
-        $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
+        $fontSetting  = $settings['pdf_font_family'] ?? 'DejaVu Sans';
+        if (in_array(strtolower(trim($fontSetting)), ['helvetica', 'arial', 'sans-serif', ''])) {
+            $fontSetting = 'DejaVu Sans';
+        }
+        $fontFamily   = "'{$fontSetting}', 'DejaVu Sans', sans-serif";
     @endphp
 
     <style>

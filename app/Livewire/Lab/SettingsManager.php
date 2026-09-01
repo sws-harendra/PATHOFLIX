@@ -75,7 +75,7 @@ class SettingsManager extends Component
     
     // PDF Typography & Layout
     public $pdf_font_size = 13;
-    public $pdf_font_family = 'Helvetica';
+    public $pdf_font_family = 'DejaVu Sans';
     public $pdf_margin_top = 310;
     public $pdf_margin_bottom = 255;
     public $pdf_margin_left = 25;
@@ -103,13 +103,16 @@ class SettingsManager extends Component
     public $branchControlsSaved = false;
 
     // Report Signatory (Global 1)
+    public $global_sig_1_enabled = true;
     public $authorized_signatory_name;
     public $authorized_signatory_designation;
     public $signature_image;
     public $new_signature_image;
 
     // Global Signatories (2 & 3)
+    public $global_sig_2_enabled = true;
     public $global_sig_2_name, $global_sig_2_desig, $global_sig_2_path, $new_global_sig_2;
+    public $global_sig_3_enabled = true;
     public $global_sig_3_name, $global_sig_3_desig, $global_sig_3_path, $new_global_sig_3;
 
     // Department-wise Signatures
@@ -168,7 +171,7 @@ class SettingsManager extends Component
 
         // PDF Typography & Layout
         $this->pdf_font_size = (int) Configuration::getFor('pdf_font_size', 13);
-        $this->pdf_font_family = Configuration::getFor('pdf_font_family', 'Helvetica');
+        $this->pdf_font_family = Configuration::getFor('pdf_font_family', 'DejaVu Sans');
         $this->pdf_margin_top = (int) Configuration::getFor('pdf_margin_top', 310);
         $this->pdf_margin_bottom = (int) Configuration::getFor('pdf_margin_bottom', 255);
         $this->pdf_margin_left = (int) Configuration::getFor('pdf_margin_left', 25);
@@ -176,14 +179,17 @@ class SettingsManager extends Component
         $this->pdf_header_height = (int) Configuration::getFor('pdf_header_height', 200);
         $this->pdf_footer_height = (int) Configuration::getFor('pdf_footer_height', 180);
         
+        $this->global_sig_1_enabled = Configuration::getFor('global_sig_1_enabled', '1') === '1';
         $this->authorized_signatory_name = Configuration::getFor('authorized_signatory_name', 'Dr. Authorized Pathologist');
         $this->authorized_signatory_designation = Configuration::getFor('authorized_signatory_designation', 'Consultant Pathologist');
         $this->signature_image = Configuration::getFor('signature_image', null);
 
         // Global 2 & 3
+        $this->global_sig_2_enabled = Configuration::getFor('global_sig_2_enabled', '1') === '1';
         $this->global_sig_2_name = Configuration::getFor('global_sig_2_name', '');
         $this->global_sig_2_desig = Configuration::getFor('global_sig_2_desig', '');
         $this->global_sig_2_path = Configuration::getFor('global_sig_2_path', null);
+        $this->global_sig_3_enabled = Configuration::getFor('global_sig_3_enabled', '1') === '1';
         $this->global_sig_3_name = Configuration::getFor('global_sig_3_name', '');
         $this->global_sig_3_desig = Configuration::getFor('global_sig_3_desig', '');
         $this->global_sig_3_path = Configuration::getFor('global_sig_3_path', null);
@@ -426,6 +432,9 @@ class SettingsManager extends Component
         Configuration::setFor('pdf_vertical_spacing', $this->pdf_vertical_spacing);
         Configuration::setFor('pdf_signature_offset', $this->pdf_signature_offset);
         
+        Configuration::setFor('global_sig_1_enabled', $this->global_sig_1_enabled ? '1' : '0');
+        Configuration::setFor('global_sig_2_enabled', $this->global_sig_2_enabled ? '1' : '0');
+        Configuration::setFor('global_sig_3_enabled', $this->global_sig_3_enabled ? '1' : '0');
         Configuration::setFor('authorized_signatory_name', $this->authorized_signatory_name);
         Configuration::setFor('authorized_signatory_designation', $this->authorized_signatory_designation);
         Configuration::setFor('signature_image', $this->signature_image);
@@ -479,14 +488,17 @@ class SettingsManager extends Component
         }
 
         Configuration::setFor('report_signature_mode', $this->report_signature_mode);
+        Configuration::setFor('global_sig_1_enabled', $this->global_sig_1_enabled ? '1' : '0');
         Configuration::setFor('authorized_signatory_name', $this->authorized_signatory_name);
         Configuration::setFor('authorized_signatory_designation', $this->authorized_signatory_designation);
         Configuration::setFor('signature_image', $this->signature_image);
 
+        Configuration::setFor('global_sig_2_enabled', $this->global_sig_2_enabled ? '1' : '0');
         Configuration::setFor('global_sig_2_name', $this->global_sig_2_name);
         Configuration::setFor('global_sig_2_desig', $this->global_sig_2_desig);
         Configuration::setFor('global_sig_2_path', $this->global_sig_2_path);
 
+        Configuration::setFor('global_sig_3_enabled', $this->global_sig_3_enabled ? '1' : '0');
         Configuration::setFor('global_sig_3_name', $this->global_sig_3_name);
         Configuration::setFor('global_sig_3_desig', $this->global_sig_3_desig);
         Configuration::setFor('global_sig_3_path', $this->global_sig_3_path);

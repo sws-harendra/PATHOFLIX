@@ -8,7 +8,7 @@
         body { 
             margin: 0; 
             padding: 0; 
-            font-family: 'Helvetica', 'Arial', sans-serif; 
+            font-family: 'DejaVu Sans', sans-serif; 
             background: #ffffff;
         }
         

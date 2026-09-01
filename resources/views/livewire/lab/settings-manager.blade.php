@@ -710,6 +710,31 @@
                                         </div>
                                     </div>
                                 </div>
+                            {{-- Typography & Font Settings --}}
+                            <div class="row g-4 mt-2">
+                                <div class="col-12">
+                                    <div class="card border border-light-subtle rounded-4 bg-white shadow-sm">
+                                        <div class="card-body p-4">
+                                            <h6 class="fw-bolder mb-3"><i class="feather-type text-primary me-2"></i>Report Typography & Font Size</h6>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label fs-13 text-muted">Font Size (in px)</label>
+                                                    <input type="number" wire:model="pdf_font_size" class="form-control" placeholder="e.g. 13" min="9" max="22">
+                                                    <small class="text-muted d-block mt-1"><i class="feather-info me-1"></i> Default is 13px. Increase or decrease to resize overall text, tables, and interpretations on report PDFs.</small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label fs-13 text-muted">Font Family</label>
+                                                    <select wire:model="pdf_font_family" class="form-select">
+                                                        <option value="DejaVu Sans">DejaVu Sans (Recommended - Full Unicode & Medical Symbols Support)</option>
+                                                        <option value="DejaVu Serif">DejaVu Serif</option>
+                                                        <option value="DejaVu Sans Mono">DejaVu Sans Mono</option>
+                                                    </select>
+                                                    <small class="text-muted d-block mt-1"><i class="feather-info me-1"></i> DejaVu Sans provides native support for mathematical operators (≤, ≥, ±, µ, °).</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- Watermark & Typography Spacing --}}
@@ -750,9 +775,9 @@
                                                 </div>
                                                 
                                                 <div class="col-md-6">
-                                                    <label class="form-label fs-13 text-muted">Report Vertical Spacing (Padding in px)</label>
-                                                    <input type="number" wire:model="pdf_vertical_spacing" class="form-control mb-3" placeholder="e.g. 5" min="0" max="20">
-                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Increase this value to add more space between test parameters.</small>
+                                                    <label class="form-label fs-13 text-muted">Report Vertical Spacing (in px)</label>
+                                                    <input type="number" wire:model="pdf_vertical_spacing" class="form-control mb-3" placeholder="e.g. 0" min="-30" max="30">
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Adjust vertical spacing between tests and parameters (Set negative like -5 or -10 for ultra-compact layout).</small>
                                                     
                                                     <label class="form-label fs-13 text-muted mt-3">Signature Bottom Offset (in px)</label>
                                                     <input type="number" wire:model="pdf_signature_offset" class="form-control mb-3" placeholder="e.g. 185">
@@ -899,8 +924,16 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 1 (Right Side)</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                        <span class="fs-11 fw-bold text-muted text-uppercase">Signatory 1 (Right)</span>
+                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="globalSig1Enabled" wire:model.live="global_sig_1_enabled">
+                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $global_sig_1_enabled ? 'success' : 'secondary' }}" for="globalSig1Enabled">
+                                                {{ $global_sig_1_enabled ? 'ON' : 'OFF' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: {{ $global_sig_1_enabled ? '1' : '0.5' }};">
                                         @if($new_signature_image)
                                             <img src="{{ $new_signature_image->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($signature_image)
@@ -923,8 +956,16 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 2 (Left Side)</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                        <span class="fs-11 fw-bold text-muted text-uppercase">Signatory 2 (Left)</span>
+                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="globalSig2Enabled" wire:model.live="global_sig_2_enabled">
+                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $global_sig_2_enabled ? 'success' : 'secondary' }}" for="globalSig2Enabled">
+                                                {{ $global_sig_2_enabled ? 'ON' : 'OFF' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: {{ $global_sig_2_enabled ? '1' : '0.5' }};">
                                         @if($new_global_sig_2)
                                             <img src="{{ $new_global_sig_2->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($global_sig_2_path)
@@ -947,8 +988,16 @@
                         <div class="col-md-4">
                             <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                                 <div class="card-body p-4 text-center">
-                                    <div class="fs-10 fw-bold text-muted text-uppercase mb-3">Signatory Slot 3 (Center)</div>
-                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                        <span class="fs-11 fw-bold text-muted text-uppercase">Signatory 3 (Center)</span>
+                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                            <input class="form-check-input m-0 cursor-pointer" type="checkbox" role="switch" id="globalSig3Enabled" wire:model.live="global_sig_3_enabled">
+                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $global_sig_3_enabled ? 'success' : 'secondary' }}" for="globalSig3Enabled">
+                                                {{ $global_sig_3_enabled ? 'ON' : 'OFF' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="position-relative mb-4 mx-auto" style="width: 140px; height: 90px; border: 2px dashed #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: {{ $global_sig_3_enabled ? '1' : '0.5' }};">
                                         @if($new_global_sig_3)
                                             <img src="{{ $new_global_sig_3->temporaryUrl() }}" class="w-100 h-100 object-fit-contain">
                                         @elseif($global_sig_3_path)

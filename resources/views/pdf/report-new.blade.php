@@ -23,9 +23,27 @@
         $headerHeight = ($settings['pdf_header_height'] ?? 200) . 'px';
         $footerHeight = ($settings['pdf_footer_height'] ?? 180) . 'px';
         
-        $fontSize     = ($settings['pdf_font_size'] ?? 13) . 'px';
-        $fontFamily   = $settings['pdf_font_family'] ?? 'Helvetica, Arial, sans-serif';
-        $verticalSpacing = ($settings['pdf_vertical_spacing'] ?? 5) . 'px';
+        $baseFontSizeNum = (float)($settings['pdf_font_size'] ?? 13);
+        if ($baseFontSizeNum < 8) $baseFontSizeNum = 13;
+        $fontSize        = $baseFontSizeNum . 'px';
+        $tableFontSize   = max(9.5, $baseFontSizeNum - 2) . 'px';
+        $tableHeaderFontSize = max(10, $baseFontSizeNum - 1.5) . 'px';
+        $refRangeFontSize = max(9, $baseFontSizeNum - 3) . 'px';
+        $interpFontSize  = max(9.5, $baseFontSizeNum - 2) . 'px';
+
+        $fontSetting  = $settings['pdf_font_family'] ?? 'DejaVu Sans';
+        if (empty(trim($fontSetting)) || in_array(strtolower(trim($fontSetting)), ['helvetica', 'arial', 'sans-serif'])) {
+            $fontSetting = 'DejaVu Sans';
+        }
+        $fontFamily   = $fontSetting . ', sans-serif';
+        $vSpacingNum     = (int)($settings['pdf_vertical_spacing'] ?? 5);
+        $verticalSpacing = max(1, 4 + $vSpacingNum) . 'px';
+        $thPaddingY      = max(2, 5 + $vSpacingNum) . 'px';
+        $tableLineHeight = max(1.05, 1.35 + ($vSpacingNum * 0.03));
+        $titleMarginTop = max(-20, 1 + $vSpacingNum) . 'px';
+        $titleMarginBottom = max(0, 1 + $vSpacingNum) . 'px';
+        $testMarginBottom = max(0, 3 + $vSpacingNum) . 'px';
+        $tableMarginBottom = max(2, 5 + $vSpacingNum) . 'px';
         $signatureOffset = ($settings['pdf_signature_offset'] ?? 185) . 'px';
     @endphp
 
@@ -35,10 +53,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: DejaVu Sans, sans-serif;
         }
 
         body {
-            font-family: {{ $fontFamily }};
+            font-family: {!! $fontFamily !!};
             font-size: {{ $fontSize }};
             color: #1a1a1a;
             background: #fff;
@@ -82,7 +101,7 @@
             border: 1px solid #1a1a1a !important;
             margin: 0;
             padding: 8px 10px;
-            font-size: 10.5px;
+            font-size: {{ max(9.5, $baseFontSizeNum - 2) }}px;
             display: block;
             border-radius: 2px;
         }
@@ -228,10 +247,12 @@
         .dept-title {
             text-align: center;
             font-weight: 700;
-            font-size: 12px;
-            letter-spacing: 0.8px;
+            font-size: 11.5px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin: 10px 0 2px;
+            margin-top: {{ $titleMarginTop }};
+            margin-bottom: {{ $titleMarginBottom }};
+            line-height: 1.2;
             color: #1a1a1a;
         }
 
@@ -240,7 +261,9 @@
             font-weight: 700;
             font-size: 11px;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-top: 1px;
+            margin-bottom: {{ $testMarginBottom }};
+            line-height: 1.2;
             color: #1a1a1a;
         }
 
@@ -269,8 +292,8 @@
         .result-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
-            font-size: 10px;
+            margin-bottom: {{ $tableMarginBottom }};
+            font-size: {{ $tableFontSize }};
         }
 
         .result-table tr {
@@ -280,19 +303,22 @@
         .result-table thead th {
             border-top: 1.5px solid #333;
             border-bottom: 1.5px solid #333;
-            padding: 6px 6px;
+            padding: {{ $thPaddingY }} 6px;
             text-align: left;
             font-weight: 700;
-            font-size: 10.5px;
+            font-size: {{ $tableHeaderFontSize }};
             text-transform: uppercase;
             color: #000;
             background: #fbfbfb;
+            line-height: {{ $tableLineHeight }};
         }
 
         .result-table tbody td {
             padding: {{ $verticalSpacing }} 6px;
             vertical-align: top;
-            border-bottom: 0.5px solid #eee;
+            border-bottom: none;
+            font-size: {{ $tableFontSize }};
+            line-height: {{ $tableLineHeight }};
         }
 
         /* Explicitly remove vertical lines */
@@ -308,7 +334,7 @@
         /* Sub-header rows (section dividers like "TOTAL COUNT") */
         .result-table .sub-hdr td {
             font-weight: 700;
-            font-size: 10px;
+            font-size: {{ $tableFontSize }};
             text-transform: uppercase;
             padding: 3px 6px 1px;
             color: #1a1a1a;
@@ -341,14 +367,14 @@
         .interp-block {
             margin: 15px 0 10px;
             padding: 4px 0;
-            font-size: 10px;
+            font-size: {{ $interpFontSize }};
             line-height: 1.5;
             page-break-inside: avoid;
         }
 
         .interp-label {
             font-weight: 700;
-            font-size: 10px;
+            font-size: {{ $tableHeaderFontSize }};
             margin-bottom: 3px;
             color: #1a1a1a;
         }
@@ -356,6 +382,7 @@
         .interp-content {
             margin-left: 0;
             padding-left: 0;
+            font-size: {{ $interpFontSize }};
         }
 
         /* Render HTML interpretation tables cleanly */
@@ -363,22 +390,22 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 4px;
-            font-size: 10px;
+            font-size: {{ $interpFontSize }};
         }
 
         .interp-content table th {
             background: #f0f0f0;
             border: 1px solid #bbb;
-            padding: 3px 6px;
+            padding: 4px 6px;
             font-weight: 700;
             text-align: left;
-            font-size: 10px;
+            font-size: {{ $interpFontSize }};
         }
 
         .interp-content table td {
             border: 1px solid #bbb;
-            padding: 3px 6px;
-            font-size: 10px;
+            padding: 4px 6px;
+            font-size: {{ $interpFontSize }};
         }
 
         .interp-content table tr {
@@ -391,18 +418,19 @@
 
         .interp-content p {
             margin: 3px 0;
-            font-size: 10px;
+            font-size: {{ $interpFontSize }};
             color: #444;
         }
 
         .interp-content ul,
         .interp-content ol {
             margin: 3px 0 3px 15px;
-            font-size: 10px;
+            font-size: {{ $interpFontSize }};
         }
 
         .interp-content li {
             margin-bottom: 2px;
+            font-size: {{ $interpFontSize }};
         }
 
         .interp-content strong {
@@ -562,10 +590,15 @@
     <footer>
         <div class="sig-container">
             {{-- ── Signature Section ── --}}
-            @php $sigMode = $settings['report_signature_mode'] ?? 'global_bottom'; @endphp
+            @php 
+                $sigMode = $settings['report_signature_mode'] ?? 'global_bottom';
+                $sig1Enabled = ($settings['global_sig_1_enabled'] ?? true) && (!empty($settings['global_sig_1_name']) || !empty($sigImgSrc));
+                $sig2Enabled = ($settings['global_sig_2_enabled'] ?? true) && (!empty($settings['global_sig_2_name']) || !empty($settings['global_sig_2_path']));
+                $sig3Enabled = ($settings['global_sig_3_enabled'] ?? true) && (!empty($settings['global_sig_3_name']) || !empty($settings['global_sig_3_path']));
+            @endphp
             @if($sigMode === 'per_department')
                 {{-- Global footer sigs hidden, shown per department in body --}}
-            @elseif(($sigMode === 'global_bottom' || $sigMode === '') && empty($settings['global_sig_2_name']) && empty($settings['global_sig_3_name']))
+            @elseif(($sigMode === 'global_bottom' || $sigMode === '') && !$sig2Enabled && !$sig3Enabled && $sig1Enabled)
                 <table class="sig-table">
                     <tr>
                         <td class="sig-checked"></td>
@@ -582,38 +615,44 @@
                         </td>
                     </tr>
                 </table>
-            @else
+            @elseif(($sigMode === 'global_bottom' || $sigMode === '') && ($sig1Enabled || $sig2Enabled || $sig3Enabled))
                 {{-- Multi Signatory Layout --}}
                 <table class="multi-sig-table">
                     <tr>
                         <td style="width: 33%; text-align: left; vertical-align: bottom; padding-left: 35px;">
-                            @if(!empty($settings['global_sig_2_name']))
+                            @if($sig2Enabled)
                                 @if(!empty($settings['global_sig_2_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_2_path'] }}"><br>
                                 @endif
-                                <span class="doc-name">{{ $settings['global_sig_2_name'] }}</span>
+                                @if(!empty($settings['global_sig_2_name']))
+                                    <span class="doc-name">{{ $settings['global_sig_2_name'] }}</span>
+                                @endif
                                 @if(!empty($settings['global_sig_2_desig']))
                                     <span class="doc-desig">{!! nl2br(e($settings['global_sig_2_desig'])) !!}</span>
                                 @endif
                             @endif
                         </td>
                         <td style="width: 34%; text-align: center; vertical-align: bottom;">
-                            @if(!empty($settings['global_sig_3_name']))
+                            @if($sig3Enabled)
                                 @if(!empty($settings['global_sig_3_path']))
                                     <img class="sign-img" src="{{ $settings['global_sig_3_path'] }}"><br>
                                 @endif
-                                <span class="doc-name">{{ $settings['global_sig_3_name'] }}</span>
+                                @if(!empty($settings['global_sig_3_name']))
+                                    <span class="doc-name">{{ $settings['global_sig_3_name'] }}</span>
+                                @endif
                                 @if(!empty($settings['global_sig_3_desig']))
                                     <span class="doc-desig">{!! nl2br(e($settings['global_sig_3_desig'])) !!}</span>
                                 @endif
                             @endif
                         </td>
                         <td style="width: 33%; text-align: right; vertical-align: bottom; padding-right: 35px;">
-                            @if(!empty($settings['global_sig_1_name']))
+                            @if($sig1Enabled)
                                 @if($sigImgSrc)
                                     <img class="sign-img" src="{{ $sigImgSrc }}"><br>
                                 @endif
-                                <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
+                                @if(!empty($settings['global_sig_1_name']))
+                                    <span class="doc-name">{{ $settings['global_sig_1_name'] }}</span>
+                                @endif
                                 @if(!empty($settings['global_sig_1_desig']))
                                     <span class="doc-desig">{!! nl2br(e($settings['global_sig_1_desig'])) !!}</span>
                                 @endif
@@ -665,14 +704,7 @@
             @if($pageBreakMode === 'test' || $testInDeptIndex === 0)
                 <div class="dept-title">{{ strtoupper($deptName) }}</div>
             @endif
-            <div class="test-title" style="margin-bottom: 12px; font-size: 11.5px;">{{ strtoupper($testName) }}</div>
-
-            {{-- ── Method (from LabTest master) ── --}}
-            <!-- @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
-                <div class="method-line">Method: {{ $labTest->method }}</div>
-            @endif -->
-
-
+            <div class="test-title">{{ strtoupper($testName) }}</div>
 
             @if($testData['cultureResult'])
                 @php $cr = $testData['cultureResult']; @endphp
@@ -788,8 +820,8 @@
                             <tr class="{{ $hasSubHeaders ? 'param-indent' : '' }}">
                                 <td class="{{ $isAbnormal ? 'result-bold' : '' }}">
                                     {{ strtoupper($r->parameter_name) }}
-                                    @if($r->method)
-                                        <div style="font-size: 8px; font-weight: normal; font-style: italic; color: #555; margin-top: 2px;">
+                                    @if(($settings['pdf_show_method'] ?? true) && $r->method)
+                                        <div style="font-size: 8px; font-weight: normal; font-style: italic; color: #555; margin-top: 1px; line-height: 1;">
                                             (Method: {{ $r->method }})
                                         </div>
                                     @endif
@@ -801,12 +833,18 @@
                                 <td class="{{ $flag ? 'flag-' . $flag : '' }}">
                                     {{ $flag }}
                                 </td>
-                                <td class="{{ $isAbnormal ? 'result-bold' : '' }}" style="width: 22%; font-size: 8.5px; line-height: 1.2; vertical-align: middle;">
+                                <td class="{{ $isAbnormal ? 'result-bold' : '' }}" style="width: 22%; font-size: {{ $refRangeFontSize }}; line-height: 1.2; vertical-align: middle;">
                                     @php
-                                        $displayRange = $r->reference_range;
-                                        
-                                        // Backup: If range is empty, try to show the full master range list
-                                        if (empty(trim($displayRange)) && !empty($r->lab_test_id) && $r->labTest && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
+                                        $rawRange = $r->reference_range;
+                                        $displayRange = '';
+
+                                        if (!empty(trim($rawRange ?? ''))) {
+                                            if (str_contains($rawRange, '<br>') || str_contains($rawRange, '<br/>')) {
+                                                $displayRange = preg_replace_callback('/<(?!\/?br\b[^>]*>)/i', fn() => '&lt;', $rawRange);
+                                            } else {
+                                                $displayRange = nl2br(e($rawRange));
+                                            }
+                                        } elseif (!empty($r->lab_test_id) && $r->labTest && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
                                             $masterParam = collect($r->labTest->parameters)->first(function($p) use ($r) {
                                                 $pName = is_array($p) ? ($p['name'] ?? '') : $p;
                                                 return $pName === $r->parameter_name;
@@ -821,13 +859,13 @@
                                                     $femaleRange = $ranges->firstWhere('gender', 'Female');
 
                                                     if ($maleRange && $femaleRange) {
-                                                        $displayRange = "M: " . ($maleRange['display_range'] ?? '') . "<br>F: " . ($femaleRange['display_range'] ?? '');
+                                                        $displayRange = "M: " . e($maleRange['display_range'] ?? '') . "<br>F: " . e($femaleRange['display_range'] ?? '');
                                                     } else {
                                                         // Just join all unique display ranges
-                                                        $displayRange = $ranges->pluck('display_range')->unique()->filter()->implode('<br>');
+                                                        $displayRange = $ranges->pluck('display_range')->unique()->filter()->map(fn($d) => e($d))->implode('<br>');
                                                     }
                                                 } else {
-                                                    $displayRange = $ranges->first()['display_range'] ?? ($ranges->first()['normal_value'] ?? '');
+                                                    $displayRange = e($ranges->first()['display_range'] ?? ($ranges->first()['normal_value'] ?? ''));
                                                 }
                                             }
                                         }
