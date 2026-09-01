@@ -161,7 +161,7 @@
                     @endif
                 @endrole
 
-                @if(auth()->user()->hasAnyRole(['lab_admin', 'staff', 'branch_admin']))
+                @if(auth()->user()->hasAnyRole(['lab_admin', 'staff']))
                     <li class="nxl-item nxl-caption">
                         <label>Main</label>
                     </li>
