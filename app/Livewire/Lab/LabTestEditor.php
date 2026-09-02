@@ -62,7 +62,24 @@ class LabTestEditor extends Component
                     'is_critical' => false
                 ]
             ],
-            'short_code' => '', 'input_type' => 'numeric', 'formula' => '', 'method' => ''
+            'short_code' => '', 'input_type' => 'numeric', 'formula' => '', 'method' => '',
+            'type' => 'parameter',
+        ];
+    }
+
+    public function addSubHeader()
+    {
+        $this->parameters[] = [
+            'type'       => 'sub_header',
+            'name'       => '',
+            'unit'       => '',
+            'ranges'     => [],
+            'options'    => [],
+            'short_code' => '',
+            'input_type' => 'text',
+            'formula'    => '',
+            'method'     => '',
+            'range_type' => 'flexible',
         ];
     }
 
@@ -167,12 +184,21 @@ class LabTestEditor extends Component
             'method' => 'nullable|string|max:100',
             'mrp' => 'required|numeric|min:0',
             'department_id' => 'required|exists:departments,id',
-            'parameters.*.name' => 'required|string|max:255',
-            'parameters.*.input_type' => 'required|in:numeric,text,calculated,selection',
             'parameters.*.method' => 'nullable|string|max:100',
         ], [
             'parameters.*.name.required' => 'Parameter name is required.'
         ]);
+
+        // Validate names for parameters and sub-headers
+        foreach ($this->parameters as $i => $param) {
+            if (empty(trim($param['name'] ?? ''))) {
+                $isHdr = ($param['type'] ?? 'parameter') === 'sub_header';
+                $errMsg = $isHdr ? "Heading name is required on row " . ($i + 1) : "Parameter name is required on row " . ($i + 1);
+                $this->addError("parameters.{$i}.name", $errMsg);
+                $this->dispatch('notify', ['type' => 'error', 'message' => $errMsg]);
+                return;
+            }
+        }
 
         try {
             $data = [

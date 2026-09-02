@@ -452,6 +452,18 @@
                         </tr>
                     @else
                     @foreach($results as $r)
+                        @php
+                            $isSubHeader = (is_null($r->result_value) || trim($r->result_value) === '')
+                                && (is_null($r->reference_range) || trim($r->reference_range) === '');
+                        @endphp
+
+                        @if($isSubHeader)
+                            <tr style="background-color: #f8f9fa;">
+                                <td colspan="4" style="padding: 6px 15px; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #1a1a1a;">
+                                    {{ strtoupper($r->parameter_name) }}
+                                </td>
+                            </tr>
+                        @else
                         <tr>
                             <td style="padding-left: 15px;">
                                 <div>{{ $r->parameter_name }}</div>
@@ -474,6 +486,7 @@
                             <td>{{ $r->unit }}</td>
                             <td><span style="white-space: pre-line;">{!! nl2br(e($r->reference_range)) !!}</span></td>
                         </tr>
+                        @endif
                     @endforeach
                     @endif
                     @if($labTest && $labTest->description)

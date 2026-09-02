@@ -99,9 +99,14 @@
                                     <h6 class="fw-bold text-dark mb-0">Report Parameters</h6>
                                     <p class="fs-11 text-muted mb-0">Define fields that will appear on the final report.</p>
                                 </div>
-                                <button type="button" wire:click="addParameter" class="btn btn-soft-primary btn-sm px-3 rounded-pill">
-                                    <i class="feather-plus me-1"></i>Add Field
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" wire:click="addSubHeader" class="btn btn-soft-warning btn-sm px-3 rounded-pill">
+                                        <i class="feather-minus-square me-1"></i>Add Heading
+                                    </button>
+                                    <button type="button" wire:click="addParameter" class="btn btn-soft-primary btn-sm px-3 rounded-pill">
+                                        <i class="feather-plus me-1"></i>Add Field
+                                    </button>
+                                </div>
                             </div>
 
                             {{-- Desktop Table (hidden on small screens) --}}
@@ -121,6 +126,34 @@
                                     </thead>
                                     <tbody>
                                         @foreach($parameters as $index => $param)
+                                            @if(($param['type'] ?? 'parameter') === 'sub_header')
+                                            {{-- Sub-Header Row --}}
+                                            <tr wire:key="param-d-{{ $index }}" class="bg-warning bg-opacity-10 border-bottom border-white">
+                                                <td class="ps-2 py-2 text-center align-middle">
+                                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                                        <span class="text-muted" style="cursor: grab;"><i class="feather-grid fs-12"></i></span>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <button type="button" wire:click="moveParameterUp({{ $index }})" class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px;" {{ $index === 0 ? 'disabled' : '' }}><i class="feather-chevron-up fs-11"></i></button>
+                                                            <button type="button" wire:click="moveParameterDown({{ $index }})" class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px;" {{ $index === count($parameters)-1 ? 'disabled' : '' }}><i class="feather-chevron-down fs-11"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td colspan="5">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-warning text-dark fs-10 fw-bold px-2 py-1 flex-shrink-0">HEADING</span>
+                                                        <input type="text" class="form-control form-control-sm fw-bold text-uppercase"
+                                                            wire:model="parameters.{{ $index }}.name"
+                                                            placeholder="e.g. DIFFERENTIAL LEUCOCYTE COUNT">
+                                                    </div>
+                                                </td>
+                                                <td class="text-end pe-3">
+                                                    <button type="button" wire:click="removeParameter({{ $index }})" class="btn btn-icon btn-soft-danger btn-sm border-0">
+                                                        <i class="feather-trash-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            @else
+                                            {{-- Normal Parameter Row --}}
                                             <tr wire:key="param-d-{{ $index }}" 
                                                 draggable="true"
                                                 x-data="{ isDragging: false }"
@@ -190,6 +223,7 @@
                                                     </button>
                                                 </td>
                                             </tr>
+                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -199,6 +233,23 @@
                             {{-- Mobile Card Layout (visible only on small screens) --}}
                             <div class="d-lg-none">
                                 @foreach($parameters as $index => $param)
+                                    @if(($param['type'] ?? 'parameter') === 'sub_header')
+                                    {{-- Mobile Sub-Header --}}
+                                    <div wire:key="param-m-{{ $index }}" class="card border border-warning shadow-sm rounded-3 mb-2" style="background: #fffbea;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-warning text-dark fs-10 fw-bold flex-shrink-0">HEADING</span>
+                                                <input type="text" class="form-control form-control-sm fw-bold text-uppercase flex-grow-1"
+                                                    wire:model="parameters.{{ $index }}.name"
+                                                    placeholder="e.g. DIFFERENTIAL LEUCOCYTE COUNT">
+                                                <button type="button" wire:click="removeParameter({{ $index }})" class="btn btn-icon btn-soft-danger btn-sm border-0 flex-shrink-0">
+                                                    <i class="feather-trash-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @else
+                                    {{-- Mobile Normal Parameter --}}
                                     <div wire:key="param-m-{{ $index }}" class="card border shadow-sm rounded-3 mb-2">
                                         <div class="card-body p-3">
                                             {{-- Row 1: Order + Move Up/Down + Name + Delete --}}
@@ -258,6 +309,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 @endforeach
                                 @if(count($parameters) === 0)
                                     <div class="text-center text-muted py-4 bg-light rounded-3">
