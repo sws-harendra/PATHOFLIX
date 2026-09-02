@@ -885,7 +885,7 @@
             @endif --}}
 
             {{-- ── Default Interpretation (from LabTest master — stored as HTML) ── --}}
-            @if(($settings['pdf_show_interpretation'] ?? true) && $labTest && $labTest->interpretation)
+            @if(($settings['pdf_show_interpretation'] ?? true) && $labTest && ($labTest->show_interpretation ?? true) && $labTest->interpretation)
                 <div class="interp-block">
                     <div class="interp-label">Interpretation:</div>
                     <div class="interp-content">

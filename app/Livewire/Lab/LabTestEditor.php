@@ -13,6 +13,7 @@ class LabTestEditor extends Component
     public $tat_hours = 24;
     public $is_active = true;
     public $is_culture = false;
+    public $show_interpretation = true;
     public $description;
     public $interpretation;
     public array $parameters = [];
@@ -36,6 +37,7 @@ class LabTestEditor extends Component
             $this->tat_hours = $test->tat_hours;
             $this->description = $test->description;
             $this->interpretation = $test->interpretation;
+            $this->show_interpretation = $test->show_interpretation ?? true;
             $this->is_active = $test->is_active;
             $this->is_culture = $test->is_culture;
             $this->parameters = is_array($test->parameters) ? $test->parameters : [];
@@ -208,6 +210,7 @@ class LabTestEditor extends Component
                 'department_id' => $this->department_id,
                 'description' => $this->description,
                 'interpretation' => $this->interpretation,
+                'show_interpretation' => $this->show_interpretation,
                 'mrp' => $this->mrp,
                 'b2b_price' => $this->b2b_price,
                 'sample_type' => $this->sample_type,

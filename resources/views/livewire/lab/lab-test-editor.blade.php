@@ -330,12 +330,23 @@
                 <!-- Interpretation Side Card -->
                 <div class="col-xl-4">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-header py-3">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-file-text text-primary me-2"></i>Interpretation Template</h6>
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                <input class="form-check-input m-0" type="checkbox" role="switch" id="testShowInterpretation" wire:model.live="show_interpretation" style="width:2.5em;height:1.25em;">
+                                <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $show_interpretation ? 'success' : 'secondary' }}" for="testShowInterpretation">
+                                    {{ $show_interpretation ? 'ON' : 'OFF' }}
+                                </label>
+                            </div>
                         </div>
                         <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-0">Clinical Interpretation (HTML)</label>
+                                <span class="badge {{ $show_interpretation ? 'bg-soft-success text-success' : 'bg-soft-secondary text-muted' }} fs-10">
+                                    {{ $show_interpretation ? '✓ Visible on Report' : '✗ Hidden on Report' }}
+                                </span>
+                            </div>
                             <div class="mb-0" wire:ignore>
-                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-2">Clinical Interpretation (HTML)</label>
                                 <textarea class="form-control rich-editor" id="lab-interpretation-editor" 
                                     x-data x-init="
                                         ClassicEditor

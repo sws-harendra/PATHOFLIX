@@ -497,7 +497,7 @@
                             </td>
                         </tr>
                     @endif
-                    @if($labTest && $labTest->interpretation)
+                    @if(($settings['pdf_show_interpretation'] ?? true) && $labTest && ($labTest->show_interpretation ?? true) && $labTest->interpretation)
                         <tr>
                             <td colspan="4" class="interpretation-block" style="padding-left: 15px; padding-top: 5px; padding-bottom: 15px; font-size: 11px; color: #333;">
                                 <strong>Interpretation:</strong> <br>
