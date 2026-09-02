@@ -264,6 +264,9 @@ class ResultEntryManager extends Component
             $this->selectedTests = $this->invoice->items->pluck('id')->map(fn($id) => (string)$id)->toArray();
         }
 
+        // Auto-evaluate ranges on mount
+        $this->autoEvaluateRanges();
+
         // Auto-check completed status on mount
         $this->checkAndMarkTestCompleted();
     }
@@ -431,8 +434,10 @@ class ResultEntryManager extends Component
     private function autoEvaluateRanges()
     {
         foreach ($this->results as $key => $val) {
-            if ($val === '') {
+            $trimmedVal = trim((string)$val);
+            if ($trimmedVal === '') {
                 $this->flags[$key] = '';
+                $this->highlights[$key] = false;
                 continue;
             }
             
@@ -441,25 +446,58 @@ class ResultEntryManager extends Component
             }
 
             $param = $this->parametersList[$key];
+            if (!empty($param['is_sub_header'])) {
+                $this->flags[$key] = '';
+                $this->highlights[$key] = false;
+                continue;
+            }
+
             $range = $param['matched_range_details'] ?? null;
             $inputType = $param['input_type'] ?? 'numeric';
+            $refText = trim($param['ref_range'] ?? ($range['display_range'] ?? ($range['normal_value'] ?? '')));
 
             $isAbnormal = false;
             $flag = '';
 
-            if ($inputType === 'numeric' || $inputType === 'calculated') {
-                $numVal = (float)$val;
+            // Check if value is numeric or qualitative text
+            if (is_numeric($trimmedVal) && ($inputType === 'numeric' || $inputType === 'calculated')) {
+                $numVal = (float)$trimmedVal;
                 if ($range && is_numeric($range['min_val'] ?? null) && is_numeric($range['max_val'] ?? null)) {
                     if ($numVal < (float)$range['min_val']) {
-                        $isAbnormal = true; $flag = 'L';
+                        $isAbnormal = true;
+                        $flag = 'L';
                     } elseif ($numVal > (float)$range['max_val']) {
-                        $isAbnormal = true; $flag = 'H';
+                        $isAbnormal = true;
+                        $flag = 'H';
                     }
                 }
-            } elseif ($inputType === 'text' || $inputType === 'selection') {
-                // Qualitative check
-                if ($range && !empty($range['normal_value'])) {
-                    if (strtolower(trim($val)) !== strtolower(trim($range['normal_value']))) {
+            } else {
+                // Qualitative / Text Check
+                $lowerVal = strtolower($trimmedVal);
+                $lowerRef = strtolower($refText);
+
+                // Standard clinical normal terms
+                $knownNormalWords = [
+                    'negative', 'non-reactive', 'non reactive', 'nonreactive',
+                    'not detected', 'nil', 'absent', 'normal', 'clear',
+                    'sterile', 'no growth', 'unreactive', 'within normal limits'
+                ];
+                
+                // Standard clinical abnormal terms
+                $knownAbnormalWords = [
+                    'positive', 'reactive', 'detected', 'present',
+                    'abnormal', 'growth', 'trace', '1+', '2+', '3+', '4+'
+                ];
+
+                if (in_array($lowerVal, $knownNormalWords)) {
+                    $isAbnormal = false;
+                    $flag = '';
+                } elseif (in_array($lowerVal, $knownAbnormalWords)) {
+                    $isAbnormal = true;
+                    $flag = 'Abn';
+                } elseif (!empty($lowerRef)) {
+                    // If not standard keyword, compare directly with reference text
+                    if ($lowerVal !== $lowerRef) {
                         $isAbnormal = true;
                         $flag = 'Abn';
                     }

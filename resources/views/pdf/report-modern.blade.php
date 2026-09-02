@@ -489,7 +489,7 @@
                         @endif
                     @endforeach
                     @endif
-                    @if($labTest && $labTest->description)
+                    @if(($settings['pdf_show_notes'] ?? true) && $labTest && ($labTest->show_notes ?? true) && $labTest->description)
                         <tr>
                             <td colspan="4" style="padding-left: 15px; padding-top: 5px; padding-bottom: 5px; font-size: 10px; color: #555;">
                                 <strong>Note:</strong> <br>

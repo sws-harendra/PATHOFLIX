@@ -895,7 +895,7 @@
             @endif
 
             {{-- ── Description / Note (from LabTest master — plain text) ── --}}
-            @if(($settings['pdf_show_notes'] ?? true) && $labTest && $labTest->description)
+            @if(($settings['pdf_show_notes'] ?? true) && $labTest && ($labTest->show_notes ?? true) && $labTest->description)
                 <div class="interp-block" style="color:#555;">
                     <div class="interp-label" style="color:#333;">Note:</div>
                     <div class="interp-content">

@@ -55,6 +55,7 @@ class LabTestService
                 'description' => $data['description'] ?? null,
                 'interpretation' => $data['interpretation'] ?? null,
                 'show_interpretation' => $data['show_interpretation'] ?? true,
+                'show_notes' => $data['show_notes'] ?? true,
                 'mrp' => $data['mrp'] ?? 0,
                 'b2b_price' => $data['b2b_price'] ?? 0,
                 'sample_type' => $data['sample_type'] ?? null,

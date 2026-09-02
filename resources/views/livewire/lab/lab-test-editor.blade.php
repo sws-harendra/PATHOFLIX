@@ -84,10 +84,6 @@
                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">TAT (Hours)</label>
                                     <input type="number" class="form-control" wire:model="tat_hours">
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Internal Description</label>
-                                    <input type="text" class="form-control" wire:model="description" placeholder="Notes for lab staff...">
-                                </div>
                             </div>
 
                             <hr class="my-4 opacity-50">
@@ -361,6 +357,28 @@
                                             })
                                     "></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes / Description Side Card -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-align-left text-primary me-2"></i>Test Note / Description</h6>
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                <input class="form-check-input m-0" type="checkbox" role="switch" id="testShowNotes" wire:model.live="show_notes" style="width:2.5em;height:1.25em;">
+                                <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $show_notes ? 'success' : 'secondary' }}" for="testShowNotes">
+                                    {{ $show_notes ? 'ON' : 'OFF' }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-0">Note on Report (Plain Text)</label>
+                                <span class="badge {{ $show_notes ? 'bg-soft-success text-success' : 'bg-soft-secondary text-muted' }} fs-10">
+                                    {{ $show_notes ? '✓ Visible on Report' : '✗ Hidden on Report' }}
+                                </span>
+                            </div>
+                            <textarea class="form-control" rows="3" wire:model="description" placeholder="Notes to display on report below test results (e.g. Test performed on automated analyzer)..."></textarea>
                         </div>
                     </div>
 
