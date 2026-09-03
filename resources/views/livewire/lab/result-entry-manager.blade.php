@@ -342,97 +342,145 @@
                                                  </td>
                                              </tr>
                                         @else
-                                              @foreach($params as $p)
-                                              @php
-                                                  $paramKey = $p['key'];
-                                                  $isHigh = $highlights[$paramKey] ?? false;
-                                              @endphp
-                                              <tr class="{{ $isHigh ? 'table-danger' : '' }}" 
-                                                  wire:key="param-{{ $paramKey }}"
-                                                  draggable="true"
-                                                  x-data="{ isDragging: false }"
-                                                  @dragstart="e => { e.dataTransfer.setData('text/plain', '{{ $paramKey }}'); isDragging = true; }"
-                                                  @dragend="isDragging = false"
-                                                  @dragover.prevent
-                                                  @drop.prevent="e => { 
-                                                      let fromKey = e.dataTransfer.getData('text/plain'); 
-                                                      let toKey = '{{ $paramKey }}'; 
-                                                      if (fromKey && fromKey !== toKey) { 
-                                                          $wire.reorderParameters(fromKey, toKey); 
-                                                      } 
-                                                  }"
-                                                  :class="{ 'bg-soft-primary opacity-50': isDragging }">
-                                                  <td class="text-center align-middle py-1 ps-2">
-                                                      <div class="d-flex align-items-center justify-content-center gap-1">
-                                                          <span class="text-muted cursor-move" style="cursor: grab;" title="Drag to reorder">
-                                                              <i class="feather-grid fs-12"></i>
-                                                          </span>
-                                                          <div class="d-flex flex-column gap-1">
-                                                              <button type="button" wire:click="moveParameterUp('{{ $paramKey }}')" 
-                                                                  class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
-                                                                  {{ $loop->first ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
-                                                                  <i class="feather-chevron-up fs-11"></i>
-                                                              </button>
-                                                              <button type="button" wire:click="moveParameterDown('{{ $paramKey }}')" 
-                                                                  class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
-                                                                  {{ $loop->last ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
-                                                                  <i class="feather-chevron-down fs-11"></i>
-                                                              </button>
-                                                          </div>
-                                                      </div>
-                                                  </td>
-                                                  <td class="fw-bold fs-12 ps-3">
-                                                      <div class="d-flex align-items-center">
-                                                          {{ $p['name'] }}
-                                                          @if($isHigh)
-                                                              @php $f = $flags[$paramKey] ?? 'Abn'; @endphp
-                                                              <span class="ms-2 badge {{ in_array($f, ['H', 'Abn']) ? 'bg-danger' : 'bg-warning text-dark' }} px-2" style="font-size: 10px;">
-                                                                  {{ $f === 'H' ? 'High' : ($f === 'L' ? 'Low' : 'Abnormal') }}
-                                                              </span>
-                                                          @endif
-                                                      </div>
-                                                      @if(!empty($p['short_code']))
-                                                          <div class="fs-10 text-muted">Code: {{ $p['short_code'] }}</div>
-                                                      @endif
-                                                  </td>
-                                                  <td>
-                                                      <div class="input-group input-group-sm w-100">
-                                                          @if(($p['input_type'] ?? 'numeric') === 'selection')
-                                                              <select class="form-select {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
-                                                                      wire:model.live="results.{{ $paramKey }}">
-                                                                  <option value="">Select Result</option>
-                                                                  @foreach($p['options'] ?? [] as $opt)
-                                                                      <option value="{{ $opt }}">{{ $opt }}</option>
-                                                                  @endforeach
-                                                              </select>
-                                                          @elseif(($p['input_type'] ?? 'numeric') === 'calculated')
-                                                              <input type="text" class="form-control bg-light fw-bold text-primary border-primary border-opacity-25" 
-                                                                     wire:model="results.{{ $paramKey }}" readonly title="Auto-Calculated">
-                                                              <span class="input-group-text bg-soft-primary"><i class="feather-cpu" style="font-size: 10px;"></i></span>
-                                                          @else
-                                                              <input type="text" class="form-control {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
-                                                                     wire:model.live.debounce.500ms="results.{{ $paramKey }}">
-                                                          @endif
+                                            @foreach($params as $p)
+                                                @php
+                                                    $paramKey = $p['key'];
+                                                    $isSubHeader = $p['is_sub_header'] ?? false;
+                                                    $isHigh = $highlights[$paramKey] ?? false;
+                                                @endphp
 
-                                                          @if($isHigh && isset($flags[$paramKey]) && !in_array($p['input_type'] ?? '', ['selection', 'calculated']))
-                                                              <span class="input-group-text bg-danger text-white border-danger fw-bold fs-11 px-2">
-                                                                  {{ $flags[$paramKey] }}
-                                                              </span>
-                                                          @endif
-                                                      </div>
-                                                  </td>
-                                                  <td class="fs-12 text-muted">{{ $p['unit'] }}</td>
-                                                  <td class="fs-12 fw-medium text-dark">{{ $p['ref_range'] ?: '-' }}</td>
-                                                  <td class="text-center">
-                                                      <div class="form-check form-switch d-flex justify-content-center">
-                                                          <input class="form-check-input" type="checkbox" 
-                                                                 wire:model.live="highlights.{{ $paramKey }}" 
-                                                                 style="width: 2.5em; height: 1.25em;">
-                                                      </div>
-                                                  </td>
-                                              </tr>
-                                          @endforeach
-                                          @endif
+                                                @if($isSubHeader)
+                                                    {{-- Sub-Heading Row --}}
+                                                    <tr class="table-warning bg-opacity-25" 
+                                                        wire:key="param-{{ $paramKey }}"
+                                                        draggable="true"
+                                                        x-data="{ isDragging: false }"
+                                                        @dragstart="e => { e.dataTransfer.setData('text/plain', '{{ $paramKey }}'); isDragging = true; }"
+                                                        @dragend="isDragging = false"
+                                                        @dragover.prevent
+                                                        @drop.prevent="e => { 
+                                                            let fromKey = e.dataTransfer.getData('text/plain'); 
+                                                            let toKey = '{{ $paramKey }}'; 
+                                                            if (fromKey && fromKey !== toKey) { 
+                                                                $wire.reorderParameters(fromKey, toKey); 
+                                                            } 
+                                                        }"
+                                                        :class="{ 'bg-soft-primary opacity-50': isDragging }">
+                                                        <td class="text-center align-middle py-1 ps-2">
+                                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                                <span class="text-muted cursor-move" style="cursor: grab;" title="Drag to reorder">
+                                                                    <i class="feather-grid fs-12"></i>
+                                                                </span>
+                                                                <div class="d-flex flex-column gap-1">
+                                                                    <button type="button" wire:click="moveParameterUp('{{ $paramKey }}')" 
+                                                                        class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                        {{ $loop->first ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
+                                                                        <i class="feather-chevron-up fs-11"></i>
+                                                                    </button>
+                                                                    <button type="button" wire:click="moveParameterDown('{{ $paramKey }}')" 
+                                                                        class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                        {{ $loop->last ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
+                                                                        <i class="feather-chevron-down fs-11"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td colspan="5" class="py-2 ps-3">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <span class="badge bg-warning text-dark fs-10 fw-bold px-2 py-1 flex-shrink-0">HEADING</span>
+                                                                <span class="fw-bold fs-12 text-uppercase text-dark">{{ $p['name'] }}</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @else
+                                                    {{-- Normal Parameter Row --}}
+                                                    <tr class="{{ $isHigh ? 'table-danger' : '' }}" 
+                                                        wire:key="param-{{ $paramKey }}"
+                                                        draggable="true"
+                                                        x-data="{ isDragging: false }"
+                                                        @dragstart="e => { e.dataTransfer.setData('text/plain', '{{ $paramKey }}'); isDragging = true; }"
+                                                        @dragend="isDragging = false"
+                                                        @dragover.prevent
+                                                        @drop.prevent="e => { 
+                                                            let fromKey = e.dataTransfer.getData('text/plain'); 
+                                                            let toKey = '{{ $paramKey }}'; 
+                                                            if (fromKey && fromKey !== toKey) { 
+                                                                $wire.reorderParameters(fromKey, toKey); 
+                                                            } 
+                                                        }"
+                                                        :class="{ 'bg-soft-primary opacity-50': isDragging }">
+                                                        <td class="text-center align-middle py-1 ps-2">
+                                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                                <span class="text-muted cursor-move" style="cursor: grab;" title="Drag to reorder">
+                                                                    <i class="feather-grid fs-12"></i>
+                                                                </span>
+                                                                <div class="d-flex flex-column gap-1">
+                                                                    <button type="button" wire:click="moveParameterUp('{{ $paramKey }}')" 
+                                                                        class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                        {{ $loop->first ? 'disabled style=opacity:0.3' : '' }} title="Move Up">
+                                                                        <i class="feather-chevron-up fs-11"></i>
+                                                                    </button>
+                                                                    <button type="button" wire:click="moveParameterDown('{{ $paramKey }}')" 
+                                                                        class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px; line-height: 1;"
+                                                                        {{ $loop->last ? 'disabled style=opacity:0.3' : '' }} title="Move Down">
+                                                                        <i class="feather-chevron-down fs-11"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="fw-bold fs-12 ps-3">
+                                                            <div class="d-flex align-items-center">
+                                                                {{ $p['name'] }}
+                                                                @if($isHigh)
+                                                                    @php $f = $flags[$paramKey] ?? 'Abn'; @endphp
+                                                                    <span class="ms-2 badge {{ in_array($f, ['H', 'Abn']) ? 'bg-danger' : 'bg-warning text-dark' }} px-2" style="font-size: 10px;">
+                                                                        {{ $f === 'H' ? 'High' : ($f === 'L' ? 'Low' : 'Abnormal') }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            @if(!empty($p['short_code']))
+                                                                <div class="fs-10 text-muted">Code: {{ $p['short_code'] }}</div>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <div class="input-group input-group-sm w-100">
+                                                                @if(($p['input_type'] ?? 'numeric') === 'selection')
+                                                                    <select class="form-select {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
+                                                                            wire:model.live="results.{{ $paramKey }}">
+                                                                        <option value="">Select Result</option>
+                                                                        @foreach($p['options'] ?? [] as $opt)
+                                                                            <option value="{{ $opt }}">{{ $opt }}</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                @elseif(($p['input_type'] ?? 'numeric') === 'calculated')
+                                                                    <input type="text" class="form-control bg-light fw-bold text-primary border-primary border-opacity-25" 
+                                                                           wire:model="results.{{ $paramKey }}" readonly title="Auto-Calculated">
+                                                                    <span class="input-group-text bg-soft-primary"><i class="feather-cpu" style="font-size: 10px;"></i></span>
+                                                                @else
+                                                                    <input type="text" class="form-control {{ $isHigh ? 'border-danger text-danger fw-bold' : '' }}" 
+                                                                           wire:model.live.debounce.500ms="results.{{ $paramKey }}">
+                                                                @endif
+
+                                                                @if($isHigh && isset($flags[$paramKey]) && !in_array($p['input_type'] ?? '', ['selection', 'calculated']))
+                                                                    <span class="input-group-text bg-danger text-white border-danger fw-bold fs-11 px-2">
+                                                                        {{ $flags[$paramKey] }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        </td>
+                                                        <td class="fs-12 text-muted">{{ $p['unit'] }}</td>
+                                                        <td class="fs-12 fw-medium text-dark">{{ $p['ref_range'] ?: '-' }}</td>
+                                                        <td class="text-center">
+                                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                                <input class="form-check-input" type="checkbox" 
+                                                                       wire:model.live="highlights.{{ $paramKey }}" 
+                                                                       style="width: 2.5em; height: 1.25em;">
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+                                            @endforeach
+                                        @endif
 
                                         {{-- Granular Remark Editor (Inside Test Loop) --}}
                                         <tr wire:key="remark-{{ $itemId }}-{{ $labTestId }}">

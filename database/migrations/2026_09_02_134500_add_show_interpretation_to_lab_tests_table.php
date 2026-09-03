@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('lab_tests', function (Blueprint $table) {
+            if (!Schema::hasColumn('lab_tests', 'show_interpretation')) {
+                $table->boolean('show_interpretation')->default(true)->after('interpretation');
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('lab_tests', function (Blueprint $table) {
+            if (Schema::hasColumn('lab_tests', 'show_interpretation')) {
+                $table->dropColumn('show_interpretation');
+            }
+        });
+    }
+};

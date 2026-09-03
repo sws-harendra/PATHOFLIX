@@ -331,19 +331,14 @@
             border-bottom: 1.5px solid #333;
         }
 
-        /* Sub-header rows (section dividers like "TOTAL COUNT") */
+        /* Sub-header rows (section dividers like "DIFFERENTIAL LEUCOCYTE COUNT") */
         .result-table .sub-hdr td {
             font-weight: 700;
             font-size: {{ $tableFontSize }};
             text-transform: uppercase;
-            padding: 3px 6px 1px;
-            color: #1a1a1a;
+            padding: 8px 6px 3px;
+            color: #111;
             border-bottom: none;
-        }
-
-        /* Indented parameter rows under sub-headers */
-        .result-table .param-indent td:first-child {
-            padding-left: 28px;
         }
 
         /* ── Flag & Abnormal Colors ── */
@@ -794,7 +789,7 @@
                             $isSubHeader = (is_null($r->result_value) || trim($r->result_value) === '')
                                 && (is_null($r->reference_range) || trim($r->reference_range) === '');
 
-                            // Determine flag
+                            // Determine flag (only when manually highlighted by lab staff)
                             $flag = null;
                             if ($r->is_highlighted && $r->status) {
                                 $rawFlag = strtoupper(trim($r->status));
@@ -817,8 +812,8 @@
                             </tr>
                         @else
                             {{-- ── Parameter Row ── --}}
-                            <tr class="{{ $hasSubHeaders ? 'param-indent' : '' }}">
-                                <td class="{{ $isAbnormal ? 'result-bold' : '' }}">
+                            <tr>
+                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}">
                                     {{ strtoupper($r->parameter_name) }}
                                     @if(($settings['pdf_show_method'] ?? true) && $r->method)
                                         <div style="font-size: 8px; font-weight: normal; font-style: italic; color: #555; margin-top: 1px; line-height: 1;">
@@ -827,13 +822,13 @@
                                     @endif
                                 </td>
                                 <td
-                                    class="{{ $isAbnormal ? ($flag === 'H' ? 'flag-H' : ($flag === 'L' ? 'flag-L' : 'result-bold')) : 'result-bold' }}">
+                                    class="{{ $isAbnormal ? ($flag === 'H' ? 'flag-H' : ($flag === 'L' ? 'flag-L' : 'result-bold')) : '' }}">
                                     {{ $r->result_value }}
                                 </td>
                                 <td class="{{ $flag ? 'flag-' . $flag : '' }}">
                                     {{ $flag }}
                                 </td>
-                                <td class="{{ $isAbnormal ? 'result-bold' : '' }}" style="width: 22%; font-size: {{ $refRangeFontSize }}; line-height: 1.2; vertical-align: middle;">
+                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 22%; font-size: {{ $refRangeFontSize }}; line-height: 1.2; vertical-align: middle;">
                                     @php
                                         $rawRange = $r->reference_range;
                                         $displayRange = '';
@@ -872,7 +867,7 @@
                                     @endphp
                                     {!! $displayRange !!}
                                 </td>
-                                <td class="{{ $isAbnormal ? 'result-bold' : '' }}" style="width: 15%;">
+                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 15%;">
                                     {{ $r->unit }}
                                 </td>
                             </tr>
@@ -890,7 +885,7 @@
             @endif --}}
 
             {{-- ── Default Interpretation (from LabTest master — stored as HTML) ── --}}
-            @if($labTest && $labTest->interpretation)
+            @if(($settings['pdf_show_interpretation'] ?? true) && $labTest && ($labTest->show_interpretation ?? true) && $labTest->interpretation)
                 <div class="interp-block">
                     <div class="interp-label">Interpretation:</div>
                     <div class="interp-content">
@@ -900,7 +895,7 @@
             @endif
 
             {{-- ── Description / Note (from LabTest master — plain text) ── --}}
-            @if($labTest && $labTest->description)
+            @if(($settings['pdf_show_notes'] ?? true) && $labTest && ($labTest->show_notes ?? true) && $labTest->description)
                 <div class="interp-block" style="color:#555;">
                     <div class="interp-label" style="color:#333;">Note:</div>
                     <div class="interp-content">

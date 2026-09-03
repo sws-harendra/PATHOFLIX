@@ -84,6 +84,9 @@ class SettingsManager extends Component
     public $pdf_footer_height = 180;
     public $pdf_show_watermark = false;
     public $pdf_show_method = true;
+    public $pdf_show_interpretation = true;
+    public $pdf_show_notes = true;
+    public $pdf_abnormal_bold_only_result_flag = false;
     public $pdf_page_break_mode = 'test';
     public $pdf_watermark_image;
     public $new_watermark_image;
@@ -160,6 +163,9 @@ class SettingsManager extends Component
         $this->pdf_show_footer = Configuration::getFor('pdf_show_footer', '1') === '1';
         $this->pdf_show_watermark = Configuration::getFor('pdf_show_watermark', '0') === '1';
         $this->pdf_show_method = Configuration::getFor('pdf_show_method', '1') === '1';
+        $this->pdf_show_interpretation = Configuration::getFor('pdf_show_interpretation', '1') === '1';
+        $this->pdf_show_notes = Configuration::getFor('pdf_show_notes', '1') === '1';
+        $this->pdf_abnormal_bold_only_result_flag = Configuration::getFor('pdf_abnormal_bold_only_result_flag', '0') === '1';
         $this->pdf_watermark_image = Configuration::getFor('pdf_watermark_image', null);
         $this->pdf_vertical_spacing = (int) Configuration::getFor('pdf_vertical_spacing', 5);
         $this->pdf_signature_offset = (int) Configuration::getFor('pdf_signature_offset', 185);
@@ -413,6 +419,9 @@ class SettingsManager extends Component
         Configuration::setFor('pdf_show_footer', $this->pdf_show_footer ? '1' : '0');
         Configuration::setFor('pdf_show_watermark', $this->pdf_show_watermark ? '1' : '0');
         Configuration::setFor('pdf_show_method', $this->pdf_show_method ? '1' : '0');
+        Configuration::setFor('pdf_show_interpretation', $this->pdf_show_interpretation ? '1' : '0');
+        Configuration::setFor('pdf_show_notes', $this->pdf_show_notes ? '1' : '0');
+        Configuration::setFor('pdf_abnormal_bold_only_result_flag', $this->pdf_abnormal_bold_only_result_flag ? '1' : '0');
         Configuration::setFor('pdf_page_break_mode', $this->pdf_page_break_mode);
         Configuration::setFor('pdf_background_mode', $this->pdf_background_mode);
         Configuration::setFor('pdf_header_image', $this->pdf_header_image);

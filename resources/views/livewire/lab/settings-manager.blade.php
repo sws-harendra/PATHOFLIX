@@ -754,6 +754,45 @@
                                                         <input class="form-check-input" type="checkbox" role="switch" id="pdfShowMethod" wire:model="pdf_show_method">
                                                         <label class="form-check-label fw-bold" for="pdfShowMethod">Show Test Method on Reports</label>
                                                     </div>
+
+                                                    <div class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-white mb-3">
+                                                        <div class="pe-3">
+                                                            <h6 class="fw-bold mb-1 text-dark fs-13">Show Interpretation on Report</h6>
+                                                            <p class="fs-11 text-muted mb-0">Display the clinical interpretation table below test results.</p>
+                                                        </div>
+                                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="pdfShowInterpretation" wire:model.live="pdf_show_interpretation" style="width:2.8em;height:1.4em;">
+                                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $pdf_show_interpretation ? 'success' : 'secondary' }}" for="pdfShowInterpretation">
+                                                                {{ $pdf_show_interpretation ? 'ON' : 'OFF' }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-white mb-3">
+                                                        <div class="pe-3">
+                                                            <h6 class="fw-bold mb-1 text-dark fs-13">Show Notes on Report</h6>
+                                                            <p class="fs-11 text-muted mb-0">Display the note / description section below test results.</p>
+                                                        </div>
+                                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="pdfShowNotes" wire:model.live="pdf_show_notes" style="width:2.8em;height:1.4em;">
+                                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $pdf_show_notes ? 'success' : 'secondary' }}" for="pdfShowNotes">
+                                                                {{ $pdf_show_notes ? 'ON' : 'OFF' }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex align-items-center justify-content-between p-3 border rounded-4 bg-white mb-3">
+                                                        <div class="pe-3">
+                                                            <h6 class="fw-bold mb-1 text-dark fs-13">Abnormal Bold — Result & Flag Only</h6>
+                                                            <p class="fs-11 text-muted mb-0">When ON, only the Result and Flag columns are bolded for abnormal values. Test name, Ref. Range and Unit will not be bold.</p>
+                                                        </div>
+                                                        <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="pdfAbnormalBoldOnlyResultFlag" wire:model.live="pdf_abnormal_bold_only_result_flag" style="width:2.8em;height:1.4em;">
+                                                            <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $pdf_abnormal_bold_only_result_flag ? 'success' : 'secondary' }}" for="pdfAbnormalBoldOnlyResultFlag">
+                                                                {{ $pdf_abnormal_bold_only_result_flag ? 'ON' : 'OFF' }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
                                                     
                                                     <div class="p-3 bg-light rounded-4 text-center border-dashed border-2">
                                                         @if($pdf_watermark_image)

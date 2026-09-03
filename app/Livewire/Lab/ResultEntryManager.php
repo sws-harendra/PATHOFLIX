@@ -179,7 +179,31 @@ class ResultEntryManager extends Component
                 if ($test->parameters) {
                     foreach ($test->parameters as $param) {
                         $paramName = is_array($param) ? ($param['name'] ?? 'Unknown') : $param;
-                        $key = $item->id . '_' . $test->id . '_' . md5($paramName);
+                        $paramType = is_array($param) ? ($param['type'] ?? 'parameter') : 'parameter';
+                        $key = $item->id . '_' . $test->id . '_' . md5($paramName . ($paramType === 'sub_header' ? '_hdr' : ''));
+
+                        // Sub-header: add as a heading row, no result input needed
+                        if ($paramType === 'sub_header') {
+                            $this->parametersList[$key] = [
+                                'key'            => $key,
+                                'lab_test_id'    => $test->id,
+                                'invoice_item_id'=> $item->id,
+                                'name'           => $paramName,
+                                'is_sub_header'  => true,
+                                'unit'           => '',
+                                'ref_range'      => '',
+                                'method'         => '',
+                                'short_code'     => '',
+                                'input_type'     => 'text',
+                                'options'        => [],
+                                'formula'        => '',
+                                'department'     => $test->department,
+                                'test_name'      => $test->name,
+                                'matched_range_details' => [],
+                            ];
+                            // No result/highlight/flag entry needed for sub-headers
+                            continue;
+                        }
                         
                         // NEW: Smart Range Matching
                         $matchedRange = $this->findMatchingRange($param, $gender, $ageDays, $ageMonths, $ageYears);
@@ -198,20 +222,21 @@ class ResultEntryManager extends Component
                             : '';
                         
                         $this->parametersList[$key] = [
-                            'key' => $key,
-                            'lab_test_id' => $test->id,
-                            'invoice_item_id' => $item->id,
-                            'name' => $paramName,
-                            'short_code' => $param['short_code'] ?? '',
-                            'unit' => is_array($param) ? ($param['unit'] ?? '') : '',
-                            'input_type' => $param['input_type'] ?? 'numeric',
-                            'options' => $param['options'] ?? [],
-                            'formula' => $param['formula'] ?? '',
-                            'method' => $param['method'] ?? '',
-                            'ref_range' => $refText,
+                            'key'            => $key,
+                            'lab_test_id'    => $test->id,
+                            'invoice_item_id'=> $item->id,
+                            'name'           => $paramName,
+                            'is_sub_header'  => false,
+                            'short_code'     => $param['short_code'] ?? '',
+                            'unit'           => is_array($param) ? ($param['unit'] ?? '') : '',
+                            'input_type'     => $param['input_type'] ?? 'numeric',
+                            'options'        => $param['options'] ?? [],
+                            'formula'        => $param['formula'] ?? '',
+                            'method'         => $param['method'] ?? '',
+                            'ref_range'      => $refText,
                             'matched_range_details' => $matchedRange,
-                            'department' => $test->department,
-                            'test_name' => $test->name,
+                            'department'     => $test->department,
+                            'test_name'      => $test->name,
                         ];
                     }
                 }
@@ -238,6 +263,12 @@ class ResultEntryManager extends Component
         if (empty($this->selectedTests)) {
             $this->selectedTests = $this->invoice->items->pluck('id')->map(fn($id) => (string)$id)->toArray();
         }
+
+        // Auto-evaluate ranges on mount
+        $this->autoEvaluateRanges();
+
+        // Auto-check completed status on mount
+        $this->checkAndMarkTestCompleted();
     }
 
     private function findMatchingRange($param, $patientGender, $days, $months, $years)
@@ -293,6 +324,10 @@ class ResultEntryManager extends Component
     {
         $itemParams = [];
         foreach ($this->parametersList as $k => $p) {
+            // Skip sub-headers / section headings
+            if (!empty($p['is_sub_header'])) {
+                continue;
+            }
             $itemId = $p['invoice_item_id'];
             $itemParams[$itemId][] = $k;
         }
@@ -399,8 +434,10 @@ class ResultEntryManager extends Component
     private function autoEvaluateRanges()
     {
         foreach ($this->results as $key => $val) {
-            if ($val === '') {
+            $trimmedVal = trim((string)$val);
+            if ($trimmedVal === '') {
                 $this->flags[$key] = '';
+                $this->highlights[$key] = false;
                 continue;
             }
             
@@ -409,25 +446,58 @@ class ResultEntryManager extends Component
             }
 
             $param = $this->parametersList[$key];
+            if (!empty($param['is_sub_header'])) {
+                $this->flags[$key] = '';
+                $this->highlights[$key] = false;
+                continue;
+            }
+
             $range = $param['matched_range_details'] ?? null;
             $inputType = $param['input_type'] ?? 'numeric';
+            $refText = trim($param['ref_range'] ?? ($range['display_range'] ?? ($range['normal_value'] ?? '')));
 
             $isAbnormal = false;
             $flag = '';
 
-            if ($inputType === 'numeric' || $inputType === 'calculated') {
-                $numVal = (float)$val;
+            // Check if value is numeric or qualitative text
+            if (is_numeric($trimmedVal) && ($inputType === 'numeric' || $inputType === 'calculated')) {
+                $numVal = (float)$trimmedVal;
                 if ($range && is_numeric($range['min_val'] ?? null) && is_numeric($range['max_val'] ?? null)) {
                     if ($numVal < (float)$range['min_val']) {
-                        $isAbnormal = true; $flag = 'L';
+                        $isAbnormal = true;
+                        $flag = 'L';
                     } elseif ($numVal > (float)$range['max_val']) {
-                        $isAbnormal = true; $flag = 'H';
+                        $isAbnormal = true;
+                        $flag = 'H';
                     }
                 }
-            } elseif ($inputType === 'text' || $inputType === 'selection') {
-                // Qualitative check
-                if ($range && !empty($range['normal_value'])) {
-                    if (strtolower(trim($val)) !== strtolower(trim($range['normal_value']))) {
+            } else {
+                // Qualitative / Text Check
+                $lowerVal = strtolower($trimmedVal);
+                $lowerRef = strtolower($refText);
+
+                // Standard clinical normal terms
+                $knownNormalWords = [
+                    'negative', 'non-reactive', 'non reactive', 'nonreactive',
+                    'not detected', 'nil', 'absent', 'normal', 'clear',
+                    'sterile', 'no growth', 'unreactive', 'within normal limits'
+                ];
+                
+                // Standard clinical abnormal terms
+                $knownAbnormalWords = [
+                    'positive', 'reactive', 'detected', 'present',
+                    'abnormal', 'growth', 'trace', '1+', '2+', '3+', '4+'
+                ];
+
+                if (in_array($lowerVal, $knownNormalWords)) {
+                    $isAbnormal = false;
+                    $flag = '';
+                } elseif (in_array($lowerVal, $knownAbnormalWords)) {
+                    $isAbnormal = true;
+                    $flag = 'Abn';
+                } elseif (!empty($lowerRef)) {
+                    // If not standard keyword, compare directly with reference text
+                    if ($lowerVal !== $lowerRef) {
                         $isAbnormal = true;
                         $flag = 'Abn';
                     }
@@ -457,6 +527,11 @@ class ResultEntryManager extends Component
         if ($status === 'Approved') {
             $missingParams = [];
             foreach ($this->parametersList as $key => $details) {
+                // Skip sub-headings from missing results validation
+                if (!empty($details['is_sub_header'])) {
+                    continue;
+                }
+
                 $val = $this->results[$key] ?? '';
                 if (trim((string)$val) === '') {
                     $missingParams[] = $details['name'] . " (" . $details['test_name'] . ")";
@@ -473,10 +548,6 @@ class ResultEntryManager extends Component
                 }
             }
 
-            $incompleteTests = $this->invoice->items->filter(function($item) {
-                return $item->status !== 'Completed';
-            });
-
             if (!empty($missingParams)) {
                 $canApprove = false;
                 $msg = "Cannot approve report. The following results are missing: " . implode(', ', array_slice($missingParams, 0, 3));
@@ -484,11 +555,14 @@ class ResultEntryManager extends Component
                 
                 $this->dispatch('notify', ['type' => 'error', 'message' => $msg]);
                 session()->flash('error', $msg);
-            } elseif ($incompleteTests->count() > 0) {
-                $canApprove = false;
-                $msg = "Cannot approve report. All tests must be marked as Completed first.";
-                $this->dispatch('notify', ['type' => 'error', 'message' => $msg]);
-                session()->flash('error', $msg);
+            } else {
+                // All parameters are present, ensure all items are marked Completed
+                foreach ($this->invoice->items as $invItem) {
+                    if ($invItem->status !== 'Completed') {
+                        $invItem->update(['status' => 'Completed']);
+                    }
+                }
+                $this->invoice->load('items');
             }
 
             if (!$canApprove) {
@@ -525,6 +599,24 @@ class ResultEntryManager extends Component
         // Save Results in exact reordered sequence
         ReportResult::where('test_report_id', $this->testReport->id)->delete();
         foreach ($this->parametersList as $key => $details) {
+
+            // Sub-header: save as blank result + blank range so report treats it as a section heading
+            if (!empty($details['is_sub_header'])) {
+                ReportResult::create([
+                    'test_report_id'  => $this->testReport->id,
+                    'invoice_item_id' => $details['invoice_item_id'],
+                    'lab_test_id'     => $details['lab_test_id'],
+                    'parameter_name'  => $details['name'],
+                    'result_value'    => null,
+                    'status'          => 'Normal',
+                    'is_highlighted'  => false,
+                    'reference_range' => null,
+                    'unit'            => null,
+                    'method'          => null,
+                ]);
+                continue;
+            }
+
             $val = $this->results[$key] ?? '';
             $highlight = $this->highlights[$key] ?? false;
 
@@ -535,16 +627,16 @@ class ResultEntryManager extends Component
             if ($flag === 'L') $stat = 'Low';
 
             ReportResult::create([
-                'test_report_id' => $this->testReport->id,
+                'test_report_id'  => $this->testReport->id,
                 'invoice_item_id' => $details['invoice_item_id'],
-                'lab_test_id' => $details['lab_test_id'],
-                'parameter_name' => $details['name'],
-                'result_value' => $val,
-                'status' => $stat,
-                'is_highlighted' => $highlight,
+                'lab_test_id'     => $details['lab_test_id'],
+                'parameter_name'  => $details['name'],
+                'result_value'    => $val,
+                'status'          => $stat,
+                'is_highlighted'  => $highlight,
                 'reference_range' => $details['ref_range'],
-                'unit' => $details['unit'],
-                'method' => $details['method'] ?? null,
+                'unit'            => $details['unit'],
+                'method'          => $details['method'] ?? null,
             ]);
         }
 

@@ -84,10 +84,6 @@
                                     <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">TAT (Hours)</label>
                                     <input type="number" class="form-control" wire:model="tat_hours">
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Internal Description</label>
-                                    <input type="text" class="form-control" wire:model="description" placeholder="Notes for lab staff...">
-                                </div>
                             </div>
 
                             <hr class="my-4 opacity-50">
@@ -99,9 +95,14 @@
                                     <h6 class="fw-bold text-dark mb-0">Report Parameters</h6>
                                     <p class="fs-11 text-muted mb-0">Define fields that will appear on the final report.</p>
                                 </div>
-                                <button type="button" wire:click="addParameter" class="btn btn-soft-primary btn-sm px-3 rounded-pill">
-                                    <i class="feather-plus me-1"></i>Add Field
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" wire:click="addSubHeader" class="btn btn-soft-warning btn-sm px-3 rounded-pill">
+                                        <i class="feather-minus-square me-1"></i>Add Heading
+                                    </button>
+                                    <button type="button" wire:click="addParameter" class="btn btn-soft-primary btn-sm px-3 rounded-pill">
+                                        <i class="feather-plus me-1"></i>Add Field
+                                    </button>
+                                </div>
                             </div>
 
                             {{-- Desktop Table (hidden on small screens) --}}
@@ -121,6 +122,34 @@
                                     </thead>
                                     <tbody>
                                         @foreach($parameters as $index => $param)
+                                            @if(($param['type'] ?? 'parameter') === 'sub_header')
+                                            {{-- Sub-Header Row --}}
+                                            <tr wire:key="param-d-{{ $index }}" class="bg-warning bg-opacity-10 border-bottom border-white">
+                                                <td class="ps-2 py-2 text-center align-middle">
+                                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                                        <span class="text-muted" style="cursor: grab;"><i class="feather-grid fs-12"></i></span>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <button type="button" wire:click="moveParameterUp({{ $index }})" class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px;" {{ $index === 0 ? 'disabled' : '' }}><i class="feather-chevron-up fs-11"></i></button>
+                                                            <button type="button" wire:click="moveParameterDown({{ $index }})" class="btn btn-icon btn-soft-secondary btn-xs p-0 border-0" style="width: 20px; height: 18px;" {{ $index === count($parameters)-1 ? 'disabled' : '' }}><i class="feather-chevron-down fs-11"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td colspan="5">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-warning text-dark fs-10 fw-bold px-2 py-1 flex-shrink-0">HEADING</span>
+                                                        <input type="text" class="form-control form-control-sm fw-bold text-uppercase"
+                                                            wire:model="parameters.{{ $index }}.name"
+                                                            placeholder="e.g. DIFFERENTIAL LEUCOCYTE COUNT">
+                                                    </div>
+                                                </td>
+                                                <td class="text-end pe-3">
+                                                    <button type="button" wire:click="removeParameter({{ $index }})" class="btn btn-icon btn-soft-danger btn-sm border-0">
+                                                        <i class="feather-trash-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            @else
+                                            {{-- Normal Parameter Row --}}
                                             <tr wire:key="param-d-{{ $index }}" 
                                                 draggable="true"
                                                 x-data="{ isDragging: false }"
@@ -190,6 +219,7 @@
                                                     </button>
                                                 </td>
                                             </tr>
+                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -199,6 +229,23 @@
                             {{-- Mobile Card Layout (visible only on small screens) --}}
                             <div class="d-lg-none">
                                 @foreach($parameters as $index => $param)
+                                    @if(($param['type'] ?? 'parameter') === 'sub_header')
+                                    {{-- Mobile Sub-Header --}}
+                                    <div wire:key="param-m-{{ $index }}" class="card border border-warning shadow-sm rounded-3 mb-2" style="background: #fffbea;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge bg-warning text-dark fs-10 fw-bold flex-shrink-0">HEADING</span>
+                                                <input type="text" class="form-control form-control-sm fw-bold text-uppercase flex-grow-1"
+                                                    wire:model="parameters.{{ $index }}.name"
+                                                    placeholder="e.g. DIFFERENTIAL LEUCOCYTE COUNT">
+                                                <button type="button" wire:click="removeParameter({{ $index }})" class="btn btn-icon btn-soft-danger btn-sm border-0 flex-shrink-0">
+                                                    <i class="feather-trash-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @else
+                                    {{-- Mobile Normal Parameter --}}
                                     <div wire:key="param-m-{{ $index }}" class="card border shadow-sm rounded-3 mb-2">
                                         <div class="card-body p-3">
                                             {{-- Row 1: Order + Move Up/Down + Name + Delete --}}
@@ -258,6 +305,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 @endforeach
                                 @if(count($parameters) === 0)
                                     <div class="text-center text-muted py-4 bg-light rounded-3">
@@ -278,12 +326,23 @@
                 <!-- Interpretation Side Card -->
                 <div class="col-xl-4">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-header py-3">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-file-text text-primary me-2"></i>Interpretation Template</h6>
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                <input class="form-check-input m-0" type="checkbox" role="switch" id="testShowInterpretation" wire:model.live="show_interpretation" style="width:2.5em;height:1.25em;">
+                                <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $show_interpretation ? 'success' : 'secondary' }}" for="testShowInterpretation">
+                                    {{ $show_interpretation ? 'ON' : 'OFF' }}
+                                </label>
+                            </div>
                         </div>
                         <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-0">Clinical Interpretation (HTML)</label>
+                                <span class="badge {{ $show_interpretation ? 'bg-soft-success text-success' : 'bg-soft-secondary text-muted' }} fs-10">
+                                    {{ $show_interpretation ? '✓ Visible on Report' : '✗ Hidden on Report' }}
+                                </span>
+                            </div>
                             <div class="mb-0" wire:ignore>
-                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-2">Clinical Interpretation (HTML)</label>
                                 <textarea class="form-control rich-editor" id="lab-interpretation-editor" 
                                     x-data x-init="
                                         ClassicEditor
@@ -298,6 +357,28 @@
                                             })
                                     "></textarea>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes / Description Side Card -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0 fw-bold text-dark"><i class="feather-align-left text-primary me-2"></i>Test Note / Description</h6>
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-1">
+                                <input class="form-check-input m-0" type="checkbox" role="switch" id="testShowNotes" wire:model.live="show_notes" style="width:2.5em;height:1.25em;">
+                                <label class="form-check-label fs-11 fw-bold cursor-pointer text-{{ $show_notes ? 'success' : 'secondary' }}" for="testShowNotes">
+                                    {{ $show_notes ? 'ON' : 'OFF' }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-0">Note on Report (Plain Text)</label>
+                                <span class="badge {{ $show_notes ? 'bg-soft-success text-success' : 'bg-soft-secondary text-muted' }} fs-10">
+                                    {{ $show_notes ? '✓ Visible on Report' : '✗ Hidden on Report' }}
+                                </span>
+                            </div>
+                            <textarea class="form-control" rows="3" wire:model="description" placeholder="Notes to display on report below test results (e.g. Test performed on automated analyzer)..."></textarea>
                         </div>
                     </div>
 
