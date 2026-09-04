@@ -110,12 +110,26 @@ class ResultEntryManager extends Component
             foreach ($testsToProcess as $test) {
                 // Load specific comment for this test in this invoice item
                 $commentKey = $item->id . '_' . $test->id;
+                $testComment = '';
                 if ($isJson) {
-                    $this->testComments[$commentKey] = $decodedComments[$test->id] ?? '';
+                    $testComment = $decodedComments[$test->id] ?? '';
                 } else {
                     // Legacy fallback: show the same comment for all tests in the item if it's not JSON
-                    $this->testComments[$commentKey] = $rawComments;
+                    $testComment = $rawComments;
                 }
+
+                // Fallback: if comment is empty, check other items in this invoice for this test
+                if (empty(trim($testComment))) {
+                    foreach ($this->invoice->items as $otherItem) {
+                        if ($otherItem->id == $item->id) continue;
+                        $otherDecoded = json_decode($otherItem->report_comments ?? '', true);
+                        if (is_array($otherDecoded) && !empty($otherDecoded[$test->id])) {
+                            $testComment = $otherDecoded[$test->id];
+                            break;
+                        }
+                    }
+                }
+                $this->testComments[$commentKey] = $testComment;
 
                 if ($test->is_culture) {
                     $key = $item->id . '_' . $test->id;
@@ -128,8 +142,21 @@ class ResultEntryManager extends Component
                         'is_culture' => true,
                     ];
                     
-                    if (isset($existingCultureResultsMap[$key])) {
-                        $cr = $existingCultureResultsMap[$key];
+                    $cr = $existingCultureResultsMap[$key] ?? null;
+                    // Fallback matching if invoice items were updated or invoice_item_id was null/orphaned
+                    if (!$cr && $this->testReport && $this->testReport->cultureResults) {
+                        $nullCultureKey = '0_' . $test->id;
+                        if (isset($existingCultureResultsMap[$nullCultureKey])) {
+                            $cr = $existingCultureResultsMap[$nullCultureKey];
+                        } else {
+                            $otherItemIds = $this->invoice->items->pluck('id')->reject(fn($id) => $id == $item->id)->toArray();
+                            $cr = $this->testReport->cultureResults->first(function ($c) use ($test, $otherItemIds) {
+                                return $c->lab_test_id == $test->id && !in_array($c->invoice_item_id, $otherItemIds);
+                            });
+                        }
+                    }
+
+                    if ($cr) {
                         $this->cultureData[$key] = [
                             'specimen' => $cr->specimen,
                             'growth_status' => $cr->growth_status,
@@ -215,10 +242,28 @@ class ResultEntryManager extends Component
                             else $refText = $param['male_range'] ?? $param['general_range'] ?? '';
                         }
 
-                        $this->results[$key] = isset($existingResultsMap[$key]) ? $existingResultsMap[$key]->result_value : '';
-                        $this->highlights[$key] = isset($existingResultsMap[$key]) ? $existingResultsMap[$key]->is_highlighted : false;
-                        $this->flags[$key] = (isset($existingResultsMap[$key]) && in_array($existingResultsMap[$key]->status, ['High', 'Low'])) 
-                            ? substr($existingResultsMap[$key]->status, 0, 1) 
+                        $foundResult = $existingResultsMap[$key] ?? null;
+
+                        // Fallback matching if invoice was edited and invoice_item_id is null/orphaned
+                        if (!$foundResult && $this->testReport && $this->testReport->results) {
+                            $paramHash = md5($paramName . ($paramType === 'sub_header' ? '_hdr' : ''));
+                            $nullKey = '0_' . $test->id . '_' . $paramHash;
+                            if (isset($existingResultsMap[$nullKey])) {
+                                $foundResult = $existingResultsMap[$nullKey];
+                            } else {
+                                $otherItemIds = $this->invoice->items->pluck('id')->reject(fn($id) => $id == $item->id)->toArray();
+                                $foundResult = $this->testReport->results->first(function ($r) use ($test, $paramName, $otherItemIds) {
+                                    return $r->lab_test_id == $test->id 
+                                        && $r->parameter_name === $paramName 
+                                        && !in_array($r->invoice_item_id, $otherItemIds);
+                                });
+                            }
+                        }
+
+                        $this->results[$key] = $foundResult ? $foundResult->result_value : '';
+                        $this->highlights[$key] = $foundResult ? $foundResult->is_highlighted : false;
+                        $this->flags[$key] = ($foundResult && in_array($foundResult->status, ['High', 'Low'])) 
+                            ? substr($foundResult->status, 0, 1) 
                             : '';
                         
                         $this->parametersList[$key] = [
@@ -244,11 +289,14 @@ class ResultEntryManager extends Component
         }
 
         // Reorder parametersList to match saved results order if report results exist
-        if (!empty($existingResultsMap)) {
+        if ($this->testReport && $this->testReport->results && $this->testReport->results->isNotEmpty()) {
             $sortedList = [];
-            foreach (array_keys($existingResultsMap) as $savedKey) {
-                if (isset($this->parametersList[$savedKey])) {
-                    $sortedList[$savedKey] = $this->parametersList[$savedKey];
+            foreach ($this->testReport->results as $r) {
+                foreach ($this->parametersList as $k => $paramObj) {
+                    if ($paramObj['lab_test_id'] == $r->lab_test_id && $paramObj['name'] === $r->parameter_name && !isset($sortedList[$k])) {
+                        $sortedList[$k] = $paramObj;
+                        break;
+                    }
                 }
             }
             foreach ($this->parametersList as $k => $paramObj) {

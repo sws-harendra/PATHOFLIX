@@ -3,7 +3,7 @@
 namespace App\Livewire\Lab;
 
 use Livewire\Component;
-use App\Models\{User, LabTest, PaymentMode, Invoice, InvoiceItem, Payment, CollectionCenter, Branch, PatientProfile, DoctorProfile, AgentProfile, Membership, PatientMembership, Voucher, Configuration, Wallet, WalletTransaction};
+use App\Models\{User, LabTest, PaymentMode, Invoice, InvoiceItem, Payment, CollectionCenter, Branch, PatientProfile, DoctorProfile, AgentProfile, Membership, PatientMembership, Voucher, Configuration, Wallet, WalletTransaction, ReportResult, CultureResult};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -159,6 +159,7 @@ class PosEditManager extends Component
 
             $test = LabTest::find($item->lab_test_id);
             $cartItem = [
+                'item_id' => $item->id,
                 'id' => $item->lab_test_id,
                 'name' => $item->test_name,
                 'test_code' => $test->test_code ?? '',
@@ -384,6 +385,7 @@ class PosEditManager extends Component
             }
 
             $cartItem = [
+                'item_id' => null,
                 'id' => $test->id,
                 'name' => $test->name,
                 'test_code' => $test->test_code,
@@ -891,19 +893,96 @@ class PosEditManager extends Component
                 'payment_status' => $this->due_amount <= 0 ? 'Paid' : ($this->due_amount == $this->net_payable ? 'Unpaid' : 'Partial'),
             ]);
 
-            // Replace invoice items
-            InvoiceItem::where('invoice_id', $invoice->id)->delete();
+            // Sync invoice items preserving existing IDs to prevent report results from being cleared
+            $existingItems = InvoiceItem::where('invoice_id', $invoice->id)->get()->keyBy('id');
+            $retainedItemIds = [];
+            $newTestsAdded = false;
 
             foreach ($this->cart as $item) {
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'lab_test_id' => $item['id'],
-                    'test_name' => $item['name'],
-                    'is_package' => $item['is_package'],
-                    'mrp' => $item['mrp'],
-                    'price' => $item['price'],
-                    'b2b_price' => data_get($testPrices->get($item['id']), 'b2b_price', 0),
+                $existingItem = null;
+
+                // 1. Try matching by tracked item_id
+                if (!empty($item['item_id']) && $existingItems->has($item['item_id'])) {
+                    $existingItem = $existingItems->get($item['item_id']);
+                }
+
+                // 2. Fallback: match by lab_test_id if not already retained
+                if (!$existingItem && !empty($item['id'])) {
+                    $existingItem = $existingItems->first(function ($it) use ($item, $retainedItemIds) {
+                        return $it->lab_test_id == $item['id'] && !in_array($it->id, $retainedItemIds);
+                    });
+                }
+
+                if ($existingItem) {
+                    $existingItem->update([
+                        'lab_test_id' => $item['id'],
+                        'test_name'   => $item['name'],
+                        'is_package'  => $item['is_package'],
+                        'mrp'         => $item['mrp'],
+                        'price'       => $item['price'],
+                        'b2b_price'   => data_get($testPrices->get($item['id']), 'b2b_price', 0),
+                    ]);
+                    $retainedItemIds[] = $existingItem->id;
+                } else {
+                    $newItem = InvoiceItem::create([
+                        'invoice_id'  => $invoice->id,
+                        'lab_test_id' => $item['id'],
+                        'test_name'   => $item['name'],
+                        'is_package'  => $item['is_package'],
+                        'mrp'         => $item['mrp'],
+                        'price'       => $item['price'],
+                        'b2b_price'   => data_get($testPrices->get($item['id']), 'b2b_price', 0),
+                        'status'      => 'Pending',
+                    ]);
+                    $retainedItemIds[] = $newItem->id;
+                    $newTestsAdded = true;
+                }
+            }
+
+            // Sync Membership line item (if membership fee exists)
+            $existingMembershipItem = $existingItems->first(fn($it) => is_null($it->lab_test_id) && str_starts_with($it->test_name, 'Membership:'));
+            if ($this->membership_fee > 0 && $this->active_membership) {
+                if ($existingMembershipItem) {
+                    $existingMembershipItem->update([
+                        'test_name' => 'Membership: ' . ($this->active_membership['name'] ?? 'Plan'),
+                        'mrp'       => $this->membership_fee,
+                        'price'     => $this->membership_fee,
+                        'b2b_price' => 0,
+                    ]);
+                    $retainedItemIds[] = $existingMembershipItem->id;
+                } else {
+                    $mItem = InvoiceItem::create([
+                        'invoice_id'  => $invoice->id,
+                        'lab_test_id' => null,
+                        'test_name'   => 'Membership: ' . ($this->active_membership['name'] ?? 'Plan'),
+                        'is_package'  => false,
+                        'mrp'         => $this->membership_fee,
+                        'price'       => $this->membership_fee,
+                        'b2b_price'   => 0,
+                    ]);
+                    $retainedItemIds[] = $mItem->id;
+                }
+            } elseif ($existingMembershipItem) {
+                $existingMembershipItem->delete();
+            }
+
+            // Delete removed tests (and cleanup their results only)
+            $itemsToDelete = $existingItems->whereNotIn('id', $retainedItemIds);
+            if ($itemsToDelete->isNotEmpty()) {
+                $deleteIds = $itemsToDelete->pluck('id')->toArray();
+                ReportResult::whereIn('invoice_item_id', $deleteIds)->delete();
+                CultureResult::whereIn('invoice_item_id', $deleteIds)->delete();
+                InvoiceItem::whereIn('id', $deleteIds)->delete();
+            }
+
+            // If new tests were added to an already approved report, downgrade to Draft so new tests can be filled & approved
+            if ($newTestsAdded && $invoice->testReport && $invoice->testReport->status === 'Approved') {
+                $invoice->testReport->update([
+                    'status'      => 'Draft',
+                    'approved_by' => null,
+                    'approved_at' => null,
                 ]);
+                $invoice->update(['sample_status' => 'Processing']);
             }
 
             // Replace payments
@@ -911,13 +990,13 @@ class PosEditManager extends Component
             foreach ($this->payments as $payment) {
                 if (!empty($payment['mode_id']) && $payment['amount'] > 0) {
                     Payment::create([
-                        'company_id' => $companyId,
-                        'invoice_id' => $invoice->id,
-                        'patient_id' => $this->selectedPatient['id'],
-                        'collected_by' => auth()->id(),
+                        'company_id'      => $companyId,
+                        'invoice_id'      => $invoice->id,
+                        'patient_id'      => $this->selectedPatient['id'],
+                        'collected_by'    => auth()->id(),
                         'payment_mode_id' => $payment['mode_id'],
-                        'amount' => $payment['amount'],
-                        'transaction_id' => $payment['transaction_id'] ?? null,
+                        'amount'          => $payment['amount'],
+                        'transaction_id'  => $payment['transaction_id'] ?? null,
                     ]);
                 }
             }
@@ -925,30 +1004,17 @@ class PosEditManager extends Component
             // Handle Membership purchase if applicable (Only if not already purchased in this invoice)
             if ($this->membership_fee > 0 && $this->active_membership && !$invoice->patient_membership_id) {
                 $newMembership = PatientMembership::create([
-                    'company_id' => $companyId,
-                    'patient_id' => $this->selectedPatient['id'],
-                    'membership_id' => $this->active_membership['id'],
-                    'amount_paid' => $this->membership_fee,
-                    'valid_from' => now()->toDateString(),
-                    'valid_until' => now()->addDays($this->active_membership['validity_days'] ?? 365)->toDateString(),
-                    'is_active' => true,
+                    'company_id'     => $companyId,
+                    'patient_id'     => $this->selectedPatient['id'],
+                    'membership_id'  => $this->active_membership['id'],
+                    'amount_paid'    => $this->membership_fee,
+                    'valid_from'     => now()->toDateString(),
+                    'valid_until'    => now()->addDays($this->active_membership['validity_days'] ?? 365)->toDateString(),
+                    'is_active'      => true,
                 ]);
                 
                 // Also update the invoice to link to this new membership
                 $invoice->update(['patient_membership_id' => $newMembership->id]);
-            }
-
-            // Re-add membership line item if fee > 0 (since we deleted all items above)
-            if ($this->membership_fee > 0 && $this->active_membership) {
-                InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'lab_test_id' => null,
-                    'test_name' => 'Membership: ' . ($this->active_membership['name'] ?? 'Plan'),
-                    'is_package' => false,
-                    'mrp' => $this->membership_fee,
-                    'price' => $this->membership_fee,
-                    'b2b_price' => 0,
-                ]);
             }
 
             // 4. Apply new Commissions using service

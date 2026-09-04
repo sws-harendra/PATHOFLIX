@@ -201,8 +201,13 @@ class ReportPdfController extends Controller
             // Group by lab_test_id only to merge results from duplicate invoice items (package + standalone overlap)
             $key = (string) $r->lab_test_id;
             if (!$allTests->has($key)) {
+                $itemId = $r->invoice_item_id;
+                if (empty($itemId)) {
+                    $matchingItem = $report->invoice->items->firstWhere('lab_test_id', $r->lab_test_id);
+                    $itemId = $matchingItem ? $matchingItem->id : null;
+                }
                 $allTests->put($key, [
-                    'invoice_item_id' => $r->invoice_item_id,
+                    'invoice_item_id' => $itemId,
                     'lab_test_id' => $r->lab_test_id,
                     'labTest' => $r->labTest,
                     'results' => collect(),
@@ -220,8 +225,13 @@ class ReportPdfController extends Controller
             if (empty($cr->lab_test_id)) continue;
             $key = (string) $cr->lab_test_id;
             if (!$allTests->has($key)) {
+                $itemId = $cr->invoice_item_id;
+                if (empty($itemId)) {
+                    $matchingItem = $report->invoice->items->firstWhere('lab_test_id', $cr->lab_test_id);
+                    $itemId = $matchingItem ? $matchingItem->id : null;
+                }
                 $allTests->put($key, [
-                    'invoice_item_id' => $cr->invoice_item_id,
+                    'invoice_item_id' => $itemId,
                     'lab_test_id' => $cr->lab_test_id,
                     'labTest' => $cr->labTest,
                     'results' => collect(),
@@ -247,7 +257,8 @@ class ReportPdfController extends Controller
                     $testId = $testData['lab_test_id'];
                     $key = $itemId . '_' . $testId;
 
-                    $item = $report->invoice->items->where('id', $itemId)->first();
+                    $item = $report->invoice->items->where('id', $itemId)->first() 
+                        ?: $report->invoice->items->where('lab_test_id', $testId)->first();
                     $remark = '';
                     if ($item) {
                         $raw = $item->report_comments;
