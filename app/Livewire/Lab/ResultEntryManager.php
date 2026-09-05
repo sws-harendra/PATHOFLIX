@@ -507,8 +507,13 @@ class ResultEntryManager extends Component
             $isAbnormal = false;
             $flag = '';
 
-            // Check if value is numeric or qualitative text
-            if (is_numeric($trimmedVal) && ($inputType === 'numeric' || $inputType === 'calculated')) {
+            // 1. Titer Evaluation (Widal, ANA, Serology titers e.g. 1:20, 1:40 vs <= 1:80)
+            $titerResult = $this->evaluateTiter($trimmedVal, $refText, $param['name'] ?? '', $range);
+            if ($titerResult !== null) {
+                $isAbnormal = $titerResult['isAbnormal'];
+                $flag = $titerResult['flag'];
+            } elseif (is_numeric($trimmedVal) && ($inputType === 'numeric' || $inputType === 'calculated')) {
+                // 2. Numeric / Calculated Check
                 $numVal = (float)$trimmedVal;
                 if ($range && is_numeric($range['min_val'] ?? null) && is_numeric($range['max_val'] ?? null)) {
                     if ($numVal < (float)$range['min_val']) {
@@ -518,9 +523,16 @@ class ResultEntryManager extends Component
                         $isAbnormal = true;
                         $flag = 'H';
                     }
+                } elseif (preg_match('/^(<=?|<|>=?|>)\s*([0-9\.]+)/', $refText, $ineqMatches)) {
+                    $op = $ineqMatches[1];
+                    $threshold = (float)$ineqMatches[2];
+                    if ($op === '<' && $numVal >= $threshold) { $isAbnormal = true; $flag = 'H'; }
+                    elseif ($op === '<=' && $numVal > $threshold) { $isAbnormal = true; $flag = 'H'; }
+                    elseif ($op === '>' && $numVal <= $threshold) { $isAbnormal = true; $flag = 'L'; }
+                    elseif ($op === '>=' && $numVal < $threshold) { $isAbnormal = true; $flag = 'L'; }
                 }
             } else {
-                // Qualitative / Text Check
+                // 3. Qualitative / Text Check
                 $lowerVal = strtolower($trimmedVal);
                 $lowerRef = strtolower($refText);
 
@@ -528,7 +540,7 @@ class ResultEntryManager extends Component
                 $knownNormalWords = [
                     'negative', 'non-reactive', 'non reactive', 'nonreactive',
                     'not detected', 'nil', 'absent', 'normal', 'clear',
-                    'sterile', 'no growth', 'unreactive', 'within normal limits'
+                    'sterile', 'no growth', 'unreactive', 'within normal limits', '-'
                 ];
                 
                 // Standard clinical abnormal terms
@@ -555,6 +567,89 @@ class ResultEntryManager extends Component
             $this->flags[$key] = $flag;
             $this->highlights[$key] = $isAbnormal;
         }
+    }
+
+    private function evaluateTiter($val, $refText, $paramName = '', $range = null)
+    {
+        $trimmedVal = trim((string)$val);
+        $lowerVal = strtolower($trimmedVal);
+
+        $knownNormalWords = [
+            'negative', 'non-reactive', 'non reactive', 'nonreactive',
+            'not detected', 'nil', 'absent', 'normal', 'clear',
+            'sterile', 'no growth', 'unreactive', 'within normal limits', '-'
+        ];
+        $knownAbnormalWords = [
+            'positive', 'reactive', 'detected', 'present',
+            'abnormal', 'growth', 'trace', '1+', '2+', '3+', '4+'
+        ];
+
+        // Check if result is a titer (e.g. 1:20, 1:40, 1:80, 1:160, < 1:20, > 1:320, 1/80)
+        $isValTiter = (bool)preg_match('/^(<=?|<|>=?|>)?\s*1\s*[:\/]\s*(\d+)$/i', $trimmedVal, $valMatches);
+
+        // Check if reference contains a titer (e.g. <= 1:80, < 1:80, Negative (< 1:80), 1:80, <=1:160)
+        $combinedRef = trim($refText . ' ' . ($range['display_range'] ?? '') . ' ' . ($range['normal_value'] ?? ''));
+        $isRefTiter = (bool)preg_match('/(<=?|<|>=?|>|up\s*to\s*)?\s*1\s*[:\/]\s*(\d+)/i', $combinedRef, $refMatches);
+
+        // Fallback: If ref doesn't have a titer, but param is Widal / Typhi
+        if (!$isRefTiter && $isValTiter && preg_match('/(widal|typhi|paratyphi|\bTO\b|\bTH\b|\bAO\b|\bBH\b)/i', $paramName)) {
+            $isRefTiter = true;
+            $refMatches = [0, '<=', 80];
+        }
+
+        if ($isRefTiter) {
+            // If value is a known normal word (e.g. "Negative", "Nil")
+            if (in_array($lowerVal, $knownNormalWords)) {
+                return ['isAbnormal' => false, 'flag' => ''];
+            }
+            // If value is a known abnormal word (e.g. "Positive")
+            if (in_array($lowerVal, $knownAbnormalWords)) {
+                return ['isAbnormal' => true, 'flag' => 'Abn'];
+            }
+
+            if ($isValTiter) {
+                $valOp = $valMatches[1] ?? '';
+                $valDenom = (int)$valMatches[2];
+
+                $refOp = strtolower(trim($refMatches[1] ?? ''));
+                $refDenom = (int)$refMatches[2];
+
+                // If no operator is specified in ref, default to '<=' (standard serological normal threshold)
+                if ($refOp === '' || $refOp === 'up to') {
+                    $refOp = '<=';
+                }
+
+                $isAbnormal = false;
+                if ($refOp === '<=') {
+                    if ($valOp === '>') {
+                        $isAbnormal = ($valDenom >= $refDenom);
+                    } elseif ($valOp === '<') {
+                        $isAbnormal = false;
+                    } else {
+                        $isAbnormal = ($valDenom > $refDenom);
+                    }
+                } elseif ($refOp === '<') {
+                    if ($valOp === '>') {
+                        $isAbnormal = true;
+                    } elseif ($valOp === '<') {
+                        $isAbnormal = ($valDenom > $refDenom);
+                    } else {
+                        $isAbnormal = ($valDenom >= $refDenom);
+                    }
+                } elseif ($refOp === '>=') {
+                    $isAbnormal = ($valDenom < $refDenom);
+                } elseif ($refOp === '>') {
+                    $isAbnormal = ($valDenom <= $refDenom);
+                }
+
+                return [
+                    'isAbnormal' => $isAbnormal,
+                    'flag' => $isAbnormal ? 'Abn' : ''
+                ];
+            }
+        }
+
+        return null; // Not a titer test, proceed with normal logic
     }
 
     public function toggleHighlight($key)
