@@ -181,6 +181,14 @@
                                              @endcan
 
                                              @if($invoice->testReport)
+                                             {{-- Reorder & Print Button --}}
+                                             <button type="button"
+                                                 class="btn btn-sm btn-soft-info py-1 px-2"
+                                                 title="Reorder Tests & Print"
+                                                 onclick="openReorderModal({{ $invoice->id }}, {{ $invoice->items->where('lab_test_id', '!=', null)->values()->toJson() }})">
+                                                 <i class="feather-shuffle fs-12"></i>
+                                             </button>
+
                                              <div class="dropdown {{ $loop->remaining < 2 ? 'dropup' : '' }}">
                                                  <button class="btn btn-sm {{ ($invoice->testReport->status === 'Approved') ? 'btn-success' : 'btn-outline-primary' }} dropdown-toggle fs-11" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport">
                                                      <i class="feather-printer me-1"></i> Print
@@ -299,5 +307,230 @@
             </div>
         </div>
     </div>
+
+    {{-- ======================== REORDER & PRINT MODAL ======================== --}}
+    <div class="modal fade" id="reorderPrintModal" tabindex="-1" aria-labelledby="reorderPrintModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%);">
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-1" id="reorderPrintModalLabel">
+                            <i class="feather-shuffle me-2"></i>Reorder Tests & Print
+                        </h5>
+                        <p class="text-white-50 fs-11 mb-0">Tests ko drag & drop karke kram (order) set karein.</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    {{-- Info Banner --}}
+                    <div class="px-4 py-2 bg-soft-info border-bottom d-flex align-items-center gap-2" style="background: #e8f4fd !important;">
+                        <i class="feather-info text-info fs-14"></i>
+                        <span class="fs-12 text-info fw-medium">
+                            Drag <i class="feather-move fs-11"></i> karke tests ko reorder karein. Report aapke lab ki Print Setting (Continuous) ke anusar print hogi.
+                        </span>
+                    </div>
+
+                    {{-- Sortable Test List --}}
+                    <div class="p-3">
+                        <div id="reorderTestList" class="d-flex flex-column gap-2">
+                            {{-- Items injected by JS --}}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light d-flex justify-content-between align-items-center py-2 px-3">
+                    <div class="fs-11 text-muted">
+                        <i class="feather-info me-1"></i>
+                        Sirf is baar ki print ke liye kram set hoga.
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary fs-11" data-bs-dismiss="modal">
+                            <i class="feather-x me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary fs-11 fw-bold" onclick="printReordered(0)">
+                            <i class="feather-file me-1"></i> Without Header
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary fs-11 fw-bold" onclick="printReordered(1)">
+                            <i class="feather-printer me-1"></i> With Header
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* ── Drag & Drop Styles ── */
+        .reorder-item {
+            background: #fff;
+            border: 1.5px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .reorder-item:hover {
+            border-color: #4361ee;
+            box-shadow: 0 3px 10px rgba(67,97,238,0.12);
+        }
+        .reorder-item.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+        .reorder-item.drag-over {
+            border-color: #4361ee;
+            background: #f0f3ff;
+            transform: scale(1.01);
+        }
+        .reorder-item .drag-handle {
+            color: #adb5bd;
+            cursor: grab;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .reorder-item .drag-handle:hover {
+            color: #4361ee;
+        }
+    </style>
+
+    <script>
+        // ─── State ───────────────────────────────────────────────
+        let _reorderInvoiceId = null;
+        let _reorderItems = [];
+        let _dragSrcIndex = null;
+
+        // ─── Open Modal ──────────────────────────────────────────
+        function openReorderModal(invoiceId, items) {
+            _reorderInvoiceId = invoiceId;
+            // Filter only lab test items, keep all (completed or not)
+            _reorderItems = items
+                .filter(i => i.lab_test_id !== null)
+                .map(i => {
+                    const paramCount = i.lab_test ? (i.lab_test.parameters ? (Array.isArray(i.lab_test.parameters) ? i.lab_test.parameters.length : Object.keys(i.lab_test.parameters).length) : 0) : 0;
+                    return {
+                        id: i.id,
+                        name: i.lab_test ? i.lab_test.name : (i.item_name || ('Test #' + i.id)),
+                        status: i.status,
+                        paramCount: paramCount,
+                    };
+                });
+
+            renderReorderList();
+
+            var modal = new bootstrap.Modal(document.getElementById('reorderPrintModal'));
+            modal.show();
+        }
+
+        // ─── Render the draggable list ────────────────────────────
+        function renderReorderList() {
+            const container = document.getElementById('reorderTestList');
+            container.innerHTML = '';
+
+            _reorderItems.forEach((item, index) => {
+                const isCompleted = item.status === 'Completed';
+                const div = document.createElement('div');
+                div.className = 'reorder-item d-flex align-items-center gap-3';
+                div.setAttribute('draggable', 'true');
+                div.dataset.index = index;
+
+                div.innerHTML = `
+                    <div class="drag-handle" title="Drag to reorder">
+                        <i class="feather-move"></i>
+                    </div>
+                    <div class="fw-bold fs-12 text-dark" style="flex: 1; min-width: 0;">
+                        <span class="badge bg-light text-dark border me-2 fs-11" style="font-weight:600;">#${index + 1}</span>
+                        ${item.name}
+                        ${!isCompleted ? '<span class="badge bg-warning text-dark fs-9 ms-2">Pending</span>' : ''}
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        ${item.paramCount > 0 ? `<span class="badge bg-light text-muted border fs-10">${item.paramCount} params</span>` : ''}
+                    </div>
+                `;
+
+                // Drag events
+                div.addEventListener('dragstart', onDragStart);
+                div.addEventListener('dragend', onDragEnd);
+                div.addEventListener('dragover', onDragOver);
+                div.addEventListener('drop', onDrop);
+                div.addEventListener('dragenter', onDragEnter);
+                div.addEventListener('dragleave', onDragLeave);
+
+                container.appendChild(div);
+            });
+        }
+
+        // ─── Drag Events ─────────────────────────────────────────
+        function onDragStart(e) {
+            _dragSrcIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', _dragSrcIndex);
+        }
+
+        function onDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.reorder-item').forEach(el => {
+                el.classList.remove('drag-over');
+            });
+        }
+
+        function onDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function onDragEnter(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+
+        function onDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function onDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const targetIndex = parseInt(this.dataset.index);
+
+            if (_dragSrcIndex === null || _dragSrcIndex === targetIndex) return;
+
+            // Reorder
+            const moved = _reorderItems.splice(_dragSrcIndex, 1)[0];
+            _reorderItems.splice(targetIndex, 0, moved);
+            _dragSrcIndex = null;
+
+            renderReorderList();
+        }
+
+        // ─── Print Reordered ─────────────────────────────────────
+        function printReordered(withHeader) {
+            if (!_reorderInvoiceId || _reorderItems.length === 0) return;
+
+            // Prioritize completed tests; fallback to all items if none explicitly marked Completed
+            let targetItems = _reorderItems.filter(i => i.status === 'Completed');
+            if (targetItems.length === 0) {
+                targetItems = _reorderItems;
+            }
+
+            if (targetItems.length === 0) {
+                alert('Koi test nahi mila print karne ke liye.');
+                return;
+            }
+
+            const idsString = targetItems.map(i => i.id).join(',');
+
+            const baseUrl = `{{ route('lab.reports.print', ['id' => '__ID__', 'template' => 'new']) }}`
+                .replace('__ID__', _reorderInvoiceId);
+
+            // Reorder print strictly honors the user's setting (continuous) without artificial breaks
+            let url = baseUrl + '?tests=' + idsString + '&header=' + withHeader;
+            window.open(url, '_blank');
+
+            // Close modal
+            var modal = bootstrap.Modal.getInstance(document.getElementById('reorderPrintModal'));
+            if (modal) modal.hide();
+        }
+    </script>
 
 </div>

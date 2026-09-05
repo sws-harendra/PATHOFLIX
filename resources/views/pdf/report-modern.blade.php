@@ -122,6 +122,8 @@
             margin-bottom: 10px;
             border-radius: 3px;
             letter-spacing: 1px;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
         }
 
         .test-title {
@@ -130,6 +132,8 @@
             text-decoration: underline;
             padding-top: 10px;
             padding-bottom: 5px;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
         }
 
         /* Abnormal Flags */
@@ -321,6 +325,7 @@
         $testIndex = 0; 
         $deptIndex = 0;
         $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
+        $previousTestHadBreak = false;
     @endphp
     
     @foreach($groupedResults as $deptId => $data)
@@ -355,9 +360,29 @@
                 $results = $testData['results'];
                 $labTest = $testData['labTest'];
                 $remark = $testData['remark'] ?? '';
+                $currentItemId = (string)($testData['invoice_item_id'] ?? '');
             @endphp
 
-            @if($pageBreakMode === 'test')
+            @if($pageBreakMode === 'custom' && isset($pageBreakIds))
+                @if($testIndex > 0 && $previousTestHadBreak)
+                    @if($pageBreakMode !== 'test')
+                        </tbody>
+                        </table>
+                    @endif
+                    <div style="page-break-before: always;"></div>
+                    <div class="dept-header">{{ strtoupper($deptName) }}</div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%">Investigation</th>
+                                <th style="width: 20%">Result</th>
+                                <th style="width: 15%">Unit</th>
+                                <th style="width: 30%">Reference Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                @endif
+            @elseif($pageBreakMode === 'test')
                 @if($testIndex > 0)
                     <div style="page-break-before: always;"></div>
                 @endif
@@ -524,6 +549,7 @@
                     @php 
                         $testIndex++; 
                         $testInDeptIndex++;
+                        $previousTestHadBreak = isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds));
                     @endphp
                 @endforeach
 

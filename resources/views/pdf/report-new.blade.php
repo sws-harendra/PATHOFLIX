@@ -254,6 +254,8 @@
             margin-bottom: {{ $titleMarginBottom }};
             line-height: 1.2;
             color: #1a1a1a;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
         }
 
         .test-title {
@@ -265,6 +267,13 @@
             margin-bottom: {{ $testMarginBottom }};
             line-height: 1.2;
             color: #1a1a1a;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+        }
+
+        .test-card {
+            width: 100%;
+            display: block;
         }
 
         .method-line {
@@ -294,6 +303,8 @@
             border-collapse: collapse;
             margin-bottom: {{ $tableMarginBottom }};
             font-size: {{ $tableFontSize }};
+            page-break-before: avoid !important;
+            break-before: avoid !important;
         }
 
         .result-table tr {
@@ -311,8 +322,6 @@
             color: #000;
             background: #fbfbfb;
             line-height: {{ $tableLineHeight }};
-        }
-
         .result-table tbody td {
             padding: {{ $verticalSpacing }} 6px;
             vertical-align: top;
@@ -360,10 +369,10 @@
            INTERPRETATION & REMARKS BLOCKS
            ══════════════════════════════════════════════ */
         .interp-block {
-            margin: 15px 0 10px;
-            padding: 4px 0;
+            margin: 8px 0 6px;
+            padding: 2px 0;
             font-size: {{ $interpFontSize }};
-            line-height: 1.5;
+            line-height: 1.4;
             page-break-inside: avoid;
         }
 
@@ -438,7 +447,6 @@
             padding: 10px 0;
             font-size: 10px;
             line-height: 1.5;
-            border-top: 1px dashed #ccc;
             page-break-inside: avoid;
         }
 
@@ -667,6 +675,7 @@
         $testIndex = 0; 
         $deptIndex = 0;
         $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
+        $previousTestHadBreak = false;
     @endphp
 
     @foreach($groupedResults as $deptId => $data)
@@ -682,200 +691,212 @@
                 $testName = $testData['name'];
                 $labTest = $testData['labTest'];
                 $results = $testData['results'];
+                $currentItemId = (string)($testData['invoice_item_id'] ?? '');
             @endphp
 
             {{-- Page break logic --}}
-            @if($pageBreakMode === 'test')
+            @php
+                $isFirstInDept = ($testInDeptIndex === 0);
+                $hasCustomBreak = ($pageBreakMode === 'custom' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
+            @endphp
+
+            @if($pageBreakMode === 'custom' && isset($pageBreakIds))
+                @if($testIndex > 0 && $hasCustomBreak)
+                    <div style="page-break-before: always;"></div>
+                @endif
+            @elseif($pageBreakMode === 'test')
                 @if($testIndex > 0)
-                    <div style="page-break-after: always;"></div>
+                    <div style="page-break-before: always;"></div>
                 @endif
             @elseif($pageBreakMode === 'department')
-                @if($deptIndex > 0 && $testInDeptIndex === 0)
-                    <div style="page-break-after: always;"></div>
+                @if($deptIndex > 0 && $isFirstInDept)
+                    <div style="page-break-before: always;"></div>
                 @endif
             @endif
 
-            {{-- ── Department & Test Title ── --}}
-            @if($pageBreakMode === 'test' || $testInDeptIndex === 0)
-                <div class="dept-title">{{ strtoupper($deptName) }}</div>
-            @endif
-            <div class="test-title">{{ strtoupper($testName) }}</div>
+            {{-- ── Test Card (Avoid page breaks separating title & parameters) ── --}}
+            <div class="test-card">
+                @if($pageBreakMode === 'test' || $isFirstInDept || $hasCustomBreak)
+                    <div class="dept-title">{{ strtoupper($deptName) }}</div>
+                @endif
+                <div class="test-title">{{ strtoupper($testName) }}</div>
 
-            @if($testData['cultureResult'])
-                @php $cr = $testData['cultureResult']; @endphp
-                {{-- ── Culture Results Layout ── --}}
-                <table class="result-table" style="margin-bottom:15px; width:100%;">
-                    <tbody>
-                        <tr>
-                            <td style="width:25%; font-weight:700; border-bottom: none !important;">Specimen</td>
-                            <td style="width:75%; border-bottom: none !important;">: {{ $cr->specimen }}</td>
-                        </tr>
-                        @if($cr->growth_status)
-                        <tr>
-                            <td style="font-weight:700; border-bottom: none !important;">Result</td>
-                            <td style="font-weight:700; border-bottom: none !important;">: {{ $cr->growth_status }}</td>
-                        </tr>
-                        @endif
-                        @if($cr->incubation_period)
-                        <tr>
-                            <td style="font-weight:700; border-bottom: none !important;">Incubation Period</td>
-                            <td style="border-bottom: none !important;">: {{ $cr->incubation_period }}</td>
-                        </tr>
-                        @endif
-                        <tr>
-                            <td style="font-weight:700; border-bottom: none !important;">Organism Isolated</td>
-                            <td style="font-weight:700; color:#b00; border-bottom: none !important;">: {{ $cr->organism_name }}</td>
-                        </tr>
-                        @if($cr->colony_count)
-                        <tr>
-                            <td style="font-weight:700; border-bottom: none !important;">Colony Count</td>
-                            <td style="border-bottom: none !important;">: {{ $cr->colony_count }}</td>
-                        </tr>
-                        @endif
-                        @if($cr->remarks)
-                        <tr>
-                            <td style="font-weight:700; border-bottom: none !important;">Remarks</td>
-                            <td style="border-bottom: none !important;">: {{ $cr->remarks }}</td>
-                        </tr>
-                        @endif
-                    </tbody>
-                </table>
-
-                @if($cr->antibiotics && $cr->antibiotics->count() > 0)
-                    <div style="font-weight:700; font-size:11px; margin-bottom:5px; text-decoration:underline;">ANTIBIOTIC SUSCEPTIBILITY</div>
-                    <table class="result-table">
-                        <thead>
-                            <tr>
-                                <th style="width:40%">Antibiotic Name</th>
-                                <th style="width:30%">Sensitivity</th>
-                                <th style="width:30%">MIC</th>
-                            </tr>
-                        </thead>
+                @if($testData['cultureResult'])
+                    @php $cr = $testData['cultureResult']; @endphp
+                    {{-- ── Culture Results Layout ── --}}
+                    <table class="result-table" style="margin-bottom:15px; width:100%;">
                         <tbody>
-                            @foreach($cr->antibiotics as $ab)
-                                <tr>
-                                    <td>{{ $ab->antibiotic_name }}</td>
-                                    @php
-                                        $sens = strtoupper(substr($ab->sensitivity ?? '', 0, 1));
-                                        $sColor = $sens === 'S' ? '#007700' : ($sens === 'R' ? '#cc0000' : '#888');
-                                    @endphp
-                                    <td style="color: {{ $sColor }}; font-weight:700;">
-                                        {{ $ab->sensitivity }}
-                                    </td>
-                                    <td>{{ $ab->mic_value }}</td>
-                                </tr>
-                            @endforeach
+                            <tr>
+                                <td style="width:25%; font-weight:700; border-bottom: none !important;">Specimen</td>
+                                <td style="width:75%; border-bottom: none !important;">: {{ $cr->specimen }}</td>
+                            </tr>
+                            @if($cr->growth_status)
+                            <tr>
+                                <td style="font-weight:700; border-bottom: none !important;">Result</td>
+                                <td style="font-weight:700; border-bottom: none !important;">: {{ $cr->growth_status }}</td>
+                            </tr>
+                            @endif
+                            @if($cr->incubation_period)
+                            <tr>
+                                <td style="font-weight:700; border-bottom: none !important;">Incubation Period</td>
+                                <td style="border-bottom: none !important;">: {{ $cr->incubation_period }}</td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td style="font-weight:700; border-bottom: none !important;">Organism Isolated</td>
+                                <td style="font-weight:700; color:#b00; border-bottom: none !important;">: {{ $cr->organism_name }}</td>
+                            </tr>
+                            @if($cr->colony_count)
+                            <tr>
+                                <td style="font-weight:700; border-bottom: none !important;">Colony Count</td>
+                                <td style="border-bottom: none !important;">: {{ $cr->colony_count }}</td>
+                            </tr>
+                            @endif
+                            @if($cr->remarks)
+                            <tr>
+                                <td style="font-weight:700; border-bottom: none !important;">Remarks</td>
+                                <td style="border-bottom: none !important;">: {{ $cr->remarks }}</td>
+                            </tr>
+                            @endif
                         </tbody>
                     </table>
-                @endif
-            @else
-            {{-- ── Results Table ── --}}
-            <table class="result-table">
-                <thead>
-                    <tr>
-                        <th style="width:40%">Test Description</th>
-                        <th style="width:15%">Result</th>
-                        <th style="width:8%">Flag</th>
-                        <th style="width:22%">Ref. Range</th>
-                        <th style="width:15%">Unit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php $hasSubHeaders = false; @endphp
 
-                    @foreach($results as $r)
-                        @php
-                            // Detect sub-header: no result value AND no reference range
-                            $isSubHeader = (is_null($r->result_value) || trim($r->result_value) === '')
-                                && (is_null($r->reference_range) || trim($r->reference_range) === '');
+                    @if($cr->antibiotics && $cr->antibiotics->count() > 0)
+                        <div style="font-weight:700; font-size:11px; margin-bottom:5px; text-decoration:underline;">ANTIBIOTIC SUSCEPTIBILITY</div>
+                        <table class="result-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40%">Antibiotic Name</th>
+                                    <th style="width:30%">Sensitivity</th>
+                                    <th style="width:30%">MIC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($cr->antibiotics as $ab)
+                                    <tr>
+                                        <td>{{ $ab->antibiotic_name }}</td>
+                                        @php
+                                            $sens = strtoupper(substr($ab->sensitivity ?? '', 0, 1));
+                                            $sColor = $sens === 'S' ? '#007700' : ($sens === 'R' ? '#cc0000' : '#888');
+                                        @endphp
+                                        <td style="color: {{ $sColor }}; font-weight:700;">
+                                            {{ $ab->sensitivity }}
+                                        </td>
+                                        <td>{{ $ab->mic_value }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                @else
+                {{-- ── Results Table ── --}}
+                <table class="result-table">
+                    <thead>
+                        <tr class="col-headers-tr">
+                            <th style="width:40%">Test Description</th>
+                            <th style="width:15%">Result</th>
+                            <th style="width:8%">Flag</th>
+                            <th style="width:22%">Ref. Range</th>
+                            <th style="width:15%">Unit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $hasSubHeaders = false; @endphp
 
-                            // Determine flag (only when manually highlighted by lab staff)
-                            $flag = null;
-                            if ($r->is_highlighted && $r->status) {
-                                $rawFlag = strtoupper(trim($r->status));
-                                if (in_array($rawFlag, ['H', 'HIGH'])) {
-                                    $flag = 'H';
-                                } elseif (in_array($rawFlag, ['L', 'LOW'])) {
-                                    $flag = 'L';
-                                } else {
-                                    $flag = '*';
+                        @foreach($results as $r)
+                            @php
+                                // Detect sub-header: no result value AND no reference range
+                                $isSubHeader = (is_null($r->result_value) || trim($r->result_value) === '')
+                                    && (is_null($r->reference_range) || trim($r->reference_range) === '');
+
+                                // Determine flag (only when manually highlighted by lab staff)
+                                $flag = null;
+                                if ($r->is_highlighted && $r->status) {
+                                    $rawFlag = strtoupper(trim($r->status));
+                                    if (in_array($rawFlag, ['H', 'HIGH'])) {
+                                        $flag = 'H';
+                                    } elseif (in_array($rawFlag, ['L', 'LOW'])) {
+                                        $flag = 'L';
+                                    } else {
+                                        $flag = '*';
+                                    }
                                 }
-                            }
-                            $isAbnormal = $r->is_highlighted;
-                        @endphp
+                                $isAbnormal = $r->is_highlighted;
+                            @endphp
 
-                        @if($isSubHeader)
-                            {{-- ── Sub-Header Row ── --}}
-                            @php $hasSubHeaders = true; @endphp
-                            <tr class="sub-hdr">
-                                <td colspan="5">{{ strtoupper($r->parameter_name) }}</td>
-                            </tr>
-                        @else
-                            {{-- ── Parameter Row ── --}}
-                            <tr>
-                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}">
-                                    {{ strtoupper($r->parameter_name) }}
-                                    @if(($settings['pdf_show_method'] ?? true) && $r->method)
-                                        <div style="font-size: 8px; font-weight: normal; font-style: italic; color: #555; margin-top: 1px; line-height: 1;">
-                                            (Method: {{ $r->method }})
-                                        </div>
-                                    @endif
-                                </td>
-                                <td
-                                    class="{{ $isAbnormal ? ($flag === 'H' ? 'flag-H' : ($flag === 'L' ? 'flag-L' : 'result-bold')) : '' }}">
-                                    {{ $r->result_value }}
-                                </td>
-                                <td class="{{ $flag ? 'flag-' . $flag : '' }}">
-                                    {{ $flag }}
-                                </td>
-                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 22%; font-size: {{ $refRangeFontSize }}; line-height: 1.2; vertical-align: middle;">
-                                    @php
-                                        $rawRange = $r->reference_range;
-                                        $displayRange = '';
+                            @if($isSubHeader)
+                                {{-- ── Sub-Header Row ── --}}
+                                @php $hasSubHeaders = true; @endphp
+                                <tr class="sub-hdr">
+                                    <td colspan="5">{{ strtoupper($r->parameter_name) }}</td>
+                                </tr>
+                            @else
+                                {{-- ── Parameter Row ── --}}
+                                <tr>
+                                    <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}">
+                                        {{ strtoupper($r->parameter_name) }}
+                                        @if(($settings['pdf_show_method'] ?? true) && $r->method)
+                                            <div style="font-size: 8px; font-weight: normal; font-style: italic; color: #555; margin-top: 1px; line-height: 1;">
+                                                (Method: {{ $r->method }})
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td
+                                        class="{{ $isAbnormal ? ($flag === 'H' ? 'flag-H' : ($flag === 'L' ? 'flag-L' : 'result-bold')) : '' }}">
+                                        {{ $r->result_value }}
+                                    </td>
+                                    <td class="{{ $flag ? 'flag-' . $flag : '' }}">
+                                        {{ $flag }}
+                                    </td>
+                                    <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 22%; font-size: {{ $refRangeFontSize }}; line-height: 1.2; vertical-align: middle;">
+                                        @php
+                                            $rawRange = $r->reference_range;
+                                            $displayRange = '';
 
-                                        if (!empty(trim($rawRange ?? ''))) {
-                                            if (str_contains($rawRange, '<br>') || str_contains($rawRange, '<br/>')) {
-                                                $displayRange = preg_replace_callback('/<(?!\/?br\b[^>]*>)/i', fn() => '&lt;', $rawRange);
-                                            } else {
-                                                $displayRange = nl2br(e($rawRange));
-                                            }
-                                        } elseif (!empty($r->lab_test_id) && $r->labTest && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
-                                            $masterParam = collect($r->labTest->parameters)->first(function($p) use ($r) {
-                                                $pName = is_array($p) ? ($p['name'] ?? '') : $p;
-                                                return $pName === $r->parameter_name;
-                                            });
-
-                                            if ($masterParam && isset($masterParam['ranges']) && is_array($masterParam['ranges'])) {
-                                                $ranges = collect($masterParam['ranges']);
-                                                
-                                                if ($ranges->count() > 1) {
-                                                    // Try to find M/F explicitly
-                                                    $maleRange = $ranges->firstWhere('gender', 'Male');
-                                                    $femaleRange = $ranges->firstWhere('gender', 'Female');
-
-                                                    if ($maleRange && $femaleRange) {
-                                                        $displayRange = "M: " . e($maleRange['display_range'] ?? '') . "<br>F: " . e($femaleRange['display_range'] ?? '');
-                                                    } else {
-                                                        // Just join all unique display ranges
-                                                        $displayRange = $ranges->pluck('display_range')->unique()->filter()->map(fn($d) => e($d))->implode('<br>');
-                                                    }
+                                            if (!empty(trim($rawRange ?? ''))) {
+                                                if (str_contains($rawRange, '<br>') || str_contains($rawRange, '<br/>')) {
+                                                    $displayRange = preg_replace_callback('/<(?!\/?br\b[^>]*>)/i', fn() => '&lt;', $rawRange);
                                                 } else {
-                                                    $displayRange = e($ranges->first()['display_range'] ?? ($ranges->first()['normal_value'] ?? ''));
+                                                    $displayRange = nl2br(e($rawRange));
+                                                }
+                                            } elseif (!empty($r->lab_test_id) && $r->labTest && isset($r->labTest->parameters) && is_array($r->labTest->parameters)) {
+                                                $masterParam = collect($r->labTest->parameters)->first(function($p) use ($r) {
+                                                    $pName = is_array($p) ? ($p['name'] ?? '') : $p;
+                                                    return $pName === $r->parameter_name;
+                                                });
+
+                                                if ($masterParam && isset($masterParam['ranges']) && is_array($masterParam['ranges'])) {
+                                                    $ranges = collect($masterParam['ranges']);
+                                                    
+                                                    if ($ranges->count() > 1) {
+                                                        // Try to find M/F explicitly
+                                                        $maleRange = $ranges->firstWhere('gender', 'Male');
+                                                        $femaleRange = $ranges->firstWhere('gender', 'Female');
+
+                                                        if ($maleRange && $femaleRange) {
+                                                            $displayRange = "M: " . e($maleRange['display_range'] ?? '') . "<br>F: " . e($femaleRange['display_range'] ?? '');
+                                                        } else {
+                                                            // Just join all unique display ranges
+                                                            $displayRange = $ranges->pluck('display_range')->unique()->filter()->map(fn($d) => e($d))->implode('<br>');
+                                                        }
+                                                    } else {
+                                                        $displayRange = e($ranges->first()['display_range'] ?? ($ranges->first()['normal_value'] ?? ''));
+                                                    }
                                                 }
                                             }
-                                        }
-                                    @endphp
-                                    {!! $displayRange !!}
-                                </td>
-                                <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 15%;">
-                                    {{ $r->unit }}
-                                </td>
-                            </tr>
-                        @endif
-                    @endforeach
-                </tbody>
-            </table>
-            @endif
+                                        @endphp
+                                        {!! $displayRange !!}
+                                    </td>
+                                    <td class="{{ ($isAbnormal && !($settings['pdf_abnormal_bold_only_result_flag'] ?? false)) ? 'result-bold' : '' }}" style="width: 15%;">
+                                        {{ $r->unit }}
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+                @endif
+            </div>
 
             {{-- ── Method (per-result level, if different from test master) ── --}}
             {{-- @if($results && $results->count() > 0 && $results->first()->method && $labTest && $results->first()->method !== $labTest->method)

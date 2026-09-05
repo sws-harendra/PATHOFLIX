@@ -161,6 +161,19 @@ class ReportPdfController extends Controller
             'pdf_page_break_mode' => Configuration::getFor('pdf_page_break_mode', 'test', $companyId),
         ];
 
+        // ── Custom Page Breaks & Page Break Mode Override ───────────────────
+        $pageBreakIds = null;
+        if ($request->has('breaks')) {
+            $rawBreaks = trim($request->get('breaks', ''));
+            if ($rawBreaks !== '') {
+                $pageBreakIds = array_values(array_filter(array_map('trim', explode(',', $rawBreaks))));
+                // Only override to custom if page_break_mode is not already continuous, or if explicitly requested
+                if (!empty($pageBreakIds) && ($settings['pdf_page_break_mode'] ?? '') !== 'continuous') {
+                    $settings['pdf_page_break_mode'] = 'custom';
+                }
+            }
+        }
+
         // Determine final visibility (Setting toggle AND override via URL)
         $showHeaderSetting = (bool) ($settings['pdf_show_header'] ?? true);
         $showFooterSetting = (bool) ($settings['pdf_show_footer'] ?? true);
@@ -189,9 +202,15 @@ class ReportPdfController extends Controller
         $cultureResults = $report->cultureResults->load('labTest', 'antibiotics');
         
         if ($request->has('tests')) {
-            $testIds = explode(',', $request->tests);
-            $results = $results->whereIn('invoice_item_id', $testIds);
-            $cultureResults = $cultureResults->whereIn('invoice_item_id', $testIds);
+            $testIds = array_values(array_filter(array_map('trim', explode(',', $request->tests))));
+            $results = $results->filter(function ($r) use ($testIds, $report) {
+                $itemId = (string)($r->invoice_item_id ?: optional($report->invoice->items->firstWhere('lab_test_id', $r->lab_test_id))->id);
+                return in_array($itemId, $testIds);
+            });
+            $cultureResults = $cultureResults->filter(function ($cr) use ($testIds, $report) {
+                $itemId = (string)($cr->invoice_item_id ?: optional($report->invoice->items->firstWhere('lab_test_id', $cr->lab_test_id))->id);
+                return in_array($itemId, $testIds);
+            });
         }
 
         $allTests = collect();
@@ -244,42 +263,55 @@ class ReportPdfController extends Controller
             }
         }
 
-        // Sort by invoice_item_id to preserve the bill/cart insertion order
-        $allTests = $allTests->sortBy('invoice_item_id');
+        // ── Ordering & Department Grouping ──────────────────────────────────
+        if ($request->has('tests')) {
+            $testIds = array_values(array_filter(array_map('trim', explode(',', $request->tests))));
+            $testIdOrder = array_flip($testIds);
+            // Sort by order specified in ?tests=
+            $allTests = $allTests->sortBy(function ($testData) use ($testIdOrder) {
+                $itemId = (string)$testData['invoice_item_id'];
+                return $testIdOrder[$itemId] ?? 999999;
+            });
 
-        $groupedResults = $allTests->groupBy(function ($testData) {
-            return $testData['labTest']->department_id ?? 0;
-        })->map(function ($deptGroup) use ($report) {
-            return [
-                'department' => $deptGroup->first()['labTest']->dept ?? null,
-                'tests' => $deptGroup->mapWithKeys(function ($testData) use ($report) {
-                    $itemId = $testData['invoice_item_id'];
-                    $testId = $testData['lab_test_id'];
-                    $key = $itemId . '_' . $testId;
+            // Group contiguous tests by department to strictly preserve the custom sequence
+            $groupedResults = collect();
+            $chunkIndex = 0;
+            $currentDeptId = null;
+            $currentChunk = collect();
 
-                    $item = $report->invoice->items->where('id', $itemId)->first() 
-                        ?: $report->invoice->items->where('lab_test_id', $testId)->first();
-                    $remark = '';
-                    if ($item) {
-                        $raw = $item->report_comments;
-                        $decoded = json_decode($raw, true);
-                        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                            $remark = $decoded[$testId] ?? '';
-                        } else {
-                            $remark = $raw;
-                        }
-                    }
+            foreach ($allTests as $testData) {
+                $deptId = $testData['labTest']->department_id ?? 0;
+                if ($currentDeptId !== null && $deptId !== $currentDeptId) {
+                    $groupedResults->put('group_' . $chunkIndex, [
+                        'department' => $currentChunk->first()['labTest']->dept ?? null,
+                        'tests' => $this->mapTestsForPdfGroup($currentChunk, $report),
+                    ]);
+                    $chunkIndex++;
+                    $currentChunk = collect();
+                }
+                $currentDeptId = $deptId;
+                $currentChunk->push($testData);
+            }
 
-                    return [$key => [
-                        'name' => $testData['labTest']->name,
-                        'labTest' => $testData['labTest'],
-                        'results' => $testData['results'],
-                        'cultureResult' => $testData['cultureResult'],
-                        'remark' => $remark,
-                    ]];
-                })
-            ];
-        });
+            if ($currentChunk->isNotEmpty()) {
+                $groupedResults->put('group_' . $chunkIndex, [
+                    'department' => $currentChunk->first()['labTest']->dept ?? null,
+                    'tests' => $this->mapTestsForPdfGroup($currentChunk, $report),
+                ]);
+            }
+        } else {
+            // Sort by invoice_item_id to preserve the bill/cart insertion order
+            $allTests = $allTests->sortBy('invoice_item_id');
+
+            $groupedResults = $allTests->groupBy(function ($testData) {
+                return $testData['labTest']->department_id ?? 0;
+            })->map(function ($deptGroup) use ($report) {
+                return [
+                    'department' => $deptGroup->first()['labTest']->dept ?? null,
+                    'tests' => $this->mapTestsForPdfGroup($deptGroup, $report),
+                ];
+            });
+        }
 
         $viewName = 'pdf.report-' . $template;
         if (!view()->exists($viewName)) {
@@ -298,6 +330,7 @@ class ReportPdfController extends Controller
             'showFooter' => $showFooter,
             'qrCodeUri' => $qrCodeUri,
             'barcodeUri' => $barcodeUri,
+            'pageBreakIds' => $pageBreakIds,
         ])->setPaper('A4', 'portrait');
 
         $filename = 'Report_' . str_replace(' ', '_', $report->invoice->patient->name)
@@ -312,5 +345,39 @@ class ReportPdfController extends Controller
     public function generateNew($reportId, Request $request)
     {
         return $this->download($request, $reportId, 'new');
+    }
+
+    /**
+     * Map test group collection into the standard array format expected by PDF templates
+     */
+    protected function mapTestsForPdfGroup($deptGroup, $report)
+    {
+        return $deptGroup->mapWithKeys(function ($testData) use ($report) {
+            $itemId = $testData['invoice_item_id'];
+            $testId = $testData['lab_test_id'];
+            $key = $itemId . '_' . $testId;
+
+            $item = $report->invoice->items->where('id', $itemId)->first() 
+                ?: $report->invoice->items->where('lab_test_id', $testId)->first();
+            $remark = '';
+            if ($item) {
+                $raw = $item->report_comments;
+                $decoded = json_decode($raw, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $remark = $decoded[$testId] ?? '';
+                } else {
+                    $remark = $raw;
+                }
+            }
+
+            return [$key => [
+                'invoice_item_id' => $itemId,
+                'name' => $testData['labTest']->name,
+                'labTest' => $testData['labTest'],
+                'results' => $testData['results'],
+                'cultureResult' => $testData['cultureResult'],
+                'remark' => $remark,
+            ]];
+        });
     }
 }

@@ -618,12 +618,18 @@ class ResultEntryManager extends Component
             }
         }
 
-        // Always update expected_report_time on invoice to keep draft/approval dates consistent
-        if ($this->report_date) {
-            $this->invoice->update(['expected_report_time' => $this->report_date]);
+        if ($targetStatus === 'Approved') {
+            $approvalTime = now();
+            $this->report_date = $approvalTime->format('Y-m-d\TH:i');
+            $this->invoice->update(['expected_report_time' => $approvalTime]);
+            $apprDate = $approvalTime;
+        } else {
+            // Update expected_report_time on invoice for drafts if report_date is set
+            if ($this->report_date) {
+                $this->invoice->update(['expected_report_time' => $this->report_date]);
+            }
+            $apprDate = $this->report_date ?: now();
         }
-
-        $apprDate = $this->report_date ?: now();
 
         if (!$this->testReport) {
             $this->testReport = TestReport::create([
