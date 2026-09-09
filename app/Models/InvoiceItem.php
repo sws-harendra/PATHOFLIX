@@ -9,6 +9,10 @@ class InvoiceItem extends Model
     
     protected $guarded = [];
 
+    protected $casts = [
+        'reported_at' => 'datetime',
+    ];
+
     /**
      * The parent invoice this item belongs to.
      */

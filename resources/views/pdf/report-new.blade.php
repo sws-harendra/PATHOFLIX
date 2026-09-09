@@ -608,7 +608,7 @@
                     <td class="val">: {{ $invoice->doctor ? $invoice->doctor->name : 'SELF' }}</td>
                     <td class="lbl">Report Date</td>
                     <td class="val">:
-                        {{ $report->approved_at ? $report->approved_at->format('d/m/Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A')) }}
+                        {{ isset($reportDate) && $reportDate ? ($reportDate instanceof \Carbon\Carbon ? $reportDate->format('d/m/Y h:i A') : \Carbon\Carbon::parse($reportDate)->format('d/m/Y h:i A')) : ($report->approved_at ? $report->approved_at->format('d/m/Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d/m/Y h:i A') : now()->format('d/m/Y h:i A'))) }}
                     </td>
                 </tr>
                 <tr>

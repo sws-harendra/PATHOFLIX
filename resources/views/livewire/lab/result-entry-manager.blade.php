@@ -158,16 +158,42 @@
                                                         @endif
                                                     </div>
                                                     
-                                                    @if(!($testItem->labTest->is_package ?? false))
-                                                        @can('edit reports')
-                                                            <button wire:click="toggleTestStatus({{ $itemId }})" 
-                                                                    class="btn btn-xs {{ $isBillItemComplete ? 'btn-outline-danger' : 'btn-outline-success' }} py-0 px-2"
-                                                                    style="font-size: 10px;">
-                                                                <i class="feather-{{ $isBillItemComplete ? 'x-circle' : 'check-circle' }} me-1"></i>
-                                                                Mark {{ $isBillItemComplete ? 'Pending' : 'Complete' }}
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        {{-- Test-Level Report Date & Time --}}
+                                                        <div class="d-flex align-items-center bg-white rounded px-2 py-1 border shadow-xs" title="Report Date & Time for this specific test">
+                                                            <span class="fs-11 text-muted fw-bold me-1 text-uppercase" style="letter-spacing: 0.5px;">Reported:</span>
+                                                            <input type="datetime-local" 
+                                                                   class="form-control form-control-sm border-0 p-0 fs-12 fw-bold text-primary" 
+                                                                   style="width: 215px; height: 24px; background: transparent; cursor: pointer;" 
+                                                                   wire:model.live="testReportDates.{{ $itemId }}">
+                                                            <button type="button" 
+                                                                    wire:click="setTestReportDateToNow({{ $itemId }})" 
+                                                                    class="btn btn-link btn-xs p-0 text-primary ms-1 text-decoration-none d-flex align-items-center" 
+                                                                    title="Set to Current Time">
+                                                                <i class="feather-clock" style="font-size: 13px;"></i>
                                                             </button>
-                                                        @endcan
-                                                    @endif
+                                                        </div>
+
+                                                        {{-- Quick Print Button for this specific test --}}
+                                                        <button type="button" 
+                                                                wire:click="printSingleTest({{ $itemId }}, 1)" 
+                                                                class="btn btn-xs btn-outline-primary py-1 px-2 d-flex align-items-center" 
+                                                                style="font-size: 11px;"
+                                                                title="Print this test report only">
+                                                            <i class="feather-printer me-1"></i>Print
+                                                        </button>
+
+                                                        @if(!($testItem->labTest->is_package ?? false))
+                                                            @can('edit reports')
+                                                                <button wire:click="toggleTestStatus({{ $itemId }})" 
+                                                                        class="btn btn-xs {{ $isBillItemComplete ? 'btn-outline-danger' : 'btn-outline-success' }} py-1 px-2"
+                                                                        style="font-size: 10px;">
+                                                                    <i class="feather-{{ $isBillItemComplete ? 'x-circle' : 'check-circle' }} me-1"></i>
+                                                                    Mark {{ $isBillItemComplete ? 'Pending' : 'Complete' }}
+                                                                </button>
+                                                            @endcan
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>

@@ -313,6 +313,31 @@ class ReportPdfController extends Controller
             });
         }
 
+        // ── Effective Report Date for Patient Info Box ───────────────────────
+        $printedItemIds = $allTests->pluck('invoice_item_id')->filter()->unique()->toArray();
+        $customReportedAt = null;
+
+        if (!empty($printedItemIds)) {
+            $printedItems = $report->invoice->items->whereIn('id', $printedItemIds);
+            if (count($printedItemIds) === 1) {
+                // If a single test was printed, show that test's reported_at
+                $customReportedAt = $printedItems->first()?->reported_at;
+            } else {
+                // If multiple tests are printed:
+                // Check if all printed items have the same reported_at
+                $distinctDates = $printedItems->whereNotNull('reported_at')->map(fn($it) => $it->reported_at->format('Y-m-d H:i'))->unique();
+                if ($distinctDates->count() === 1) {
+                    $customReportedAt = $printedItems->whereNotNull('reported_at')->first()?->reported_at;
+                } else {
+                    // Fallback to global approved_at / expected_report_time
+                    $customReportedAt = $report->approved_at ?: $report->invoice->expected_report_time;
+                }
+            }
+        }
+
+        $effectiveReportDate = $customReportedAt 
+            ?: ($report->approved_at ?: ($report->invoice->expected_report_time ?: now()));
+
         $viewName = 'pdf.report-' . $template;
         if (!view()->exists($viewName)) {
             $viewName = 'pdf.report-new';
@@ -320,6 +345,7 @@ class ReportPdfController extends Controller
 
         $pdf = Pdf::loadView($viewName, [
             'report' => $report,
+            'reportDate' => $effectiveReportDate,
             'invoice' => $report->invoice,
             'patient' => $report->invoice->patient,
             'profile' => $report->invoice->patient->patientProfile,
@@ -360,6 +386,7 @@ class ReportPdfController extends Controller
             $item = $report->invoice->items->where('id', $itemId)->first() 
                 ?: $report->invoice->items->where('lab_test_id', $testId)->first();
             $remark = '';
+            $reportedAt = null;
             if ($item) {
                 $raw = $item->report_comments;
                 $decoded = json_decode($raw, true);
@@ -367,6 +394,10 @@ class ReportPdfController extends Controller
                     $remark = $decoded[$testId] ?? '';
                 } else {
                     $remark = $raw;
+                }
+
+                if ($item->reported_at) {
+                    $reportedAt = $item->reported_at->format('d/m/Y h:i A');
                 }
             }
 
@@ -377,6 +408,7 @@ class ReportPdfController extends Controller
                 'results' => $testData['results'],
                 'cultureResult' => $testData['cultureResult'],
                 'remark' => $remark,
+                'reported_at' => $reportedAt,
             ]];
         });
     }

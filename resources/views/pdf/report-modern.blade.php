@@ -106,7 +106,7 @@
         }
 
         .results-table td {
-            padding: {{ $verticalSpacing }} 8px;
+            padding: {{ $verticalSpacing ?? ($settings['pdf_vertical_spacing'] ?? '5px') }} 8px;
             border-bottom: none;
         }
 
@@ -310,7 +310,7 @@
             <td class="lbl">Age / Gender</td>
             <td class="val">{{ $profile->age ?? '--' }} {{ $profile->age_type ?? 'Y' }} / {{ $profile->gender ?? '--' }}</td>
             <td class="lbl">Reported</td>
-            <td class="val">{{ $report->approved_at ? $report->approved_at->format('d M, Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d M, Y h:i A') : 'Pending') }}</td>
+            <td class="val">{{ isset($reportDate) && $reportDate ? ($reportDate instanceof \Carbon\Carbon ? $reportDate->format('d M, Y h:i A') : \Carbon\Carbon::parse($reportDate)->format('d M, Y h:i A')) : ($report->approved_at ? $report->approved_at->format('d M, Y h:i A') : ($invoice->expected_report_time ? $invoice->expected_report_time->format('d M, Y h:i A') : 'Pending')) }}</td>
         </tr>
         <tr>
             <td class="lbl">Referred By</td>
@@ -395,12 +395,9 @@
 
             <tr>
                 <td colspan="4" class="test-title">
-                            {{ $testName }}
-                            <!-- @if(($settings['pdf_show_method'] ?? true) && $labTest && $labTest->method)
-                                <span style="font-size: 10px; font-weight: normal; margin-left: 10px; color: #666;">(Method: {{ $labTest->method }})</span>
-                            @endif -->
-                        </td>
-                    </tr>
+                    {{ $testName }}
+                </td>
+            </tr>
                     @if($testData['cultureResult'])
                         @php $cr = $testData['cultureResult']; @endphp
                         <tr>
@@ -594,7 +591,7 @@
     @endif
 
     {{-- SIGNATURE BLOCK (Global Bottom) --}}
-    @if($settings['report_signature_mode'] == 'global_bottom')
+    @if(($settings['report_signature_mode'] ?? 'global_bottom') == 'global_bottom')
         @php
             $sig1Enabled = ($settings['global_sig_1_enabled'] ?? true) && (!empty($settings['global_sig_1_path']) || !empty($settings['global_sig_1_name']));
             $sig2Enabled = ($settings['global_sig_2_enabled'] ?? true) && (!empty($settings['global_sig_2_path']) || !empty($settings['global_sig_2_name']));

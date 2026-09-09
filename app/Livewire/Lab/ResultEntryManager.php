@@ -24,6 +24,7 @@ class ResultEntryManager extends Component
     public $parametersList = [];
     public $selectedTests = []; // For selective printing from here
     public $testComments = []; // Comments per invoice item (test)
+    public $testReportDates = []; // Report date & time per test (invoice item)
     
     public $cultureData = [];
     public $cultureAntibiotics = [];
@@ -52,14 +53,78 @@ class ResultEntryManager extends Component
     public function updatedReportDate($value)
     {
         $this->is_manual_report_date = true;
+        if (!empty($value)) {
+            $parsed = \Carbon\Carbon::parse($value);
+            if ($this->testReport) {
+                $this->testReport->update(['approved_at' => $parsed]);
+            }
+            $this->invoice->update(['expected_report_time' => $parsed]);
+
+            // Sync testReportDates for invoice items
+            foreach ($this->invoice->items as $item) {
+                $item->update(['reported_at' => $parsed]);
+                $this->testReportDates[$item->id] = $value;
+            }
+        }
+    }
+
+    public function updatedTestReportDates($value, $key)
+    {
+        if (!empty($value)) {
+            $parsed = \Carbon\Carbon::parse($value);
+            \App\Models\InvoiceItem::where('id', $key)->update(['reported_at' => $parsed]);
+
+            // If invoice has only 1 item or report_date is empty, sync global report date as well
+            if ($this->invoice->items->count() === 1 || empty($this->report_date)) {
+                $this->report_date = $value;
+                $this->initial_report_date = $value;
+                $this->is_manual_report_date = true;
+                if ($this->testReport) {
+                    $this->testReport->update(['approved_at' => $parsed]);
+                }
+                $this->invoice->update(['expected_report_time' => $parsed]);
+            }
+        }
     }
 
     public function setReportDateToNow()
     {
-        $this->report_date = now()->format('Y-m-d\TH:i');
-        $this->initial_report_date = $this->report_date;
-        $this->is_manual_report_date = false;
-        $this->dispatch('notify', ['type' => 'info', 'message' => 'Report time reset to current time.']);
+        $nowStr = now()->format('Y-m-d\TH:i');
+        $this->report_date = $nowStr;
+        $this->initial_report_date = $nowStr;
+        $this->is_manual_report_date = true;
+        if ($this->testReport) {
+            $this->testReport->update(['approved_at' => now()]);
+        }
+        $this->invoice->update(['expected_report_time' => now()]);
+        foreach ($this->invoice->items as $item) {
+            $item->update(['reported_at' => now()]);
+            $this->testReportDates[$item->id] = $nowStr;
+        }
+        $this->dispatch('notify', ['type' => 'info', 'message' => 'Report date & time set to current time.']);
+    }
+
+    public function setTestReportDateToNow($itemId)
+    {
+        $nowStr = now()->format('Y-m-d\TH:i');
+        $this->testReportDates[$itemId] = $nowStr;
+        
+        $item = \App\Models\InvoiceItem::find($itemId);
+        if ($item) {
+            $item->update(['reported_at' => now()]);
+        }
+
+        if ($this->invoice->items->count() === 1 || empty($this->report_date)) {
+            $this->report_date = $nowStr;
+            $this->initial_report_date = $nowStr;
+            $this->is_manual_report_date = true;
+            if ($this->testReport) {
+                $this->testReport->update(['approved_at' => now()]);
+            }
+            $this->invoice->update(['expected_report_time' => now()]);
+        }
+
+        $this->dispatch('notify', ['type' => 'info', 'message' => 'Test report time set to current time.']);
     }
 
     private function initializeResultsData()
@@ -111,6 +176,11 @@ class ResultEntryManager extends Component
         }
 
         foreach ($this->invoice->items as $item) {
+            // Load test-level reported_at
+            $this->testReportDates[$item->id] = $item->reported_at 
+                ? $item->reported_at->format('Y-m-d\TH:i') 
+                : ($item->status === 'Completed' ? $this->report_date : '');
+
             // Determine if report_comments is JSON (new granular format) or plain text (legacy)
             $rawComments = $item->report_comments ?? '';
             $decodedComments = json_decode($rawComments, true);
@@ -326,10 +396,9 @@ class ResultEntryManager extends Component
             $this->parametersList = $sortedList;
         }
 
-        // Auto-select all item IDs by default so user can print directly without manual selection
-        if (empty($this->selectedTests)) {
-            $this->selectedTests = $this->invoice->items->pluck('id')->map(fn($id) => (string)$id)->toArray();
-        }
+        // Selected tests starts empty so user can select specific test(s) to print.
+        // If left empty, printSelected() prints all completed tests.
+        $this->selectedTests = [];
 
         // Auto-evaluate ranges on mount
         $this->autoEvaluateRanges();
@@ -730,6 +799,15 @@ class ResultEntryManager extends Component
             }
         }
 
+        // If test report dates were modified for tests, ensure report_date aligns
+        if (!empty($this->testReportDates)) {
+            $lastSetDate = collect($this->testReportDates)->filter()->last();
+            if ($lastSetDate && ($this->invoice->items->count() === 1 || empty($this->report_date))) {
+                $this->report_date = $lastSetDate;
+                $this->is_manual_report_date = true;
+            }
+        }
+
         // Detect if report_date was changed manually from initial loaded value
         if (!empty($this->report_date) && $this->report_date !== $this->initial_report_date) {
             $this->is_manual_report_date = true;
@@ -863,7 +941,7 @@ class ResultEntryManager extends Component
             }
         }
 
-        // Save Test Level Comments (Granular for packages)
+        // Save Test Level Comments (Granular for packages) & Test Level Reported At
         foreach ($this->invoice->items as $item) {
             $itemComments = [];
             $hasGranular = false;
@@ -877,14 +955,27 @@ class ResultEntryManager extends Component
                 }
             }
             
+            $updateData = [];
+
             if ($hasGranular) {
                 // If it's a single test (not package) AND only one comment exists, store as plain text for backward compatibility
                 if (!$item->labTest->is_package && count($itemComments) === 1) {
-                    $item->update(['report_comments' => reset($itemComments)]);
+                    $updateData['report_comments'] = reset($itemComments);
                 } else {
                     // Store as JSON for packages or multiple entries
-                    $item->update(['report_comments' => json_encode($itemComments)]);
+                    $updateData['report_comments'] = json_encode($itemComments);
                 }
+            }
+
+            // Save test-level reported_at
+            if (!empty($this->testReportDates[$item->id])) {
+                $updateData['reported_at'] = \Carbon\Carbon::parse($this->testReportDates[$item->id]);
+            } elseif ($item->status === 'Completed' && empty($item->reported_at)) {
+                $updateData['reported_at'] = $apprDate;
+            }
+
+            if (!empty($updateData)) {
+                $item->update($updateData);
             }
         }
 
@@ -923,7 +1014,18 @@ class ResultEntryManager extends Component
         $this->authorize('edit reports');
         $item = \App\Models\InvoiceItem::findOrFail($itemId);
         $newStatus = $item->status === 'Completed' ? 'Pending' : 'Completed';
-        $item->update(['status' => $newStatus]);
+        
+        $updateData = ['status' => $newStatus];
+        if ($newStatus === 'Completed') {
+            if (empty($this->testReportDates[$itemId])) {
+                $this->testReportDates[$itemId] = now()->format('Y-m-d\TH:i');
+            }
+            $updateData['reported_at'] = !empty($this->testReportDates[$itemId]) 
+                ? \Carbon\Carbon::parse($this->testReportDates[$itemId]) 
+                : now();
+        }
+
+        $item->update($updateData);
         
         // Refresh invoice to get updated status
         $this->invoice->load('items');
@@ -957,6 +1059,18 @@ class ResultEntryManager extends Component
         $idsString = is_array($testIds) ? implode(',', $testIds) : $testIds;
         $url = route('lab.reports.print', ['id' => $this->invoice->id, 'template' => 'new'])
              . '?tests=' . $idsString
+             . '&header=' . ($withHeader ? '1' : '0');
+        
+        $this->dispatch('open-new-tab', ['url' => $url]);
+    }
+
+    public function printSingleTest($itemId, $withHeader = 1)
+    {
+        $statusToSave = ($this->testReport && $this->testReport->status === 'Approved') ? 'Approved' : 'Draft';
+        $this->saveReport($statusToSave, false);
+
+        $url = route('lab.reports.print', ['id' => $this->invoice->id, 'template' => 'new'])
+             . '?tests=' . $itemId
              . '&header=' . ($withHeader ? '1' : '0');
         
         $this->dispatch('open-new-tab', ['url' => $url]);
