@@ -15,6 +15,8 @@ class ResultEntryManager extends Component
     public $testReport;
     public $comments;
     public $report_date;
+    public $initial_report_date;
+    public $is_manual_report_date = false;
     
     public $results = [];
     public $highlights = [];
@@ -36,11 +38,28 @@ class ResultEntryManager extends Component
         
         $this->testReport = $this->invoice->testReport;
         $this->comments = $this->testReport ? $this->testReport->comments : '';
-        $this->report_date = $this->testReport && $this->testReport->approved_at 
-            ? $this->testReport->approved_at->format('Y-m-d\TH:i') 
-            : ($this->invoice->expected_report_time ? $this->invoice->expected_report_time->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i'));
+        if ($this->testReport && $this->testReport->approved_at) {
+            $this->report_date = $this->testReport->approved_at->format('Y-m-d\TH:i');
+        } else {
+            $this->report_date = now()->format('Y-m-d\TH:i');
+        }
+        $this->initial_report_date = $this->report_date;
+        $this->is_manual_report_date = false;
         
         $this->initializeResultsData();
+    }
+
+    public function updatedReportDate($value)
+    {
+        $this->is_manual_report_date = true;
+    }
+
+    public function setReportDateToNow()
+    {
+        $this->report_date = now()->format('Y-m-d\TH:i');
+        $this->initial_report_date = $this->report_date;
+        $this->is_manual_report_date = false;
+        $this->dispatch('notify', ['type' => 'info', 'message' => 'Report time reset to current time.']);
     }
 
     private function initializeResultsData()
@@ -657,7 +676,7 @@ class ResultEntryManager extends Component
         $this->highlights[$key] = !($this->highlights[$key] ?? false);
     }
 
-    public function saveReport($status = 'Draft')
+    public function saveReport($status = 'Draft', $redirect = true)
     {
         $this->authorize('edit reports');
 
@@ -713,17 +732,38 @@ class ResultEntryManager extends Component
             }
         }
 
+        // Detect if report_date was changed manually from initial loaded value
+        if (!empty($this->report_date) && $this->report_date !== $this->initial_report_date) {
+            $this->is_manual_report_date = true;
+        }
+
         if ($targetStatus === 'Approved') {
-            $approvalTime = now();
-            $this->report_date = $approvalTime->format('Y-m-d\TH:i');
-            $this->invoice->update(['expected_report_time' => $approvalTime]);
-            $apprDate = $approvalTime;
+            if ($this->is_manual_report_date && !empty($this->report_date)) {
+                // Manually specified or edited report date & time
+                $apprDate = \Carbon\Carbon::parse($this->report_date);
+            } elseif ($this->testReport && $this->testReport->status === 'Approved' && $this->testReport->approved_at) {
+                // Preserve previously approved time if not manually edited
+                $apprDate = $this->testReport->approved_at;
+                $this->report_date = $apprDate->format('Y-m-d\TH:i');
+            } else {
+                // First-time approval without manual override: use current timestamp
+                $apprDate = now();
+                $this->report_date = $apprDate->format('Y-m-d\TH:i');
+            }
+
+            $this->initial_report_date = $this->report_date;
+            $this->is_manual_report_date = false;
+            $this->invoice->update(['expected_report_time' => $apprDate]);
         } else {
-            // Update expected_report_time on invoice for drafts if report_date is set
-            if ($this->report_date) {
+            // Draft status
+            if (!empty($this->report_date)) {
                 $this->invoice->update(['expected_report_time' => $this->report_date]);
             }
-            $apprDate = $this->report_date ?: now();
+            if ($this->is_manual_report_date && !empty($this->report_date)) {
+                $apprDate = \Carbon\Carbon::parse($this->report_date);
+            } else {
+                $apprDate = $this->testReport ? $this->testReport->approved_at : null;
+            }
         }
 
         if (!$this->testReport) {
@@ -734,15 +774,16 @@ class ResultEntryManager extends Component
                 'status' => $targetStatus,
                 'comments' => $this->comments,
                 'approved_by' => $targetStatus === 'Approved' ? auth()->id() : null,
-                'approved_at' => $targetStatus === 'Approved' ? $apprDate : null,
+                'approved_at' => $apprDate,
             ]);
         } else {
             $this->testReport->update([
                 'status' => $targetStatus,
                 'comments' => $this->comments,
-                'approved_by' => $targetStatus === 'Approved' ? auth()->id() : $this->testReport->approved_by,
-                'approved_at' => $targetStatus === 'Approved' ? $apprDate : $this->testReport->approved_at,
+                'approved_by' => $targetStatus === 'Approved' ? ($this->testReport->approved_by ?: auth()->id()) : ($targetStatus === 'Draft' ? null : $this->testReport->approved_by),
+                'approved_at' => $apprDate,
             ]);
+            $this->testReport->refresh();
         }
 
         // Save Results in exact reordered sequence
@@ -856,8 +897,11 @@ class ResultEntryManager extends Component
 
         if ($targetStatus === 'Approved') {
             $this->invoice->update(['sample_status' => 'Ready']);
-            $this->dispatch('notify', ['type' => 'success', 'message' => 'Report Approved Successfully and ready for printing.']);
-            session()->flash('success', 'Report Approved Successfully and ready for printing.');
+            $msg = ($this->testReport && $this->testReport->wasRecentlyCreated) 
+                ? 'Report Approved Successfully and ready for printing.' 
+                : 'Report Updated Successfully and ready for printing.';
+            $this->dispatch('notify', ['type' => 'success', 'message' => $msg]);
+            session()->flash('success', $msg);
 
             // Pre-generate PDF for R2 offloading
             try {
@@ -867,7 +911,9 @@ class ResultEntryManager extends Component
                 \Illuminate\Support\Facades\Log::error("Failed to pre-generate PDF: " . $e->getMessage());
             }
 
-            return redirect()->route('lab.reports');
+            if ($redirect) {
+                return redirect()->route('lab.reports');
+            }
         } else {
             $this->dispatch('notify', ['type' => 'success', 'message' => 'Draft Saved Successfully.']);
             session()->flash('success', 'Draft Saved Successfully.');
@@ -905,8 +951,9 @@ class ResultEntryManager extends Component
             return;
         }
 
-        // Save as Draft before printing to ensure TestReport exists (prevents 404) and includes the latest results
-        $this->saveReport('Draft');
+        // Save latest changes before printing: retain Approved status if already approved, otherwise Draft
+        $statusToSave = ($this->testReport && $this->testReport->status === 'Approved') ? 'Approved' : 'Draft';
+        $this->saveReport($statusToSave, false);
 
         // Printing proceeds regardless of image presence to allow for physical letterhead space
         $idsString = is_array($testIds) ? implode(',', $testIds) : $testIds;

@@ -533,8 +533,13 @@
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div class="d-flex align-items-center gap-3">
                         <div>
-                            <label class="form-label fs-11 fw-bold text-muted mb-1">Report Date & Time</label>
-                            <input type="datetime-local" class="form-control form-control-sm border-primary border-opacity-25 fw-bold text-primary" wire:model="report_date" style="max-width: 210px;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fs-11 fw-bold text-muted mb-0">Report Date & Time</label>
+                                <button type="button" wire:click="setReportDateToNow" class="btn btn-link btn-xs p-0 text-primary text-decoration-none ms-2" title="Reset to current time">
+                                    <i class="feather-clock me-1"></i>Now
+                                </button>
+                            </div>
+                            <input type="datetime-local" class="form-control form-control-sm border-primary border-opacity-25 fw-bold text-primary" wire:model.live="report_date" style="max-width: 220px;">
                         </div>
                         <div>
                             @if($testReport && $testReport->status === 'Approved')
@@ -547,12 +552,21 @@
                     
                     <div class="d-flex flex-wrap gap-2">
                         @can('edit reports')
-                            <button wire:click="saveReport('Draft')" class="btn btn-outline-primary fw-bold">
-                                <i class="feather-save me-1"></i> Save Draft
-                            </button>
-                            <button wire:click="saveReport('Approved')" class="btn btn-success fw-bold px-4" {{ ($testReport && $testReport->status === 'Approved') ? 'disabled' : '' }}>
-                                <i class="feather-check me-1"></i> Approve & Finalize
-                            </button>
+                            @if($testReport && $testReport->status === 'Approved')
+                                <button wire:click="saveReport('Draft')" class="btn btn-outline-secondary fw-bold">
+                                    <i class="feather-rotate-ccw me-1"></i> Revert to Draft
+                                </button>
+                                <button wire:click="saveReport('Approved')" class="btn btn-success fw-bold px-4">
+                                    <i class="feather-check-circle me-1"></i> Update Report
+                                </button>
+                            @else
+                                <button wire:click="saveReport('Draft')" class="btn btn-outline-primary fw-bold">
+                                    <i class="feather-save me-1"></i> Save Draft
+                                </button>
+                                <button wire:click="saveReport('Approved')" class="btn btn-success fw-bold px-4">
+                                    <i class="feather-check me-1"></i> Approve & Finalize
+                                </button>
+                            @endif
                         @endcan
                         <button wire:click="printSelected(1)" class="btn btn-info text-white fw-bold">
                             <i class="feather-printer me-1"></i> Print (With Header)
