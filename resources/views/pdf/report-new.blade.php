@@ -726,33 +726,37 @@
                     {{-- ── Culture Results Layout ── --}}
                     <table class="result-table" style="margin-bottom:15px; width:100%;">
                         <tbody>
+                            @if(!empty(trim($cr->specimen ?? '')))
                             <tr>
                                 <td style="width:25%; font-weight:700; border-bottom: none !important;">Specimen</td>
                                 <td style="width:75%; border-bottom: none !important;">: {{ $cr->specimen }}</td>
                             </tr>
-                            @if($cr->growth_status)
+                            @endif
+                            @if(!empty(trim($cr->growth_status ?? '')))
                             <tr>
                                 <td style="font-weight:700; border-bottom: none !important;">Result</td>
                                 <td style="font-weight:700; border-bottom: none !important;">: {{ $cr->growth_status }}</td>
                             </tr>
                             @endif
-                            @if($cr->incubation_period)
+                            @if(!empty(trim($cr->incubation_period ?? '')))
                             <tr>
                                 <td style="font-weight:700; border-bottom: none !important;">Incubation Period</td>
                                 <td style="border-bottom: none !important;">: {{ $cr->incubation_period }}</td>
                             </tr>
                             @endif
+                            @if(!empty(trim($cr->organism_name ?? '')))
                             <tr>
                                 <td style="font-weight:700; border-bottom: none !important;">Organism Isolated</td>
                                 <td style="font-weight:700; color:#b00; border-bottom: none !important;">: {{ $cr->organism_name }}</td>
                             </tr>
-                            @if($cr->colony_count)
+                            @endif
+                            @if(!empty(trim($cr->colony_count ?? '')))
                             <tr>
                                 <td style="font-weight:700; border-bottom: none !important;">Colony Count</td>
                                 <td style="border-bottom: none !important;">: {{ $cr->colony_count }}</td>
                             </tr>
                             @endif
-                            @if($cr->remarks)
+                            @if(!empty(trim($cr->remarks ?? '')))
                             <tr>
                                 <td style="font-weight:700; border-bottom: none !important;">Remarks</td>
                                 <td style="border-bottom: none !important;">: {{ $cr->remarks }}</td>

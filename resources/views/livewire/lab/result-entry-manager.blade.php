@@ -200,7 +200,6 @@
                                                                      <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Incubation</label>
                                                                      <input type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.incubation_period" placeholder="e.g. 48 hours at 37°C">
                                                                  </div>
-                                                                 @if(!in_array($cultureData[$cKey]['growth_status'] ?? '', ['No Growth', 'Sterile']))
                                                                  <div class="col-md-3">
                                                                      <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Organism Isolated</label>
                                                                      <input list="organism-list" type="text" class="form-control form-control-sm border-info" wire:model.live="cultureData.{{ $cKey }}.organism_name" placeholder="e.g. E. coli">
@@ -209,7 +208,6 @@
                                                                      <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Colony Count</label>
                                                                      <input list="colony-list" type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.colony_count" placeholder="e.g. 10^5 CFU/ml">
                                                                  </div>
-                                                                 @endif
                                                                  <div class="col-12">
                                                                      <label class="form-label fs-11 fw-bold text-muted text-uppercase mb-1">Remarks / Note</label>
                                                                      <input type="text" class="form-control form-control-sm" wire:model.live="cultureData.{{ $cKey }}.remarks" placeholder="Additional culture notes...">

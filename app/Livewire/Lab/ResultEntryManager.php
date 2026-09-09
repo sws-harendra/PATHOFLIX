@@ -704,9 +704,7 @@ class ResultEntryManager extends Component
                 $cData = $this->cultureData[$key] ?? [];
                 $growth = $cData['growth_status'] ?? '';
                 if (empty(trim($cData['specimen'] ?? '')) || empty(trim($growth))) {
-                    $missingParams[] = $details['test_name'] . " (Culture Data Missing)";
-                } elseif (!in_array($growth, ['No Growth', 'Sterile']) && empty(trim($cData['organism_name'] ?? ''))) {
-                    $missingParams[] = $details['test_name'] . " (Organism Name Missing)";
+                    $missingParams[] = $details['test_name'] . " (Specimen or Growth status missing)";
                 }
             }
 
@@ -841,12 +839,12 @@ class ResultEntryManager extends Component
                     'lab_test_id' => $details['lab_test_id'],
                 ],
                 [
-                    'specimen' => $cData['specimen'] ?? null,
-                    'growth_status' => $cData['growth_status'] ?? null,
-                    'incubation_period' => $cData['incubation_period'] ?? null,
-                    'organism_name' => $cData['organism_name'] ?? null,
-                    'colony_count' => $cData['colony_count'] ?? null,
-                    'remarks' => $cData['remarks'] ?? null,
+                    'specimen' => !empty(trim($cData['specimen'] ?? '')) ? trim($cData['specimen']) : null,
+                    'growth_status' => !empty(trim($cData['growth_status'] ?? '')) ? trim($cData['growth_status']) : null,
+                    'incubation_period' => !empty(trim($cData['incubation_period'] ?? '')) ? trim($cData['incubation_period']) : null,
+                    'organism_name' => !empty(trim($cData['organism_name'] ?? '')) ? trim($cData['organism_name']) : null,
+                    'colony_count' => !empty(trim($cData['colony_count'] ?? '')) ? trim($cData['colony_count']) : null,
+                    'remarks' => !empty(trim($cData['remarks'] ?? '')) ? trim($cData['remarks']) : null,
                 ]
             );
 

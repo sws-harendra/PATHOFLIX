@@ -412,33 +412,37 @@
                         <tr>
                             <td colspan="4" style="padding: 10px 15px;">
                                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                                    @if(!empty(trim($cr->specimen ?? '')))
                                     <tr>
                                         <td style="width:25%; font-weight:bold; border: none; padding: 3px 0;">Specimen</td>
                                         <td style="width:75%; border: none; padding: 3px 0;">: {{ $cr->specimen }}</td>
                                     </tr>
-                                    @if($cr->growth_status)
+                                    @endif
+                                    @if(!empty(trim($cr->growth_status ?? '')))
                                     <tr>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">Result</td>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">: {{ $cr->growth_status }}</td>
                                     </tr>
                                     @endif
-                                    @if($cr->incubation_period)
+                                    @if(!empty(trim($cr->incubation_period ?? '')))
                                     <tr>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">Incubation Period</td>
                                         <td style="border: none; padding: 3px 0;">: {{ $cr->incubation_period }}</td>
                                     </tr>
                                     @endif
+                                    @if(!empty(trim($cr->organism_name ?? '')))
                                     <tr>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">Organism Isolated</td>
                                         <td style="font-weight:bold; color:#b00; border: none; padding: 3px 0;">: {{ $cr->organism_name }}</td>
                                     </tr>
-                                    @if($cr->colony_count)
+                                    @endif
+                                    @if(!empty(trim($cr->colony_count ?? '')))
                                     <tr>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">Colony Count</td>
                                         <td style="border: none; padding: 3px 0;">: {{ $cr->colony_count }}</td>
                                     </tr>
                                     @endif
-                                    @if($cr->remarks)
+                                    @if(!empty(trim($cr->remarks ?? '')))
                                     <tr>
                                         <td style="font-weight:bold; border: none; padding: 3px 0;">Remarks</td>
                                         <td style="border: none; padding: 3px 0;">: {{ $cr->remarks }}</td>
