@@ -276,6 +276,36 @@
             display: block;
         }
 
+        .test-wrapper-block {
+            width: 100%;
+            display: block;
+        }
+
+        .avoid-break-inside {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .avoid-break-inside .test-card {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .avoid-break-inside .result-table {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .avoid-break-inside .interp-block {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .avoid-break-inside .remarks-block {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
         .method-line {
             text-align: center;
             font-size: 9px;
@@ -322,6 +352,8 @@
             color: #000;
             background: #fbfbfb;
             line-height: {{ $tableLineHeight }};
+        }
+
         .result-table tbody td {
             padding: {{ $verticalSpacing }} 6px;
             vertical-align: top;
@@ -676,7 +708,8 @@
         $deptIndex = 0;
         $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
         $previousTestHadBreak = false;
-    @endphp
+
+        @endphp
 
     @foreach($groupedResults as $deptId => $data)
         @php
@@ -692,34 +725,32 @@
                 $labTest = $testData['labTest'];
                 $results = $testData['results'];
                 $currentItemId = (string)($testData['invoice_item_id'] ?? '');
-            @endphp
 
-            {{-- Page break logic --}}
-            @php
+                // Page break logic
                 $isFirstInDept = ($testInDeptIndex === 0);
                 $hasCustomBreak = ($pageBreakMode === 'custom' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
+
+                $shouldBreak = false;
+                if ($pageBreakMode === 'custom' && isset($pageBreakIds)) {
+                    $shouldBreak = ($testIndex > 0 && $hasCustomBreak);
+                } elseif ($pageBreakMode === 'test') {
+                    $shouldBreak = ($testIndex > 0);
+                } elseif ($pageBreakMode === 'department') {
+                    $shouldBreak = ($deptIndex > 0 && $isFirstInDept);
+                }
             @endphp
 
-            @if($pageBreakMode === 'custom' && isset($pageBreakIds))
-                @if($testIndex > 0 && $hasCustomBreak)
-                    <div style="page-break-before: always;"></div>
-                @endif
-            @elseif($pageBreakMode === 'test')
-                @if($testIndex > 0)
-                    <div style="page-break-before: always;"></div>
-                @endif
-            @elseif($pageBreakMode === 'department')
-                @if($deptIndex > 0 && $isFirstInDept)
-                    <div style="page-break-before: always;"></div>
-                @endif
+            @if($shouldBreak)
+                <div style="page-break-before: always;"></div>
             @endif
 
-            {{-- ── Test Card (Avoid page breaks separating title & parameters) ── --}}
-            <div class="test-card">
-                @if($pageBreakMode === 'test' || $isFirstInDept || $hasCustomBreak)
-                    <div class="dept-title">{{ strtoupper($deptName) }}</div>
-                @endif
-                <div class="test-title">{{ strtoupper($testName) }}</div>
+            {{-- ── Test Unit Container (Avoid page breaks inside test) ── --}}
+            <div class="test-wrapper-block {{ $pageBreakMode === 'auto_fit' ? 'avoid-break-inside' : '' }}">
+                <div class="test-card">
+                    @if($pageBreakMode === 'test' || $isFirstInDept || $hasCustomBreak)
+                        <div class="dept-title">{{ strtoupper($deptName) }}</div>
+                    @endif
+                    <div class="test-title">{{ strtoupper($testName) }}</div>
 
                 @if($testData['cultureResult'])
                     @php $cr = $testData['cultureResult']; @endphp
@@ -982,6 +1013,8 @@
                 @endif
             @endif
 
+            </div> {{-- ── End .test-wrapper-block ── --}}
+
             @php 
                 $testIndex++; 
                 $testInDeptIndex++;
@@ -992,7 +1025,7 @@
 
     {{-- ── Global Report Comments ── --}}
     @if($report->comments)
-        <div class="doctor-comments">
+        <div class="doctor-comments {{ $pageBreakMode === 'auto_fit' ? 'avoid-break-inside' : '' }}">
             <div class="interp-label">Doctor's Comments / Interpretation:</div>
             <div class="interp-content">
                 {!! $report->comments !!}

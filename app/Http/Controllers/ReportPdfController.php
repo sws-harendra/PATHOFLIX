@@ -167,8 +167,8 @@ class ReportPdfController extends Controller
             $rawBreaks = trim($request->get('breaks', ''));
             if ($rawBreaks !== '') {
                 $pageBreakIds = array_values(array_filter(array_map('trim', explode(',', $rawBreaks))));
-                // Only override to custom if page_break_mode is not already continuous, or if explicitly requested
-                if (!empty($pageBreakIds) && ($settings['pdf_page_break_mode'] ?? '') !== 'continuous') {
+                // Only override to custom if page_break_mode is not already continuous / auto_fit, or if explicitly requested
+                if (!empty($pageBreakIds) && !in_array($settings['pdf_page_break_mode'] ?? '', ['continuous', 'auto_fit'])) {
                     $settings['pdf_page_break_mode'] = 'custom';
                 }
             }

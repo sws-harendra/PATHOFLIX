@@ -825,10 +825,11 @@
                                                     <label class="form-label fs-13 text-muted mt-3">Report Page Break Mode</label>
                                                     <select wire:model="pdf_page_break_mode" class="form-select mb-2">
                                                         <option value="continuous">Continuous (No page breaks)</option>
+                                                        <option value="auto_fit">Auto Fit (Smart Page Fit - Prevent test cut across pages)</option>
                                                         <option value="department">Department Wise (Break before each department)</option>
                                                         <option value="test">Single Test Per Page (Break before each test)</option>
                                                     </select>
-                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Control how tests and departments are printed across pages.</small>
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Control how tests and departments are printed across pages. <strong>Auto Fit</strong> automatically fits tests on the page and prevents any test from being cut in half across pages.</small>
                                                 </div>
                                             </div>
                                         </div>
