@@ -359,8 +359,10 @@ class ReportPdfController extends Controller
             'pageBreakIds' => $pageBreakIds,
         ])->setPaper('A4', 'portrait');
 
-        $filename = 'Report_' . str_replace(' ', '_', $report->invoice->patient->name)
-            . '_' . $report->invoice->invoice_number . '.pdf';
+        $patientName = sanitize_filename($report->invoice->patient?->name, 'Patient');
+        $invoiceNumber = sanitize_filename($report->invoice->invoice_number, (string) $report->invoice_id);
+
+        $filename = 'Report_' . $patientName . '_' . $invoiceNumber . '.pdf';
 
         return $pdf->stream($filename);
     }

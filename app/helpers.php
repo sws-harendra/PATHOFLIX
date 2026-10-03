@@ -88,3 +88,32 @@ if (!function_exists('generate_qr_base64')) {
         return (new \chillerlan\QRCode\QRCode($options))->render($data);
     }
 }
+
+if (!function_exists('sanitize_filename')) {
+    /**
+     * Sanitize a filename to be safe for HTTP headers (Content-Disposition)
+     * and file systems, removing slashes, non-ASCII chars, etc.
+     */
+    function sanitize_filename(?string $name, string $fallback = 'document'): string
+    {
+        if (empty($name)) {
+            return $fallback;
+        }
+
+        // Replace slashes and backslashes with hyphens
+        $clean = str_replace(['/', '\\'], '-', $name);
+        // Transliterate accented / non-ASCII characters to ASCII
+        $clean = \Illuminate\Support\Str::ascii($clean);
+        // Replace spaces with underscores
+        $clean = str_replace(' ', '_', $clean);
+        // Keep only safe alphanumeric characters, underscores, and hyphens
+        $clean = preg_replace('/[^A-Za-z0-9_\-]/', '', $clean);
+        // Collapse multiple dashes or underscores
+        $clean = preg_replace('/[-_]{2,}/', '_', $clean);
+        // Trim leading and trailing punctuation
+        $clean = trim($clean, '_-');
+
+        return !empty($clean) ? $clean : $fallback;
+    }
+}
+

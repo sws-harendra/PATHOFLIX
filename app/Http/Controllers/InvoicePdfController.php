@@ -137,7 +137,8 @@ class InvoicePdfController extends Controller
             $pdf->setPaper('a4', 'portrait');
         }
 
-        return $pdf->stream('Invoice-' . $invoice->invoice_number . '.pdf');
+        $invoiceNumber = sanitize_filename($invoice->invoice_number, (string) $invoice->id);
+        return $pdf->stream('Invoice-' . $invoiceNumber . '.pdf');
     }
 
     public function previewTemplate($template)
@@ -232,6 +233,7 @@ class InvoicePdfController extends Controller
             $pdf->setPaper('a4', 'portrait');
         }
 
-        return $pdf->stream('Preview-' . ucfirst($template) . '-Template.pdf');
+        $safeTemplate = sanitize_filename($template, 'Template');
+        return $pdf->stream('Preview-' . ucfirst($safeTemplate) . '-Template.pdf');
     }
 }
