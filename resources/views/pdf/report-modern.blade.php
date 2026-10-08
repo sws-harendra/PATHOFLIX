@@ -365,10 +365,13 @@
 
                 $isFirstInDept = ($testInDeptIndex === 0);
                 $hasCustomBreak = ($pageBreakMode === 'custom' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
+                $hasCompactBreak = ($pageBreakMode === 'compact_fit' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
 
                 $shouldBreak = false;
                 if ($pageBreakMode === 'custom' && isset($pageBreakIds)) {
                     $shouldBreak = ($testIndex > 0 && $hasCustomBreak);
+                } elseif ($pageBreakMode === 'compact_fit' && isset($pageBreakIds)) {
+                    $shouldBreak = ($testIndex > 0 && $hasCompactBreak);
                 } elseif ($pageBreakMode === 'test') {
                     $shouldBreak = ($testIndex > 0);
                 }

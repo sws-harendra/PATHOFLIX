@@ -167,8 +167,8 @@ class ReportPdfController extends Controller
             $rawBreaks = trim($request->get('breaks', ''));
             if ($rawBreaks !== '') {
                 $pageBreakIds = array_values(array_filter(array_map('trim', explode(',', $rawBreaks))));
-                // Only override to custom if page_break_mode is not already continuous / auto_fit, or if explicitly requested
-                if (!empty($pageBreakIds) && !in_array($settings['pdf_page_break_mode'] ?? '', ['continuous', 'auto_fit'])) {
+                // Only override to custom if page_break_mode is not already continuous / auto_fit / compact_fit, or if explicitly requested
+                if (!empty($pageBreakIds) && !in_array($settings['pdf_page_break_mode'] ?? '', ['continuous', 'auto_fit', 'compact_fit'])) {
                     $settings['pdf_page_break_mode'] = 'custom';
                 }
             }
@@ -264,7 +264,12 @@ class ReportPdfController extends Controller
         }
 
         // ── Ordering & Department Grouping ──────────────────────────────────
-        if ($request->has('tests')) {
+        $pageBreakMode = $settings['pdf_page_break_mode'] ?? 'test';
+
+        if ($pageBreakMode === 'compact_fit') {
+            [$groupedResults, $compactBreaks] = $this->packTestsForCompactFit($allTests, $report, $settings, $template, $pageBreakIds);
+            $pageBreakIds = $compactBreaks;
+        } elseif ($request->has('tests')) {
             $testIds = array_values(array_filter(array_map('trim', explode(',', $request->tests))));
             $testIdOrder = array_flip($testIds);
             // Sort by order specified in ?tests=
@@ -413,5 +418,176 @@ class ReportPdfController extends Controller
                 'reported_at' => $reportedAt,
             ]];
         });
+    }
+
+    /**
+     * Compact Page Fit: Ignores sequence order and packs tests into pages
+     * so that maximum tests fit on each page without cutting any test across pages.
+     */
+    protected function packTestsForCompactFit($allTests, $report, $settings, $template, $existingPageBreakIds = null)
+    {
+        if ($allTests->count() <= 1) {
+            $groupedResults = $allTests->groupBy(function ($testData) {
+                return $testData['labTest']->department_id ?? 0;
+            })->map(function ($deptGroup) use ($report) {
+                return [
+                    'department' => $deptGroup->first()['labTest']->dept ?? null,
+                    'tests' => $this->mapTestsForPdfGroup($deptGroup, $report),
+                ];
+            });
+
+            return [$groupedResults, $existingPageBreakIds];
+        }
+
+        // Available height per page in pixels (DomPDF A4 is 1122.5px tall at 96 DPI)
+        if ($template === 'modern') {
+            $top = $settings['pdf_show_header'] ? 130 : 30;
+            $bottom = $settings['pdf_show_footer'] ? 100 : 30;
+            $availHeight = 1122.5 - ($top + $bottom);
+        } else {
+            $top = (float)($settings['pdf_margin_top'] ?? 310);
+            $bottom = (float)($settings['pdf_margin_bottom'] ?? 255);
+            $availHeight = 1122.5 - ($top + $bottom);
+        }
+
+        // Greedy packing of tests into pages
+        $remaining = $allTests->values();
+        $packedPages = [];
+
+        while ($remaining->isNotEmpty()) {
+            $currentPage = collect([$remaining->shift()]);
+            $currentMinH = $this->estimateMinTestHeight($currentPage->first());
+
+            $i = 0;
+            while ($i < $remaining->count()) {
+                $candidate = $remaining[$i];
+                $candMinH = $this->estimateMinTestHeight($candidate);
+
+                // Fast lower-bound check before invoking DomPDF
+                if (($currentMinH + $candMinH) <= $availHeight) {
+                    $testCandidateGroup = $currentPage->concat([$candidate]);
+                    if ($this->checkCandidateFitInDomPdf($testCandidateGroup, $settings, $report, $template)) {
+                        $currentPage->push($candidate);
+                        $currentMinH += $candMinH;
+                        $remaining->splice($i, 1);
+                        continue;
+                    }
+                }
+                $i++;
+            }
+
+            $packedPages[] = $currentPage;
+        }
+
+        // Flatten reordered tests & assign page breaks for start of each page > 1
+        $reorderedTests = collect();
+        $compactBreakIds = [];
+
+        foreach ($packedPages as $pageIdx => $pageTests) {
+            if ($pageIdx > 0 && $pageTests->isNotEmpty()) {
+                $compactBreakIds[] = (string) $pageTests->first()['invoice_item_id'];
+            }
+            foreach ($pageTests as $testItem) {
+                $reorderedTests->push($testItem);
+            }
+        }
+
+        // Group contiguous tests by department to preserve the packed sequence
+        $groupedResults = collect();
+        $chunkIndex = 0;
+        $currentDeptId = null;
+        $currentChunk = collect();
+
+        foreach ($reorderedTests as $testData) {
+            $deptId = $testData['labTest']->department_id ?? 0;
+            if ($currentDeptId !== null && $deptId !== $currentDeptId) {
+                $groupedResults->put('group_' . $chunkIndex, [
+                    'department' => $currentChunk->first()['labTest']->dept ?? null,
+                    'tests' => $this->mapTestsForPdfGroup($currentChunk, $report),
+                ]);
+                $chunkIndex++;
+                $currentChunk = collect();
+            }
+            $currentDeptId = $deptId;
+            $currentChunk->push($testData);
+        }
+
+        if ($currentChunk->isNotEmpty()) {
+            $groupedResults->put('group_' . $chunkIndex, [
+                'department' => $currentChunk->first()['labTest']->dept ?? null,
+                'tests' => $this->mapTestsForPdfGroup($currentChunk, $report),
+            ]);
+        }
+
+        return [$groupedResults, $compactBreakIds];
+    }
+
+    /**
+     * Check if a candidate group of tests fits on 1 page in DomPDF without assets overhead
+     */
+    protected function checkCandidateFitInDomPdf($candidateTests, $settings, $report, $template)
+    {
+        $dummyGrouped = collect();
+        $dummyGrouped->put('group_0', [
+            'department' => $candidateTests->first()['labTest']->dept ?? null,
+            'tests' => $this->mapTestsForPdfGroup($candidateTests, $report),
+        ]);
+
+        $viewName = 'pdf.report-' . $template;
+        if (!view()->exists($viewName)) {
+            $viewName = 'pdf.report-new';
+        }
+
+        $simulationSettings = array_merge($settings, [
+            'pdf_header_image' => null,
+            'pdf_footer_image' => null,
+            'pdf_letterhead_image' => null,
+            'pdf_watermark_image' => null,
+            'global_sig_1_path' => null,
+            'global_sig_2_path' => null,
+            'global_sig_3_path' => null,
+            'pdf_page_break_mode' => 'auto_fit',
+        ]);
+
+        try {
+            $html = view($viewName, [
+                'report' => $report,
+                'reportDate' => now(),
+                'invoice' => $report->invoice,
+                'patient' => $report->invoice->patient,
+                'profile' => $report->invoice->patient->patientProfile,
+                'groupedResults' => $dummyGrouped,
+                'settings' => $simulationSettings,
+                'company' => $report->invoice->company,
+                'showHeader' => false,
+                'showFooter' => false,
+                'qrCodeUri' => '',
+                'barcodeUri' => '',
+                'pageBreakIds' => null,
+            ])->render();
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('A4', 'portrait');
+            $pdf->getDomPDF()->render();
+            return $pdf->getDomPDF()->getCanvas()->get_page_count() === 1;
+        } catch (\Throwable $e) {
+            \Log::warning('Compact fit check exception: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Quick lower bound minimum height estimation for a test
+     */
+    protected function estimateMinTestHeight($testData)
+    {
+        $resultsCount = isset($testData['results']) ? $testData['results']->count() : 0;
+        $h = 55 + ($resultsCount * 15);
+        if (!empty($testData['labTest']->interpretation)) {
+            $h += 30;
+        }
+        if (!empty($testData['cultureResult'])) {
+            $h += 100;
+        }
+        return $h;
     }
 }

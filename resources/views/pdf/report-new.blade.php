@@ -729,10 +729,13 @@
                 // Page break logic
                 $isFirstInDept = ($testInDeptIndex === 0);
                 $hasCustomBreak = ($pageBreakMode === 'custom' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
+                $hasCompactBreak = ($pageBreakMode === 'compact_fit' && isset($pageBreakIds) && in_array((string)$currentItemId, array_map('strval', $pageBreakIds)));
 
                 $shouldBreak = false;
                 if ($pageBreakMode === 'custom' && isset($pageBreakIds)) {
                     $shouldBreak = ($testIndex > 0 && $hasCustomBreak);
+                } elseif ($pageBreakMode === 'compact_fit' && isset($pageBreakIds)) {
+                    $shouldBreak = ($testIndex > 0 && $hasCompactBreak);
                 } elseif ($pageBreakMode === 'test') {
                     $shouldBreak = ($testIndex > 0);
                 } elseif ($pageBreakMode === 'department') {
@@ -745,9 +748,9 @@
             @endif
 
             {{-- ── Test Unit Container (Avoid page breaks inside test) ── --}}
-            <div class="test-wrapper-block {{ $pageBreakMode === 'auto_fit' ? 'avoid-break-inside' : '' }}">
+            <div class="test-wrapper-block {{ in_array($pageBreakMode, ['auto_fit', 'compact_fit']) ? 'avoid-break-inside' : '' }}">
                 <div class="test-card">
-                    @if($pageBreakMode === 'test' || $isFirstInDept || $hasCustomBreak)
+                    @if($pageBreakMode === 'test' || $isFirstInDept || $hasCustomBreak || $hasCompactBreak)
                         <div class="dept-title">{{ strtoupper($deptName) }}</div>
                     @endif
                     <div class="test-title">{{ strtoupper($testName) }}</div>
@@ -1025,7 +1028,7 @@
 
     {{-- ── Global Report Comments ── --}}
     @if($report->comments)
-        <div class="doctor-comments {{ $pageBreakMode === 'auto_fit' ? 'avoid-break-inside' : '' }}">
+        <div class="doctor-comments {{ in_array($pageBreakMode, ['auto_fit', 'compact_fit']) ? 'avoid-break-inside' : '' }}">
             <div class="interp-label">Doctor's Comments / Interpretation:</div>
             <div class="interp-content">
                 {!! $report->comments !!}

@@ -826,10 +826,11 @@
                                                     <select wire:model="pdf_page_break_mode" class="form-select mb-2">
                                                         <option value="continuous">Continuous (No page breaks)</option>
                                                         <option value="auto_fit">Auto Fit (Smart Page Fit - Prevent test cut across pages)</option>
+                                                        <option value="compact_fit">Auto Fit - Compact (Ignore sequence & adjust all fitting tests per page)</option>
                                                         <option value="department">Department Wise (Break before each department)</option>
                                                         <option value="test">Single Test Per Page (Break before each test)</option>
                                                     </select>
-                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Control how tests and departments are printed across pages. <strong>Auto Fit</strong> automatically fits tests on the page and prevents any test from being cut in half across pages.</small>
+                                                    <small class="text-muted d-block"><i class="feather-info me-1"></i> Control how tests and departments are printed across pages. <strong>Auto Fit</strong> automatically fits tests in sequence. <strong>Auto Fit - Compact</strong> ignores sequence order and adjusts maximum tests together onto each page to save paper.</small>
                                                 </div>
                                             </div>
                                         </div>
